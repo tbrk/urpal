@@ -1,3 +1,5 @@
+# $Id$
+
 HEAP_SUFFIX=x86-bsd
 
 MLYACC=mlyacc
