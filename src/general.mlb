@@ -8,6 +8,8 @@ local
     ./graphviz/sources.mlb
     ./config/sources.mlb
 
+    version.sml
+
     settings.sig
     settings-rw.sig
     settings-rw.sml

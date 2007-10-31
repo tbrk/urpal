@@ -2,7 +2,8 @@
 
 structure SettingsRW :> SETTINGS_RW =
 struct
-  val version                    = "v0.5.0"
+  val version                    = concat [Version.version, " (",
+                                           Version.svnversion, ")"]
   val progName                   = "urpal"
 
   datatype debug_priority = All | VeryDetailed | Detailed | Outline | NoDebug

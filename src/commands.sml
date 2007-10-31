@@ -91,7 +91,8 @@ struct
                                         Settings.version),
                                 options=optionList});
                               TextIO.print "\n")
-      | ShowVersion      => opt before TextIO.print (Settings.version ^ "\n")
+      | ShowVersion      => opt before TextIO.print (Settings.progName ^ " " ^
+                                                     Settings.version  ^ "\n")
       | InputFile f      => {inputfile=SOME f,outputfile=outf}
                             before warningIfUsed inf
       | OutputFile f     => {outputfile=SOME f, inputfile=inf}

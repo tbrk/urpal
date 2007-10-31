@@ -9,6 +9,7 @@ is
     settings.sml
 
     util.sml
+    version.sml
 
     ./graphviz/sources.cm
     ./config/sources.cm
