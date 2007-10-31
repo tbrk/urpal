@@ -1,5 +1,4 @@
 (* $Id$ *)
-
 local
     $(SML_LIB)/basis/basis.mlb
 
