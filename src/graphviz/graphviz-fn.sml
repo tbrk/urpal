@@ -64,9 +64,9 @@ struct
   fun makePlain g v = let
     val proc  = OpSys.execute (graphToPath g, ["-Tplain"])
     val ostrm = OpSys.textOutstreamOf proc
-    val istrm = TextIO.getInstream (OpSys.textInstreamOf proc)
     val _     = output (ostrm, v)
     val _     = TextIO.closeOut ostrm
+    val istrm = TextIO.getInstream (OpSys.textInstreamOf proc)
 
     val (plain, istrm') = case Plain.scan TextIO.StreamIO.input1 istrm of
                             NONE                 => (NONE, istrm)

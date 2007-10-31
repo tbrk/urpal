@@ -21,6 +21,7 @@ is
     graphviz.sig
     graphviz-fn.sml
 
+    hack-opsys.sml
 #if defined(OPSYS_WIN32)
     win-graphviz.sml
 #else

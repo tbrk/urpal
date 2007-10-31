@@ -6,6 +6,8 @@ structure Graphviz = Graphviz (
           val warn = fn msgs => TextIO.output (TextIO.stdErr,concat msgs ^"\n")
 
           structure Plain = TextPlain
-          structure OpSys = Windows
+
+          structure OpSys = HackOpSys
+          (*structure OpSys = Windows (* Not included with SML/NJ *)*)
         )
 
