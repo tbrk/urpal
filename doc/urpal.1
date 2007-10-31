@@ -1,0 +1,397 @@
+.\" $Id$
+.\"
+.Dd October 28, 2007
+.Dt URPAL 1
+.Sh NAME
+.Nm urpal
+.Nd manipulate Uppaal models from the command-line
+.Sh SYNOPSIS
+.Nm
+.Op Fl h Fl v Fl t
+.Op Fl i Ar file
+.Op Fl o Ar file
+.Op Fl e Ar commands
+.Op Fl f Ar scriptfile
+.Op Fl s Ar settings
+.Op Fl c Ar configfile
+.Nm
+.Op Fl s Ar settings
+.Op Fl c Ar configfile
+.Op Fl -showconfig
+.Nm
+.Op Fl i Ar file
+.Op Fl o Ar file
+.Op Fl s Ar settings
+.Op Fl c Ar configfile
+.Op Fl -testflip
+.\"
+.Sh DESCRIPTION
+Urpal is your pal for Uppaal.
+It parses an XML file containing timed automaton templates, performs
+requested manipulations using a simple command language, and finally
+writes the results back to file.
+The prime feature is the ability to construct a testing automaton for
+determining trace inclusion for a restricted class of timed automata.
+It is also able to: duplicate automata; create automata to ready to accept
+all synchronisations on a set of channels; prune transitions based on
+synchronising action; conflate, drop and rename locations; and scale
+graphical representations.
+.Pp
+When constructing test automata, most, but not all, modelling features are
+supported.
+Automata must be deterministic, the tool does not check this assumption, and
+every transition must be labelled.
+Urgent locations are expanded by adding an additional clock and invariant
+constraint.
+Urgent channels and shared variables are addressed using the constructions of
+Jensen, Larsen and Skou
+.Pq refer Sx SEE ALSO .
+Committed locations and broadcast channels are not handled (warnings are
+displayed).
+Certain combinations of universal quantifiers, selection bindings, and
+channel arrays are rejected
+.Pq refer Bourke and Sowmya, Sx SEE ALSO .
+.\"
+.Ss Settings
+Several tool parameters can be specified via configuration files.
+Urpal checks for configuration files in order:
+.Pa INSTALLPREFIX/etc/urpalrc ,
+.Pa $HOME/.urpalrc ,
+and
+.Pa $CWD/urpalrc .
+Settings are specified as name=value pairs.
+Named hierarchical sections are written in the form
+.Dl section_name { ... }
+Comments follow the conventions of C, except that they may be nested, that
+is single line comments are written after a
+.Li //
+and multi-line comments between
+.Li /*
+and
+.Li */ .
+Paths and strings are written between double quotes.
+The available settings are
+.Bl -tag -compact
+.It Sy dtd_path
+Path to the
+.Pa flat-1_1.dtd
+file giving the Uppaal Document Type Definition.
+If not given, Urpal attempts to fetch the necessary information from the
+network at every run.
+.It Sy max_label_width
+The wrapping length, as a number of characters, for transition labels.
+.It Sy max_declaration_width
+The wrapping length, as a number of characters, for declarations.
+.It Sy new_color
+The color, in
+.Li #RRGGBB
+format, to use for new locations and transitions when there is not a more
+specific setting.
+.It Sy error_color
+The color to use for the
+.Li Err
+location added by the
+.Li maketest
+operation, and for transitions to that location.
+.It Sy urgent_chanloc_color
+The color to use for locations and transitions added by the
+.Li maketest
+operation when handling urgent channels.
+.It Sy split_shift_old, split_shift_new
+sections containing
+.Li x
+and
+.Li y
+entries.
+When a location is
+.Sq split
+as part of the
+.Li maketest
+urgent channel construction,
+these parameters specify how far to shift the two components from the
+original location.
+By default, the original location is left in place and the urgency testing
+location is positioned automatically, but often the result is not very
+pleasing.
+.It Sy tabulate_shift
+A section containing
+.Li x
+and
+.Li y
+entries, specifying where to locate the results of
+.Li tabulate ,
+relative to the transition source location.
+.It Sy graphviz
+Contains two subentries
+.Bl -tag -compact
+.It Sy path
+Locates the
+.Xr graphviz 7
+installation directory, which must contain a
+.Pa bin
+subdirectory.
+.It Sy engine
+Specifies which layout algorithm to use, either
+.Xr fdp 1
+or
+.Xr neato 1 .
+One will often give a better result than the other for a given automaton.
+.El
+.It Sy debug
+Enable debugging output. 0=all, 1=very detailed, 2=detailed, 3=outline,
+4=none.
+.El
+.\"
+.Ss Command language
+The environment is a set of name/value pairs.
+It is initialized from the Uppaal model file, by creating an entry for each
+template, a
+.Ad channels
+entry containing all of the global channel names, and a
+.Ad variables
+entry containing all of the (non-const, non-clock) global variable names.
+When command evaluation is complete, all templates in the environment are
+written to the output model file.
+Command names cannot be used variable identifiers.
+Each command must be terminated with a semi-colon.
+.Pp
+The basic commands are
+.Bl -tag -compact
+.It Sy help
+Show a list of expression operators.
+.It Sy list
+Prints out all template names, one per line.
+.It Sy show
+Prints out all variable names and values.
+.It Sy show Ar id
+Prints out the value of the specified variable.
+.It Sy id = Ar expr
+Evaluates the expression and assigns the result to the given variable.
+This command can be used to duplicate templates, by assigning them to a new
+name.
+.It Sy drop Ar expr
+Removes the given identifier from the environment.
+.It Sy writegraphics ( Ar expr , Ar path , Ar PS | Dot | SVG )
+Rudimentary graphics output.
+The expression must evaluate to a template, whose depiction will be written
+to the given path in the specified format (Postscript, Graphviz dot, or
+Scalable Vector Graphics format).
+.It Sy quit
+End an interactive terminal session.
+.El
+.Pp
+All expressions have one of these types
+.Bl -tag -compact
+.It Sy template
+Templates are read from, and written back into, Uppaal model files.
+.It Sy name set
+Names of locations or channels which are written between braces and
+separated by commas, e.g. 
+.Li { a, b, c} .
+It is not possible to specify individual elements of channel arrays,
+also operators like
+.Sy names
+and
+.Sy channels
+over approximate by returning the array name whenever a single element is
+referenced.
+.It Sy action set
+When naming channels, a limiting input or output direction may be
+specified after a name if the set is enclosed in bar-braces, e.g.
+.Li {| a!, b, c? |} .
+Name sets are automatically coerced into action sets as required.
+.It Sy name map
+Specify functions from names to other names, e.g.
+.Li { a -> b, c -> a, b <-> d } .
+Any name not given is mapped to itself.
+A double arrow indicates a swap, i.e.
+.Li { b <-> d }
+is shorthand for
+.Li { b -> d, d -> b } .
+.It Sy actionmap map
+Specify functions from actions to other actions, e.g.
+.Li {| a! -> b?, a? -> b!, c? <-> c! |} .
+Name maps are automatically coerced into action maps as required.
+.El
+.Pp
+Several operators are available for constructing expressions
+.Bl -tag -compact
+.It Fn acceptall actionset
+Create an automaton that is always ready to synchronise on the given actions.
+.It Fn channels template
+Gives a nameset of all actions performed by the template.
+.It Fn conflate template namemap
+For each
+.Li n -> n'
+in the namemap, all transitions to or from
+.Li n
+are shifted to
+.Li n' ,
+and the former is removed.
+.It Fn drop template nameset
+Removes all the named locations.
+.It Fn maketest template nameset nameset
+Constructs an automaton for testing trace inclusion against the given set of
+channel names and variable names respectively.
+.It Fn maketest template
+Defaults to the
+.Li channels
+and
+.Li globals
+variables, respectively.
+.It Fn names template
+Gives a nameset of all channels synchronized on by the template regardless
+of direction.
+.It Fn parameters template
+Returns a nameset of non-const parameter names.
+.It Fn renamelocs template namemap
+Simultaneous renaming of locations.
+.It Fn renametrans template actionmap
+Simultaneous renaming of action labels.
+.It Fn scale template float
+Scale the graphical representation of a template by the given amount.
+.It Fn setinitial template name
+Set the initial state.
+.It Fn split template actionmap
+For each
+.Li a -> a'
+split transitions labelled with
+.Li a
+into two transitions connected via a committed location.
+The second transition will synchronise on
+.Li a' .
+Channel arrays are not supported.
+.It Fn tabulate template nameset
+Make a table of labels for all transitions leaving or entering a location in the
+given set.
+.It Ar template Sy \[rs] Ar actionset
+Automaton restriction: removes all transitions labelled by an action in the
+set, and then any unconnected locations.
+.It Ar set Sy \[rs] Ar set
+Set difference.
+.It Ar set Sy ++ Ar set
+Set union.
+.El
+.\"
+.Ss Testflip mode
+The option
+.Fl -testflip
+exercises the flip function that underlines the maketest feature.
+It reads an input file containing multiple sections
+.Bl -enum -compact -offset indent
+.It
+A comment section describing the test.
+.It
+Declarations in the Uppaal description language.
+.It
+Zero or more transitions, each containing three lines:
+.Bl -enum -compact
+.It
+selection bindings,
+.It
+synchronisation expression (all transitions must synchronise on the same
+channel or array name),
+.It
+guard expression.
+.El
+Lines should be left blank when empty.
+.El
+Sections are separated by a line containing two hyphens
+.Ql -- .
+.Pp
+e.g.,
+.Bd -literal -compact -offset indent
+Simple test with selects
+--
+clock c1;
+chan c[5][int[2,10]];
+--
+i : int[0,4], j : int[2,10]
+c[i][j]?
+c1>4
+--
+i : int[0,4], j : int[2,10]
+c[i][j]?
+c1 <= 3
+.Ed
+.\"
+.Sh OPTIONS
+.Bl -tag -width indent
+.It Fl h
+Display help for command-line options.
+.It Fl v
+Show the version number.
+.It Fl t
+Start an interactive terminal.
+This is the default if no other commands are given.
+.It Fl i Ar file
+Uppaal model file, in xml format, for input.
+.It Fl o Ar file
+Path to write the resultant Uppaal model file.
+.It Fl e Ar commands
+Given a sequence of commands directly.
+.It Fl f Ar scriptfile
+Execute a sequence of commands from a file.
+.It Fl s Ar settings
+Specify configuration settings directly.
+.It Fl c Ar configfile
+Apply the given configuration file.
+.It Fl -showconfig
+Show the current configuration options.
+.It Fl -testflip
+Enter a special mode for executing flip test scripts.
+.El
+Command and configuration options are executed in sequence from left to
+right, multiple options may be given.
+Only a single input and output file may be specified.
+.\"
+.Sh EXAMPLES
+List templates:
+.Dl urpal -i model.xml -e 'list'
+.Pp
+Construct the test automaton for a template
+.Li P1 :
+.Dl urpal -i model.xml -o result.xml -e 'maketest(P1)'
+.Pp
+Likewise, but exclude the
+.Li a
+channel and make the result larger:
+.Dl urpal -i model.xml -o result.xml -e 'maketest(scale(P1, 2.0))'
+.\"
+.Sh SEE ALSO
+.Rs
+.%A Timothy Bourke
+.%A Arcot Sowmya
+.%T Tool support for verifying trace inclusion with Uppaal
+.%R Technical Report
+.%I NICTA/CSE UNSW
+.%D November 2007
+.Re
+.Rs
+.%A Mari\[:e]lle I.A. Stoelinga
+.%B Alea Jacta est: Verification of probabilistic
+.%B real-time and parametric systems
+.%D April 2002
+.%I PhD Thesis, Katholieke Universiteit, Nijmegen
+.Re
+.Rs
+.%A Henrik Ejersbo Jensen
+.%A Kim Guldstrand Larsen
+.%A Arne Skou
+.%T Scaling up Uppaal: Automatic verification of real-time systems
+.%T using compositionality and abstraction
+.%P 19\(en30
+.%B Proc. 6th int. sym. Formal Techniques for Real-Time and
+.%B Fault-Tolerance (FTRTFT)
+.%D September 2000
+.%I Springer-Verlag
+.Re
+.Pp
+.Xr graphviz 7
+.\"
+.Sh AUTHORS
+.An Timothy Bourke Aq timbob@bigpond.com
+.\"
+.Sh BUGS
+The program has not yet undergone rigorous testing or review.
+It is still very much an experimental prototype.
