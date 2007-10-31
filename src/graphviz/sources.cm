@@ -54,6 +54,8 @@ is
     plain-fn.sml
     text-plain.sml
 
+    ../lib/sources.cm
+
     $/basis.cm
     $/pp-lib.cm
     $/smlnj-lib.cm

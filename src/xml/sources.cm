@@ -31,6 +31,7 @@ is
     xml-writer.sig
     xml-writer.sml
 
+    ../lib/sources.cm
     ../general.cm
 
     $/fxlib.cm
