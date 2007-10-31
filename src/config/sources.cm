@@ -1,0 +1,15 @@
+Group
+    signature CONFIG_TREE
+    structure ConfigTree
+is
+    config.lex
+    config-lexer.sig
+    config-tree.sig
+    config-tree-fn.sml
+    config-tree.sml
+
+    ../lib/sources.cm
+
+    $/basis.cm
+    $/smlnj-lib.cm
+

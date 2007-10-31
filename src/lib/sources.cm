@@ -1,0 +1,15 @@
+Group
+    signature SYMBOL
+    structure Symbol
+
+    signature FILE_POS
+    structure FilePos
+is
+    symbol.sig
+    symbol.sml
+
+    filepos.sig
+    filepos.sml
+
+    $/basis.cm
+    $/smlnj-lib.cm

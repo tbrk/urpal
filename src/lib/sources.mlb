@@ -1,0 +1,17 @@
+local
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/sml-nj.mlb
+    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+
+    symbol.sig
+    symbol.sml
+
+    filepos.sig
+    filepos.sml
+in
+    signature SYMBOL
+    structure Symbol
+
+    signature FILE_POS
+    structure FilePos
+end

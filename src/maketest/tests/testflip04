@@ -1,0 +1,53 @@
+As previous, also tests grouping of action subscripts.
+
+Result:
+{select ()
+ action: [x]
+ (((y==z) && (y==x)) && ((((t<=3) && (s!=9)) && (t>2)) && (s!=(2+5)))) }
+{select ()
+ action: [y]
+ (((z==x) && (y!=z)) && (t>2)) }
+{select ()
+ action: [x]
+ (((z==x) && (y!=z)) && (((t<=3) && (s!=(2+5))) && (s!=9))) }
+{select ()
+ action: [z]
+ (((y==z) && (y!=x)) && (((s!=(2+5)) && (t>2)) && (s!=9))) }
+{select ()
+ action: [x]
+ (((y==z) && (y!=x)) && (t<=3)) }
+{select ()
+ action: [z]
+ (((y==x) && (z!=y)) && ((s!=9) && (s!=(2+5)))) }
+{select ()
+ action: [x]
+ (((y==x) && (z!=y)) && ((t<=3) && (t>2))) }
+{select ()
+ action: [y]
+ ((((y!=x) && (y!=z)) && (x!=z)) && (t>2)) }
+{select ()
+ action: [x]
+ ((((y!=x) && (y!=z)) && (x!=z)) && (t<=3)) }
+{select ()
+ action: [z]
+ ((((y!=x) && (y!=z)) && (x!=z)) && ((s!=9) && (s!=(2+5)))) }
+--
+int x, y, z;
+int s, t;
+chan c[int[4,7]];
+--
+
+c[z]?
+s == 9
+--
+
+c[x]?
+t > 3
+--
+
+c[y]?
+t <= 2
+--
+
+c[z]?
+s == 2 + 5

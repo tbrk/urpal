@@ -1,0 +1,433 @@
+(* $Id$
+
+   Based on the Uppaal Timed Automata Parser Library documentation.
+   http://www.cs.auc.dk/~behrmann/utap/syntax.html 20070424
+
+   TODO:
+   * Build lists in order?
+     Or build and then reverse?
+   * Rename rules to match C standard (where applicable).
+ *)
+
+structure E = Expression
+structure D = Declaration
+
+type symbol = Atom.atom
+
+val boundsToType : E.ty -> E.unresolvedty list -> E.ty
+    = foldl (fn (sub, ty) => E.ARRAY (ty, sub))
+
+fun expandIdDecls (baseType : E.ty,
+                   names : ((symbol * E.unresolvedty list) list))
+                  (*    id____/         \__array bounds (opt.) *)
+    : (symbol * E.ty) list
+  = let
+    val wrap = boundsToType baseType
+  in
+    map (fn (id, bounds) => (id, wrap bounds)) names
+  end
+
+fun dbg xs = Util.debugVeryDetailed (fn ()=>xs)
+
+                                            (* could be type abbr. *)
+fun checkUnresolved (E.VarExpr (E.SimpleVar (s, _))) = E.Unresolved s
+            (* subtract one because int[l, u] bounds are inclusive *) 
+  | checkUnresolved (E.IntCExpr n) = E.Type (E.INT (SOME (E.IntCExpr 0,
+                                                          E.IntCExpr (n - 1)),
+                                                    E.NoQual))
+  | checkUnresolved e = E.Type (E.INT (SOME (E.IntCExpr 0,
+                             E.BinIntExpr {left=e, bop=E.MinusOp,
+                                           right=E.IntCExpr 1,
+                                           pos=E.nopos}), E.NoQual))
+
+%%
+%name Uppaal
+%eop EOF
+%pos FilePos.pos
+%pure
+%noshift EOF
+%verbose
+
+%header (functor UppaalLrFun
+                       (structure Token      : TOKEN
+                        structure FilePos    : FILE_POS
+                        structure Expression : EXPRESSION
+                          sharing type Expression.pos = FilePos.pos
+                        structure Declaration : DECLARATION
+                          sharing type Declaration.pos  = Expression.pos
+                          sharing type Declaration.ty   = Expression.ty
+                          sharing type Declaration.expr = Expression.expr
+                        structure Result : RESULT
+                          sharing type Result.expr = Expression.expr
+                          sharing type Result.boundid = Expression.boundid
+                          sharing type Result.direction = Expression.direction
+                          sharing type Result.decl = Declaration.decl
+                          sharing type Result.param = Declaration.param
+                       ))
+
+%term PARSEEXPR | PARSEDECL | PARSESELECT | PARSESYNC |
+      PARSEEXPRLIST | PARSEPARAMS |  (* ML-Yacc man. 10.1 *)
+      ID of Atom.atom | INTEGER of int |
+      VOID | INT | BOOL | SCALAR | TYPEDEF | CLOCK | CHAN |
+      TRUE | FALSE |
+      LPAR | RPAR | LSQPAR | RSQPAR | LBRACE | RBRACE |
+      QUESTION | COLON | SEMICOLON | DOT | COMMA |
+      EXCLAM | UMINUS |
+      PLUSPLUS | MINUSMINUS | MINUS |
+      PLUS | TIMES | DIVIDE | MOD |
+      AMPERSAND | BITOR | BITXOR |
+      SHLEFT | SHRIGHT | LT | LE | EQ | NEQ | GE | GT | MIN | MAX |
+      DBLAMPERSAND | DBLPIPE | AND | OR | IMPLY | FORALL | EXISTS | NOT |
+      ASSIGNMENT | PLUSASSIGN | MINUSASSIGN | TIMESASSIGN | DIVIDEASSIGN |
+      MODASSIGN | BITORASSIGN | BITANDASSIGN | BITXORASSIGN |
+      SHLEFTASSIGN | SHRIGHTASSIGN |
+      STRUCT | URGENT | BROADCAST | CONST |
+      FOR | WHILE | DO | IF | ELSE | BREAK | CONTINUE | SWITCH |
+      RETURN | CASE | DEFAULT | UNKNOWN | EOF |
+      COMMIT | INIT | PROCESS | STATE | GUARD | SYNC |
+      ASSIGN | SYSTEM | TRANS | DEADLOCK | RATE | BEFORE_UPDATE |
+      AFTER_UPDATE | META | PRIORITY | PROGRESS | SELECT
+
+(* Table 2-1, Kernighan and Ritchie, The C Programming Language 2ed.
+   listed in order of increasing (tighter binding) precedence *)
+%left  COMMA
+%left  FORALL EXISTS
+%left  IMPLY OR
+%left  AND
+%right NOT
+%right ASSIGNMENT PLUSASSIGN MINUSASSIGN TIMESASSIGN DIVIDEASSIGN MODASSIGN
+       BITORASSIGN BITANDASSIGN BITXORASSIGN SHLEFTASSIGN SHRIGHTASSIGN
+%right QUESTION COLON
+%left  DBLPIPE
+%left  DBLAMPERSAND
+%left  BITOR
+%left  BITXOR
+%left  AMPERSAND (*BITAND*)
+%left  EQ NEQ
+%left  LT LE GE GT
+%left  MIN MAX
+%left  SHLEFT SHRIGHT
+%left  PLUS MINUS
+%left  TIMES DIVIDE MOD
+%right EXCLAM UMINUS PLUSPLUS MINUSMINUS
+%left  DOT
+                            
+%nonterm start         of Result.t
+       | expr          of E.expr
+       | exprs         of E.expr list
+       | varExpr       of E.var
+       | assignOp      of E.assignOp * pos
+       | argList       of E.expr list
+       | args          of E.expr list
+       | typeExpr      of E.ty
+       | typePrefix    of E.tyqual
+       | fieldDecl     of (symbol * E.ty) list
+       | fieldDecls    of (symbol * E.ty) list
+       | idDecl        of symbol * E.unresolvedty list
+       | idDecls       of (symbol * E.unresolvedty list) list
+       | tyDeclExpr    of E.unresolvedty
+       | tyDeclSubs    of E.unresolvedty list
+       | declarations  of D.decl list
+       | subscripts    of E.expr list
+       | varDecl       of D.decl list
+       | varIDs        of (E.ty -> D.decl) list
+       | varID         of E.ty -> D.decl (* inherit base type *)
+       | initialiser   of D.initialiser
+       | initialisers  of D.initialiser list
+       | typeDecl      of D.decl list
+       | function      of D.decl
+       | params        of D.param list
+       | param         of D.param
+       | stmtlist      of D.stmt list
+       | block         of D.stmt
+       | blockcontent  of D.decl list * D.stmt list
+       | stmt          of D.stmt
+       | chanPriority  of D.decl
+       | chanOrd       of D.chanexpr list list
+       | chanSame      of D.chanexpr list
+       | chanExpr      of D.chanexpr
+       | selectList    of E.boundid list
+       | syncLabel     of symbol * E.direction * E.expr list
+
+%keyword STRUCT FOR WHILE DO IF ELSE BREAK CONTINUE SWITCH RETURN CASE DEFAULT
+         TYPEDEF
+%value ID  (Atom.atom "dummy")
+%value INTEGER (0)
+
+%%
+
+start: PARSEEXPR expr         (Result.Expr expr)
+     | PARSEDECL declarations (Result.Decls declarations)
+     | PARSESELECT selectList (Result.Select selectList)
+     | PARSESYNC syncLabel    (Result.Sync syncLabel)
+     | PARSEEXPRLIST exprs    (Result.ExprList exprs)
+     | PARSEPARAMS params     (Result.Params params)
+
+expr: varExpr                 (E.VarExpr varExpr)
+    | INTEGER                 (E.IntCExpr INTEGER)
+    | TRUE                    (E.BoolCExpr true)
+    | FALSE                   (E.BoolCExpr false)
+    | ID LPAR args RPAR       (E.CallExpr {func=ID, args=args, pos=IDleft})
+                              (* see also: varExpr *)
+    | LPAR expr RPAR          (expr)
+    | expr PLUSPLUS           (E.UnaryModExpr {uop=E.PostIncOp, expr=expr,
+                                               pos=PLUSPLUSleft})
+    | PLUSPLUS expr           (E.UnaryModExpr {uop=E.PreIncOp, expr=expr,
+                                               pos= PLUSPLUSleft})
+    | expr MINUSMINUS         (E.UnaryModExpr {uop=E.PostDecOp, expr=expr,
+                                               pos=MINUSMINUSleft})
+    | MINUSMINUS expr         (E.UnaryModExpr {uop=E.PreDecOp, expr=expr,
+                                               pos=MINUSMINUSleft})
+
+    | MINUS expr %prec UMINUS (E.NegExpr {expr=expr, pos=MINUSleft})
+    | EXCLAM expr             (E.NotExpr {expr=expr, pos=EXCLAMleft})
+    | NOT expr                (E.NotExpr {expr=expr, pos=NOTleft})
+
+    | expr LT expr            (E.RelExpr {left=expr1 , rel=E.LtOp,
+                                          right=expr2, pos=LTleft})
+    | expr LE expr            (E.RelExpr {left=expr1 , rel=E.LeOp,
+                                          right=expr2, pos=LEleft})
+    | expr EQ expr            (E.RelExpr {left=expr1 , rel=E.EqOp,
+                                          right=expr2, pos=EQleft})
+    | expr NEQ expr           (E.RelExpr {left=expr1 , rel=E.NeOp,
+                                          right=expr2, pos=NEQleft})
+    | expr GE expr            (E.RelExpr {left=expr1 , rel=E.GeOp,
+                                          right=expr2, pos=GEleft})
+    | expr GT expr            (E.RelExpr {left=expr1 , rel=E.GtOp,
+                                          right=expr2, pos=GTleft})
+
+    | expr PLUS expr          (E.BinIntExpr {left=expr1 , bop=E.PlusOp,
+                                             right=expr2, pos=PLUSleft})
+    | expr MINUS expr         (E.BinIntExpr {left=expr1 , bop=E.MinusOp,
+                                             right=expr2, pos=MINUSleft})
+    | expr TIMES expr         (E.BinIntExpr {left=expr1 , bop=E.TimesOp,
+                                             right=expr2, pos=TIMESleft})
+    | expr DIVIDE expr        (E.BinIntExpr {left=expr1 , bop=E.DivideOp,
+                                             right=expr2, pos=DIVIDEleft})
+    | expr MOD expr           (E.BinIntExpr {left=expr1 , bop=E.ModOp,
+                                             right=expr2, pos=MODleft})
+    | expr AMPERSAND expr     (E.BinIntExpr {left=expr1 , bop=E.BAndOp,
+                                             right=expr2, pos=AMPERSANDleft})
+    | expr BITOR expr         (E.BinIntExpr {left=expr1 , bop=E.BOrOp,
+                                             right=expr2, pos=BITORleft})
+    | expr BITXOR expr        (E.BinIntExpr {left=expr1 , bop=E.BXorOp,
+                                             right=expr2, pos=BITXORleft})
+    | expr SHLEFT expr        (E.BinIntExpr {left=expr1 , bop=E.ShlOp,
+                                             right=expr2, pos=SHLEFTleft})
+    | expr SHRIGHT expr       (E.BinIntExpr {left=expr1 , bop=E.ShrOp,
+                                             right=expr2, pos=SHRIGHTleft})
+    | expr MIN expr           (E.BinIntExpr {left=expr1 , bop=E.MinOp,
+                                             right=expr2, pos=MINleft})
+    | expr MAX expr           (E.BinIntExpr {left=expr1 , bop=E.MaxOp,
+                                             right=expr2, pos=MAXleft})
+
+    | expr DBLAMPERSAND expr  (E.BinBoolExpr {left=expr1 , bop=E.AndOp,
+                                              right=expr2,
+                                              pos=DBLAMPERSANDleft})
+    | expr AND expr           (E.BinBoolExpr {left=expr1 , bop=E.AndOp,
+                                              right=expr2, pos=ANDleft})
+    | expr DBLPIPE expr       (E.BinBoolExpr {left=expr1 , bop=E.OrOp,
+                                              right=expr2, pos=DBLPIPEleft})
+    | expr OR expr            (E.BinBoolExpr {left=expr1 , bop=E.OrOp,
+                                              right=expr2, pos=ORleft})
+    | expr IMPLY expr         (E.BinBoolExpr {left=expr1 , bop=E.ImplyOp,
+                                              right=expr2, pos=IMPLYleft})
+
+    | expr QUESTION expr COLON expr
+                              (E.CondExpr {test=expr1     , trueexpr=expr2,
+                                           falseexpr=expr3, pos=QUESTIONleft})
+
+    | expr assignOp expr   %prec ASSIGNMENT
+                              (E.AssignExpr  {var=expr1, aop=(#1 assignOp),
+                                              expr=expr2, pos=(#2 assignOp)})
+
+    | FORALL LPAR ID COLON typeExpr RPAR expr %prec FORALL
+                              (E.ForAllExpr  {id=ID, ty=typeExpr,
+                                              expr=expr, pos=FORALLleft})
+    | EXISTS LPAR ID COLON typeExpr RPAR expr %prec EXISTS
+                              (E.ExistsExpr  {id=ID, ty=typeExpr,
+                                              expr=expr, pos=EXISTSleft})
+    | DEADLOCK                (E.Deadlock DEADLOCKleft)
+
+exprs: expr                   ([expr])
+     | expr COMMA exprs       (expr::exprs)
+
+varExpr: ID                       (E.SimpleVar (ID, IDleft))
+       | ID LPAR args RPAR DOT ID (E.RecordVar (
+                                      E.ReturnVar {func=ID1, args=args,
+                                                   pos=ID1left},
+                                      ID, ID2left))
+       | varExpr LSQPAR expr RSQPAR
+                            (E.SubscriptVar (varExpr, expr, E.varPos varExpr))
+       | varExpr DOT ID     (E.RecordVar (varExpr, ID, E.varPos varExpr))
+
+assignOp: ASSIGNMENT             ((E.AssignOp,  ASSIGNMENTleft))
+        | PLUSASSIGN             ((E.PlusEqOp,  PLUSASSIGNleft))
+        | MINUSASSIGN            ((E.MinusEqOp, MINUSASSIGNleft))
+        | TIMESASSIGN            ((E.TimesEqOp,  TIMESASSIGNleft))
+        | DIVIDEASSIGN           ((E.DivideEqOp,DIVIDEASSIGNleft))
+        | MODASSIGN              ((E.ModEqOp,   MODASSIGNleft))
+        | BITORASSIGN            ((E.BOrEqOp,   BITORASSIGNleft))
+        | BITANDASSIGN           ((E.BAndEqOp,  BITANDASSIGNleft))
+        | BITXORASSIGN           ((E.BXorEqOp,  BITXORASSIGNleft))
+        | SHLEFTASSIGN           ((E.ShlEqOp,   SHLEFTASSIGNleft))
+        | SHRIGHTASSIGN          ((E.ShrEqOp,   SHRIGHTASSIGNleft))
+
+args: (* empty *)               ([])
+    | argList                   (argList)
+
+argList: expr                    ([expr])
+       | expr COMMA argList      (expr :: argList)
+
+typeExpr: typePrefix INT          (E.INT (NONE, typePrefix))
+        | typePrefix INT LSQPAR expr COMMA expr RSQPAR
+                                  (E.INT (SOME (expr1, expr2), typePrefix))
+        | typePrefix BOOL         (E.BOOL typePrefix)
+        | typePrefix ID           (E.NAME (ID, typePrefix, NONE))
+        | typePrefix SCALAR LSQPAR expr RSQPAR
+                                  (E.SCALAR (expr, typePrefix, E.uniqueTag()))
+        | CLOCK                   (E.CLOCK)
+        | VOID                    (E.VOID)
+        | URGENT CHAN             (E.CHANNEL {urgent=true, broadcast=false})
+        | URGENT BROADCAST CHAN   (E.CHANNEL {urgent=true, broadcast=true})
+        | BROADCAST CHAN          (E.CHANNEL {urgent=false, broadcast=true})
+        | CHAN                    (E.CHANNEL {urgent=false, broadcast=false})
+        | typePrefix STRUCT LBRACE fieldDecls RBRACE
+                                  (E.RECORD (fieldDecls, typePrefix,
+                                             E.uniqueTag()))
+
+        (* Allowing an empty typePrefix gives reduce/reduce conflicts. *)
+        | INT                     (E.INT (NONE, E.NoQual))
+        | INT LSQPAR expr COMMA expr RSQPAR
+                                  (E.INT (SOME (expr1, expr2), E.NoQual))
+        | BOOL                    (E.BOOL E.NoQual)
+        | ID                      (E.NAME (ID, E.NoQual, NONE))
+        | SCALAR LSQPAR expr RSQPAR (E.SCALAR (expr, E.NoQual, E.uniqueTag()))
+        | STRUCT LBRACE fieldDecls RBRACE
+                                  (E.RECORD (fieldDecls, E.NoQual,
+                                             E.uniqueTag()))
+
+typePrefix: META                  (E.Meta)
+          | CONST                 (E.Const)
+
+fieldDecls: fieldDecl SEMICOLON   (fieldDecl)
+          | fieldDecls fieldDecl  (fieldDecl @ fieldDecls)
+
+fieldDecl: typeExpr idDecls       (expandIdDecls (typeExpr, idDecls))
+
+idDecls: idDecl                   ([idDecl])
+       | idDecls COMMA idDecl     (idDecl :: idDecls)
+
+idDecl: ID tyDeclSubs             ((ID, tyDeclSubs))
+
+tyDeclExpr: expr            (checkUnresolved expr)
+          | INT LSQPAR expr COMMA expr RSQPAR
+                            (E.Type (E.INT (SOME (expr1, expr2), E.NoQual)))
+          | SCALAR LSQPAR expr RSQPAR
+                            (E.Type (E.SCALAR (expr, E.NoQual, E.uniqueTag())))
+
+tyDeclSubs: (* empty *)                           ([])
+          | LSQPAR tyDeclExpr RSQPAR tyDeclSubs   (tyDeclExpr :: tyDeclSubs)
+
+declarations: (* empty *)               ([])
+            | varDecl declarations      (varDecl @ declarations)
+            | typeDecl declarations     (typeDecl @ declarations)
+            | function declarations     (function :: declarations)
+            | chanPriority declarations (chanPriority :: declarations)
+
+varDecl: typeExpr varIDs SEMICOLON      (map (fn f => f typeExpr) varIDs)
+
+varIDs: varID                           ([varID])
+      | varID COMMA varIDs              (varID::varIDs)
+
+varID: ID tyDeclSubs                    (fn baseTy => D.VarDecl {id=ID,
+                                         ty=boundsToType baseTy tyDeclSubs,
+                                         initial=NONE, pos=IDleft})
+     | ID tyDeclSubs ASSIGNMENT initialiser (fn baseTy =>
+                      D.VarDecl {id=ID, ty=boundsToType baseTy tyDeclSubs,
+                                     initial=SOME initialiser, pos=IDleft})
+
+initialiser: expr                            (D.SimpleInit expr)
+     | LBRACE initialisers RBRACE            (D.ArrayInit initialisers)
+
+initialisers: initialiser                    ([initialiser])
+            | initialiser COMMA initialisers (initialiser::initialisers)
+
+typeDecl: TYPEDEF typeExpr idDecls SEMICOLON
+                                      (map (fn (id, ty) => D.TyDecl {id=id,
+                                                    ty=ty, pos=TYPEDEFleft})
+                                         (expandIdDecls (typeExpr, idDecls)))
+
+function: typeExpr ID LPAR params RPAR block
+                                      (D.FunDecl {id=ID, rty=typeExpr,
+                                       params=params, body=block, pos=IDleft})
+
+params: (* empty *)                     ([])
+      | param                           ([param])
+      | param COMMA params              (param::params)
+
+param: typeExpr ID tyDeclSubs           (D.ValParam {id=ID,ty=boundsToType
+                                                     typeExpr tyDeclSubs})
+     | typeExpr AMPERSAND ID tyDeclSubs (D.RefParam {id=ID,ty=boundsToType
+                                                     typeExpr tyDeclSubs})
+
+block: LBRACE blockcontent RBRACE       (D.BlockStmt {decls=(#1 blockcontent),
+                                                      body=(#2 blockcontent)})
+
+blockcontent: (* empty *)               (([], []))
+            | stmtlist                  (([], stmtlist))
+            | varDecl blockcontent      ((varDecl @ (#1 blockcontent),
+                                          #2 blockcontent))
+            | typeDecl blockcontent     ((typeDecl @ (#1 blockcontent),
+                                          #2 blockcontent))
+            | function blockcontent     ((function :: (#1 blockcontent),
+                                          #2 blockcontent))
+            | chanPriority blockcontent ((chanPriority::(#1 blockcontent),
+                                          #2 blockcontent))
+
+stmtlist: stmt                          ([stmt])
+        | stmt stmtlist                 (stmt::stmtlist)
+
+stmt: block                             (block)
+    | SEMICOLON                         (D.NothingStmt)
+    | expr SEMICOLON                    (D.ExprStmt (expr, exprleft))
+    | FOR LPAR exprs SEMICOLON exprs SEMICOLON exprs RPAR stmt
+                                        (D.ForStmt {init=exprs1, cond=exprs2,
+                                         step=exprs3, body=stmt, pos=FORleft})
+    | FOR LPAR ID COLON typeExpr RPAR stmt  (D.IterateStmt {id=ID, ty=typeExpr,
+                                               body=stmt, pos=FORleft})
+    | WHILE LPAR exprs RPAR stmt         (D.WhileStmt {cond=exprs,
+                                            body=stmt, pos=WHILEleft})
+    | DO stmt WHILE LPAR exprs RPAR      (D.DoWhileStmt {cond=exprs,
+                                            body=stmt, pos=DOleft})
+    | IF LPAR exprs RPAR stmt            (D.IfStmt {cond=exprs, thenb=stmt,
+                                          elseb=D.NothingStmt, pos=IFleft})
+    | IF LPAR exprs RPAR stmt ELSE stmt  (D.IfStmt {cond=exprs, thenb=stmt1,
+                                                    elseb=stmt2, pos=IFleft})
+    | RETURN SEMICOLON                  (D.Return (NONE, RETURNleft))
+    | RETURN expr SEMICOLON             (D.Return (SOME expr, RETURNleft))
+
+chanPriority: CHAN PRIORITY chanOrd SEMICOLON
+                                        (D.ChanPriDecl (chanOrd, CHANleft))
+
+chanOrd: chanSame                       ([chanSame])
+       | chanSame LT chanOrd            (chanSame::chanOrd)
+
+chanSame: chanExpr                      ([chanExpr])
+        | DEFAULT                       ([D.ChanDefault])
+        | chanExpr COMMA chanSame       (chanExpr::chanSame)
+        | DEFAULT COMMA chanSame        (D.ChanDefault::chanSame)
+
+chanExpr: ID                            (D.ChanSingle ID)
+        | chanExpr LSQPAR expr RSQPAR   (D.ChanArray (chanExpr, expr))
+
+selectList : ID COLON typeExpr          ([E.BoundId (ID, typeExpr, IDleft)])
+           | ID COLON typeExpr COMMA selectList
+                            (E.BoundId (ID, typeExpr, IDleft) :: selectList)
+
+syncLabel : ID subscripts QUESTION        (ID, E.Input, subscripts)
+          | ID subscripts EXCLAM          (ID, E.Output, subscripts)
+
+subscripts: (* empty *)                     ([])
+          | LSQPAR expr RSQPAR subscripts   (expr :: subscripts)
+

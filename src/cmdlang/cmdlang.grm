@@ -1,0 +1,424 @@
+(* $Id$
+ *
+ * 20071024 T. Bourke
+ *   Original code. Simple command language for controlling urpal.
+ *)
+
+structure CE   = CmdEnv
+      and PNta = ParsedNta
+      and NtaU = NtaUtil
+      and Gviz = Graphviz
+
+(* shortcuts over Atom and AtomSet *)
+infix <+ <- ++ </ =:= ; open Symbol
+
+type actionsubst = (Atom.atom * CE.direction) * (Atom.atom * CE.direction)
+
+fun outln os xs = (TextIO.output (os, concat xs);
+                   TextIO.output (os, "\n"))
+val (pr, pre) = (outln TextIO.stdOut, outln TextIO.stdErr)
+
+fun listTemplates e =
+  (app (fn t=>pr [PNta.Template.selName t]) (CE.listTemplates e); e)
+
+fun showVals e = let
+    fun show (nm, v) = pr [Atom.toString nm, "=", CE.toString v]
+  in app show (CE.listItems e); e end
+
+fun showVal id e = let
+    val () = case CE.getValue e id of
+               NONE   => pr ["unknown name ", Atom.toString id]
+             | SOME v => pr [CE.toString v]
+  in e end
+
+fun insert (e, id, CE.Fail s) = (pre ["fail: ", s]; e)
+  | insert (e, id, v)         = CE.insert ((id, v), e)
+
+fun drop (e, id) = CE.remove (e, id)
+
+fun addCoords layoutengine (srcPred, dstPred)
+              (template as PNta.Template {name=(n,_), ...}) =
+  let
+    fun p (PNta.Transition {source=s, target=t, ...}) = (srcPred s orelse
+                                                         dstPred t)
+    val withIds = NtaU.addTransitionIds p template
+    val dot     = NtaU.toDot true withIds
+  in
+    case Gviz.makePlain layoutengine dot of
+      NONE       => (Util.warn ["could not lay out "^n]; template)
+    | SOME plain => (NtaU.stripTransitionIds
+                      (NtaU.addCoordsFromPlain (withIds, plain)))
+  end
+
+fun doMakeTest (CE.Template t, CE.Symbols chanset, CE.Symbols varset) = (let
+        val chans = AtomSet.listItems chanset
+        val _ = NtaU.warnIfCommitted t
+        val _ = NtaU.warnOnChannels t
+        val t = NtaU.expandUrgentLocs t
+        val (t, checkVarTransFun) = MakeTest.makeVarCheckTrans
+                                      (AtomSet.listItems varset) t
+        val (errl, t) = MakeTest.maketest (chans, t)
+        val t = MakeTest.addReadyChecks chans (errl, t)
+        val t = NtaU.addTransitions (t, checkVarTransFun errl)
+        val t = addCoords (Settings.graphvizEngine ())
+                            (fn _=>false, fn l=> l=errl) t
+      in CE.Template t end
+      handle MakeTest.InvalidChannelId c => CE.Fail ("invalid channel id "
+                                                     ^Atom.toString c)
+           | MakeTest.NoChannels => CE.Fail "empty channel list"
+           | MakeTest.MissingChannelIds ids => CE.Fail (ListFormat.fmt
+                  {final="", sep=", ", fmt=Atom.toString,
+                   init="channel(s) missing from the inversion list: "} ids)
+      )
+
+  | doMakeTest (f as CE.Fail _, _, _)        = f
+  | doMakeTest (_, f as CE.Fail _, _)        = f
+  | doMakeTest (_, _, f as CE.Fail _)        = f
+  | doMakeTest _ = CE.Fail
+                     "bad args: maketest(<template> [, <nameset>, <nameset>])"
+
+fun doMakeTest' (v, env) = case CmdEnv.getValue env (Atom.atom "channels") of
+     NONE => CE.Fail "channels is not present"
+   | SOME chans => (case CmdEnv.getValue env (Atom.atom "globals") of
+                      NONE => CE.Fail "globals is not present"
+                    | SOME globals => doMakeTest (v, chans, globals))
+
+fun doSetInitial (CE.Template t, nm)  =
+      (case PNta.Location.nameToId t (Atom.toString nm) of
+         SOME lid => CE.Template (PNta.Template.updInitial t (SOME lid))
+       | NONE     => CE.Fail "location not found")
+  | doSetInitial (f as CE.Fail _, _) = f
+  | doSetInitial _ = CE.Fail "bad args: setinitial(<template>, <name>)"
+
+fun doNames (CE.Template t)  = CE.Symbols
+      (foldl AtomSet.add' emptyset (NtaU.channels t))
+  | doNames (f as CE.Fail _) = f
+  | doNames _ = CE.Fail "bad args: names(<template>)"
+
+fun doRestriction (CE.Symbols s1, CE.Symbols s2) = CE.Symbols
+                                                (AtomSet.difference (s1, s2))
+  | doRestriction (tplate as CE.Template t, CE.Symbols s) =
+        doRestriction (tplate, CE.Actions (CE.symbolsToActions s))
+
+  | doRestriction (CE.Template t, CE.Actions s) = let
+        fun p (PNta.Transition {sync=(NONE, _),...}) = true
+          | p (PNta.Transition{sync=(SOME (nm,dir,_),_),...}) =
+                        not (ActionSet.member (s, (nm, dir)))
+        val ts = PNta.Template.selTransitions t
+      in
+        CE.Template (PNta.Template.prune
+          (PNta.Template.updTransitions t (List.filter p ts)))
+      end
+
+  | doRestriction (f as CE.Fail _, _) = f
+  | doRestriction (_, f as CE.Fail _) = f
+  | doRestriction _ = CE.Fail "bad type combination for restriction"
+
+fun doRenameTrans (CE.Template tplate, CE.SymbolMap m) = let
+        fun ren (tr as PNta.Transition {sync=(NONE, _), ...}) = tr
+          | ren (tr as PNta.Transition {sync=(SOME (nm,dir,subs), _),...}) =
+              case AtomMap.find (m, nm) of
+                NONE     => tr
+              | SOME nm' => PNta.Transition.updSync tr (SOME (nm',dir,subs))
+      in CE.Template (PNta.Transition.map ren tplate) end
+
+  | doRenameTrans (CE.Template tplate, CE.ActionMap m) = let
+        fun ren (tr as PNta.Transition {sync=(NONE, _), ...}) = tr
+          | ren (tr as PNta.Transition {sync=(SOME (nm,dir,subs), _),...}) =
+              case ActionMap.find (m, (nm, dir)) of
+                NONE             => tr
+              | SOME (nm', dir') => PNta.Transition.updSync tr
+                                         (SOME (nm', dir', subs))
+      in CE.Template (PNta.Transition.map ren tplate) end
+  | doRenameTrans (f as CE.Fail _, _) = f
+  | doRenameTrans (_, f as CE.Fail _) = f
+  | doRenameTrans _ = CE.Fail "bad args: renametrans(<template>, <map>)"
+
+fun doRenameLocs (CE.Template tplate, CE.SymbolMap m) = let
+        fun f (loc as PNta.Location {name=(NONE, _), ...}) = loc
+          | f (loc as PNta.Location {name=(SOME nm, _), ...}) =
+              case AtomMap.find (m, Atom.atom nm) of
+                NONE => loc
+              | SOME nm' =>PNta.Location.updName loc (SOME (Atom.toString nm'))
+      in
+        CE.Template (PNta.Location.map f tplate)
+      end
+  | doRenameLocs (f as CE.Fail _, _) = f
+  | doRenameLocs (_, f as CE.Fail _) = f
+  | doRenameLocs _ = CE.Fail "bad args: renamelocs(<template>, <namemap>)"
+
+fun doDropLoc (CE.Template tplate, CE.Symbols m) = let
+        fun d (loc as PNta.Location {name=(NONE, _), ...}) = SOME loc
+          | d (loc as PNta.Location {name=(SOME nm, _), ...}) =
+              if Atom.atom nm <- m then NONE else SOME loc
+      in
+        CE.Template (PNta.Template.prune ((PNta.Location.mapPartial d tplate)))
+      end
+  | doDropLoc (f as CE.Fail _, _) = f
+  | doDropLoc (_, f as CE.Fail _) = f
+  | doDropLoc _ = CE.Fail "bad args: drop (<template>, <names>)"
+
+fun doConflate (CE.Template tplate, CE.SymbolMap m) = let
+        fun nameToId (PNta.Location {name=(NONE, _),...}, f) = f
+          | nameToId (PNta.Location {id=PNta.LocId i,name=(SOME nm, _),...},f)=
+                                        AtomMap.insert (f, Atom.atom nm, i)
+
+        val nmToId = foldl nameToId AtomMap.empty
+                                    (PNta.Template.selLocations tplate)
+
+        fun nmMapToIdMap ((nm, nm'), m) =
+            case (AtomMap.find (nmToId, nm), AtomMap.find (nmToId, nm')) of
+              (SOME i, SOME j) => IntBinaryMap.insert (m, i, j)
+            | _ => m
+
+        val mId = foldl nmMapToIdMap IntBinaryMap.empty (AtomMap.listItemsi m)
+
+        fun f (tr as PNta.Transition {source=PNta.LocId s,
+                                      target=PNta.LocId t,...}) = let
+              val (s', t') = (IntBinaryMap.find (mId, s),
+                              IntBinaryMap.find (mId, t))
+            in case (s', t') of
+                 (NONE, NONE) => tr
+               | _            => PNta.Transition.updEndPoints tr
+                                     (PNta.LocId (Option.getOpt (s', s)),
+                                      PNta.LocId (Option.getOpt (t', t)))
+            end
+
+        fun d (loc as PNta.Location {id=PNta.LocId i, ...}) =
+              if isSome (IntBinaryMap.find (mId, i)) then NONE else SOME loc
+          
+      in
+        CE.Template (PNta.Location.mapPartial d (PNta.Transition.map f tplate))
+      end
+  | doConflate (f as CE.Fail _, _) = f
+  | doConflate (_, f as CE.Fail _) = f
+  | doConflate _ = CE.Fail "bad args: conflate(<template>, <namemap>)"
+
+fun doUnion (CE.Symbols s1, CE.Symbols s2) = CE.Symbols (AtomSet.union (s1,s2))
+  (*| doUnion (CE.Template t, CE.Symbols s)*)
+  | doUnion (f as CE.Fail _, _) = f
+  | doUnion (_, f as CE.Fail _) = f
+  | doUnion _ = CE.Fail "bad type combination for union"
+
+fun doParameters (CE.Template t)  = CE.Symbols (
+        foldl AtomSet.add' AtomSet.empty
+          (Environment.writableVariables (PNta.Template.selDeclaration t,
+                                          Environment.ParameterScope)))
+  | doParameters (f as CE.Fail _) = f
+  | doParameters _ = CE.Fail "bad args: parameters(<template>)"
+
+fun doScale (CE.Template t, s)  = CE.Template (
+        PNta.Template.transform {m11=s,m12=0.0,m21=0.0,m22=s,tx=0.0,ty=0.0} t)
+  | doScale (f as CE.Fail _, _) = f
+  | doScale (_, _) = CE.Fail "bad args: scale(<template>, <real>)"
+
+fun doChannels (CE.Template t) = CE.Symbols (
+        foldl (fn ((n, _), s)=> s <+ n) emptyset (NtaUtil.usedChannels t))
+  | doChannels (f as CE.Fail _) = f
+  | doChannels _ = CE.Fail "bad args: channels(<template>)"
+
+fun doTabulate (CE.Template t, CE.Symbols lset) = let
+    val locs = NtaUtil.namesetToLocset (lset, t)
+    fun dstP (PNta.LocId i) = IntBinarySet.member (locs, i)
+  in CE.Template (NtaUtil.tabulateAll (dstP, t)) end
+  | doTabulate (f as CE.Fail _, _) = f
+  | doTabulate (_, f as CE.Fail _) = f
+  | doTabulate _ = CE.Fail "bad args: tabulate(<template>, <locnames>)"
+
+fun doSplit (CE.Template t,CE.ActionMap am) = CE.Template(NtaUtil.split (t,am))
+  | doSplit (f as CE.Fail _, _) = f
+  | doSplit (_, f as CE.Fail _) = f
+  | doSplit _ = CE.Fail "bad args: split(<template>, <actionmap>)"
+
+fun doAcceptAll (env, CE.Symbols chanset) =
+      doAcceptAll (env, CE.Actions (CE.symbolsToActions chanset))
+  | doAcceptAll (env, CE.Actions actionset) = let
+      val actions = ActionSet.listItems actionset
+      val iet =NtaU.makeInputEnabler (actions, CmdEnv.globalDecl env)
+      val iet'=addCoords (Settings.graphvizEngine()) (fn _=>true,fn _=>true) iet
+      val iet''=NtaU.tabulateTransLabels ((0,0), (fn _=>true), iet')
+    in CE.Template iet'' end
+
+  | doAcceptAll (_, f as CE.Fail _) = f
+  | doAcceptAll (_, _) = CE.Fail "bad args: acceptall(<channelset>)"
+
+fun doWriteGraphics (CE.Template t, path, outty) = (let
+    val out = TextIO.openOut path
+    val dot = NtaU.toDot false t
+  in
+    (case Atom.toString outty of
+       "PS"  => (Gviz.makeFile (Settings.graphvizEngine(),Gviz.PS) (out,dot);
+                 CE.Success)
+     | "Dot" => (TypedDotIO.output (out, dot); CE.Success)
+     | "SVG" => (Gviz.makeFile (Settings.graphvizEngine(),Gviz.SVG) (out,dot);
+                 CE.Success)
+     | _ => CE.Fail "bad output type, must be one of PS, Dot, or SVG.")
+    before TextIO.closeOut out
+  end
+  handle IO.Io {cause, ...} => (CE.Fail (concat ["cannot write to '", path,
+                                            "': ", General.exnMessage cause])))
+
+  | doWriteGraphics (f as CE.Fail _, _, _) = f
+  | doWriteGraphics _ = CE.Fail
+        "bad args: writegraphics(<template>, <path>, <PS|Dot|SVG>)"
+
+fun echo (f as CE.Fail s) = ((pr [s]); f)
+  | echo v                = v
+
+fun help () = app (fn t=>pr [t]) [
+      "acceptall(<actionset>)",
+      "channels(<template>)",
+      "conflate(<template>, <namemap>)",
+      "drop(<template>, <nameset>)",
+      "maketest(<template>)",
+      "maketest(<template>, <nameset>, <nameset>)",
+      "names(<template>)",
+      "parameters(<template>)",
+      "renamelocs(<template>, <namemap>)",
+      "renametrans(<template>, <actionmap>)",
+      "scale(<template>, <real>)",
+      "setinitial(<template>, <name>)",
+      "split(<template>, <actionmap>)",
+      "tabulate(<template>, <nameset>)",
+      "<template> \\ <actionset>",
+      "<nameset> \\ <nameset>",
+      "<nameset> ++ <namset>"
+    ]
+
+%%
+%name CmdLang
+%arg (initialEnv) : CE.t
+%eop EOF SEMICOLON
+%noshift EOF SEMICOLON
+%pos FilePos.pos
+%verbose
+
+%header (functor CmdLangLrValsFn (structure Token   : TOKEN
+                                  structure FilePos : FILE_POS
+                                  structure CmdEnv  : CMD_ENV))
+
+%term ID of Atom.atom | INTEGER of int | REAL of real | STRING of string |
+      QUIT | LIST | SHOW | WRITEGRAPHICS | DROP |
+      MAKETEST | RENAMELOCS | RENAMETRANS | SCALE | NAMES | ACCEPTALL |
+      TABULATE | CHANNELS | SPLIT | PARAMETERS | HELP | CONFLATE |
+      SETINITIAL |
+      LPAR | RPAR | LSQPAR | RSQPAR | LBARBRACE | RBARBRACE | LBRACE | RBRACE |
+      QUESTION | EXCLAM | SLASH | BACKSLASH | UNION | ASSIGN | COMMA |
+      DBLARROW | RARROW | LARROW |
+      SEMICOLON | UNKNOWN | EOF
+
+%left  UNION
+%left  BACKSLASH
+                            
+%nonterm cmd             of CmdLoop.t * CE.t
+       | stmt            of CE.t -> CE.t
+       | expr            of CE.t -> CE.value
+       | idlist          of Atom.atom list
+       | idsubstlist     of (Atom.atom * Atom.atom) list
+       | subst           of (Atom.atom * Atom.atom) list
+       | action          of Atom.atom * CE.direction
+       | actionlist      of (Atom.atom * CE.direction) list
+       | actionsubst     of actionsubst list
+       | actionsubstlist of actionsubst list
+
+%keyword QUIT LIST SHOW HELP ASSIGN DROP WRITEGRAPHICS
+%value ID  (Atom.atom "dummy")
+%value INTEGER (0)
+
+%%
+
+cmd: stmt                                 ((CmdLoop.Continue, stmt initialEnv))
+   | QUIT                                 ((CmdLoop.Stop, initialEnv))
+
+stmt: LIST                                (listTemplates)
+    | SHOW                                (showVals)
+    | SHOW ID                             (showVal ID)
+    | HELP                                (fn e=>(help(); e))
+    | ID ASSIGN expr                      (fn e=>insert (e, ID, expr e))
+    | DROP ID                             (fn e=>(fn(e,v)=>(echo v; e))
+                                                      (drop (e, ID)))
+    | WRITEGRAPHICS LPAR expr COMMA STRING COMMA ID RPAR
+                                          (fn e=>(echo (doWriteGraphics
+                                             (expr e, STRING, ID)); e))
+
+expr: MAKETEST expr RPAR                  (fn e=>doMakeTest' (expr e, e))
+    | MAKETEST expr COMMA expr COMMA expr RPAR
+                                          (fn e=>doMakeTest (expr1 e,
+                                                             expr2 e, expr3 e))
+    | RENAMELOCS expr COMMA expr RPAR     (fn e=>doRenameLocs (expr1 e, expr2 e))
+    | RENAMETRANS expr COMMA expr RPAR    (fn e=>doRenameTrans (expr1 e,
+                                                                expr2 e))
+    | SCALE expr COMMA REAL RPAR          (fn e=>doScale (expr1 e, REAL))
+    | NAMES expr RPAR                     (fn e=>doNames (expr e))
+    | CHANNELS expr RPAR                  (fn e=>doChannels (expr e))
+    | DROP expr COMMA expr RPAR           (fn e=>doDropLoc (expr1 e, expr2 e))
+    | ACCEPTALL expr RPAR                 (fn e=>doAcceptAll (e, expr e))
+    | SETINITIAL expr COMMA ID RPAR       (fn e=>doSetInitial (expr e, ID))
+    | TABULATE expr COMMA expr RPAR       (fn e=>doTabulate (expr1 e, expr2 e))
+    | SPLIT expr COMMA expr RPAR          (fn e=>doSplit (expr1 e, expr2 e))
+    | CONFLATE expr COMMA expr RPAR       (fn e=>doConflate (expr1 e, expr2 e))
+    | PARAMETERS expr RPAR                (fn e=>doParameters (expr e))
+    | expr BACKSLASH expr                 (fn e=>doRestriction
+                                                   (expr1 e, expr2 e))
+    | expr UNION expr                     (fn e=>doUnion
+                                                   (expr1 e, expr2 e))
+    | LBRACE idlist RBRACE                (fn e=>CE.Symbols
+                                             (foldl AtomSet.add'
+                                                emptyset idlist))
+    | LBRACE idsubstlist RBRACE           (fn e=>CE.SymbolMap
+                                             (foldl AtomMap.insert'
+                                                AtomMap.empty idsubstlist))
+    | LBRACE RBRACE                       (fn e=>CE.Symbols AtomSet.empty)
+    | LBARBRACE actionlist RBARBRACE      (fn e=>CE.Actions
+                                             (foldl ActionSet.add'
+                                                ActionSet.empty actionlist))
+    | LBARBRACE actionsubstlist RBARBRACE (fn e=>CE.ActionMap
+                                             (foldl ActionMap.insert'
+                                                ActionMap.empty
+                                                actionsubstlist))
+    | LBARBRACE RBARBRACE                 (fn e=>CE.Actions ActionSet.empty)
+    | ID                                  (fn e=>case CE.getValue e ID of
+                                               NONE  => CE.Fail ("unknown id "
+                                                          ^ Atom.toString ID)
+                                             | SOME v=> v)
+
+idlist: ID                                ([ID])
+      | ID COMMA idlist                   (ID::idlist)
+
+idsubstlist: subst                        (subst)
+           | subst COMMA idsubstlist      (subst @ idsubstlist)
+
+subst: ID RARROW ID                       ([(ID1, ID2)])
+     | ID DBLARROW ID                     ([(ID1, ID2), (ID1, ID2)])
+
+action: ID QUESTION                       ((ID, CE.Input))
+      | ID EXCLAM                         ((ID, CE.Output))
+
+actionlist: ID                            ([(ID, CE.Input),(ID, CE.Output)])
+          | action                        ([action])
+          | ID COMMA actionlist           ([(ID, CE.Input),(ID, CE.Output)]
+                                           @ actionlist)
+          | action COMMA actionlist       (action::actionlist)
+
+actionsubstlist: actionsubst              (actionsubst)
+               | actionsubst COMMA actionsubstlist
+                                          (actionsubst @ actionsubstlist)
+
+actionsubst: ID RARROW action             ([((ID1, CE.Input), action),
+                                            ((ID1, CE.Output),action)])
+           | ID RARROW ID                 ( [((ID1, CE.Input),
+                                              (ID2, CE.Input)),
+                                             ((ID1, CE.Output),
+                                              (ID2, CE.Output))])
+           | ID DBLARROW ID               ( [((ID1, CE.Input),
+                                              (ID2, CE.Input)),
+                                             ((ID1, CE.Output),
+                                              (ID2, CE.Output)),
+                                             ((ID2, CE.Input),
+                                              (ID1, CE.Input)),
+                                             ((ID2, CE.Output),
+                                              (ID1, CE.Output))])
+           | action RARROW action         ([(action1, action2)])
+           | action DBLARROW action       ([(action1, action2),
+                                            (action2, action1)])
+

@@ -1,0 +1,6 @@
+No transitions, but channel has subscripts (including a scalar set).
+--
+typedef scalar[5] S;
+int x, y;
+chan c[y * 3][S];
+--

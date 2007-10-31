@@ -1,0 +1,5 @@
+No transitions.
+--
+int x;
+chan c;
+--

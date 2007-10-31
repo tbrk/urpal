@@ -1,0 +1,70 @@
+(* $Id$ *)
+
+local
+    $(SML_LIB)/basis/basis.mlb
+
+    $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+    $(SML_LIB)/smlnj-lib/PP/pp-lib.mlb
+
+    ../general.mlb
+    ../lib/sources.mlb
+    ../xml/sources.mlb
+
+    expression.sig
+    expression-fn.sml
+    expression.sml
+
+    declaration.sig
+    declaration.sml
+
+    ppdev-string.sml
+
+    expression-pp.sig
+    expression-pp.sml
+    declaration-pp.sig
+    declaration-pp-fn.sml
+
+    expression-cvt.sig
+    expression-cvt.sml
+
+    environment.sig
+    environment.sml
+
+    environment-pp.sig
+    environment-pp-fn.sml
+    environment-cvt.sig
+    environment-cvt.sml
+
+    parsed-nta.sml
+    result.sig
+    result.sml
+
+    uppaal.grm.sig
+    uppaal.grm.sml
+    uppaal.lex.sml
+
+    uppaal-parse.sig
+    uppaal-parse.sml
+
+    action-red-black-map.sml
+    action-map.sml
+    action-set.sml
+in
+    structure UppaalParse
+    signature UPPAAL_PARSE
+
+    structure Expression
+    signature EXPRESSION
+    structure Declaration
+    signature DECLARATION
+    structure Environment
+    signature ENVIRONMENT
+
+    structure ExpressionCvt
+
+    structure ParsedNta
+    structure ActionMap
+    structure ActionSet
+end
+

@@ -1,0 +1,25 @@
+Partitions of two actions with three subscripts.
+
+Result:
+{select ()
+ action: [x1][y1]
+ (((x2==x1) && (y2==y1)) && ((c1<=4) && (c1>3))) }
+{select ()
+ action: [x2][y2]
+ (((x2!=x1) || (y2!=y1)) && (c1>3)) }
+{select ()
+ action: [x1][y1]
+ (((x2!=x1) || (y2!=y1)) && (c1<=4)) }
+--
+int x1, y1;
+int x2, y2;
+clock c1;
+chan c[5][10];
+--
+
+c[x1][y1]?
+c1>4
+--
+
+c[x2][y2]?
+c1 <= 3

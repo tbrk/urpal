@@ -1,0 +1,5 @@
+No transitions, but channel has subscripts (not constants).
+--
+int x, y;
+chan c[y * 3][20 + 2];
+--

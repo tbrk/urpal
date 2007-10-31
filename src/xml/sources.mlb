@@ -1,0 +1,41 @@
+(* $Id$ *)
+local
+    /usr/local/lib/sml-fxp/src/fxlib.mlb
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/sml-nj.mlb
+    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+    ../general.mlb
+    ../lib/sources.mlb
+
+    nta-types.sig
+    nta-types-output.sig
+    nta.sig
+    nta-fn.sml
+    nta-output.sig
+
+    xml-writer.sig
+    xml-writer.sml
+
+    nta-output-fn.sml
+    text-nta.sml
+
+    uppaal-dtd.sig
+    uppaal-dtd.sml
+    ann "nonexhaustiveMatch ignore" in uppaal-hooks.sml end
+    uppaal-resolver.sml
+
+    uppaal-xml.sig
+    uppaal-xml.sml
+in
+    structure UppaalXML
+    signature UPPAAL_XML
+
+    signature NTA
+    functor   NtaFn
+
+    signature NTA_TYPES_OUTPUT
+    signature NTA_OUTPUT
+    functor   NtaOutputFn
+
+    structure TextNta
+end

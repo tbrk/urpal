@@ -1,0 +1,12 @@
+Very simple test
+--
+int x;
+chan c;
+--
+
+c?
+x > 2
+--
+
+c?
+x <= 2

@@ -1,0 +1,33 @@
+local
+    ../lib/sources.mlb
+    ../parse/sources.mlb
+    ../graphviz/sources.mlb
+    ../maketest/sources.mlb
+    ../xml/sources.mlb
+    ../general.mlb
+
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/sml-nj.mlb
+    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+    $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+
+    cmdenv.sig
+    cmdenv.sml
+
+    nta-util.sig
+    nta-util.sml
+
+    cmdloop.sml
+    cmdlang.grm.sig
+    cmdlang.grm.sml
+    cmdlang.lex.sml
+
+    cmdlang.sig
+    cmdlang.sml
+in
+    signature CMD_LANG
+    structure CmdLang
+    signature CMD_ENV
+    structure CmdEnv
+end
+

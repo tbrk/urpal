@@ -1,0 +1,65 @@
+Group
+    structure UppaalParse
+    signature UPPAAL_PARSE
+
+    structure Expression
+    signature EXPRESSION
+    structure Declaration
+    signature DECLARATION
+    structure Environment
+    signature ENVIRONMENT
+
+    structure ExpressionCvt
+
+    structure ParsedNta
+    structure ActionMap
+    structure ActionSet
+is
+    uppaal-parse.sig
+    uppaal-parse.sml
+
+    declaration.sig
+    declaration.sml
+
+    declaration-pp-fn.sml
+    declaration-pp.sig
+
+    environment.sig
+    environment.sml
+
+    environment-cvt.sig
+    environment-cvt.sml
+    environment-pp-fn.sml
+    environment-pp.sig
+
+    expression.sig
+    expression.sml
+    expression-fn.sml
+
+    expression-cvt.sig
+    expression-cvt.sml
+    expression-pp.sig
+    expression-pp.sml
+
+    parsed-nta.sml
+    ppdev-string.sml
+    result.sig
+    result.sml
+
+    uppaal.lex
+    uppaal.grm
+
+    action-map.sml
+    action-red-black-map.sml
+    action-set.sml
+
+    ../general.cm
+    ../xml/sources.cm
+    ../lib/sources.cm
+
+    $/pp-lib.cm
+    
+    $/ml-yacc-lib.cm
+    $/smlnj-lib.cm
+    $/basis.cm
+

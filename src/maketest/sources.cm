@@ -1,0 +1,30 @@
+Group
+    signature TRANSITION_FLIPPER
+    structure TransitionFlipper
+    structure TestTransFlip
+
+    signature MAKE_TEST
+    structure MakeTest
+is
+    trans-flip.sig
+    trans-flip.sml
+    partitions.sml
+
+    action-trans.sig
+    action-trans.sml
+    clock-expression.sig
+    clock-expression.sml
+    clkexpr-trans.sig
+    clkexpr-trans.sml
+
+    make-test.sig
+    make-test.sml
+
+    test-trans-flip.sml
+    ../parse/sources.cm
+    ../general.cm
+    ../lib/sources.cm
+    
+    $/smlnj-lib.cm
+    $/basis.cm
+

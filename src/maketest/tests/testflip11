@@ -1,0 +1,5 @@
+No transitions, but channel has subscripts.
+--
+int x;
+chan c[10][20];
+--

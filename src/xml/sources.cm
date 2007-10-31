@@ -1,0 +1,39 @@
+(* $Id$ *)
+Group
+    structure UppaalXML
+    signature UPPAAL_XML
+
+    signature NTA
+    functor   NtaFn
+
+    signature NTA_TYPES_OUTPUT
+    signature NTA_OUTPUT
+    functor   NtaOutputFn
+
+    structure TextNta
+is
+    nta.sig
+    nta-fn.sml
+    nta-output.sig
+    nta-output-fn.nj.sml
+    nta-types-output.sig
+    nta-types.sig
+    text-nta.sml
+
+    uppaal-xml.sig
+    uppaal-xml.sml
+
+    uppaal-dtd.sig
+    uppaal-dtd.sml
+    uppaal-hooks.sml
+    uppaal-resolver.sml
+
+    xml-writer.sig
+    xml-writer.sml
+
+    ../general.cm
+
+    $/fxlib.cm
+    $/basis.cm
+    $/smlnj-lib.cm
+

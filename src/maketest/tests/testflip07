@@ -1,0 +1,17 @@
+Simple test with selects
+
+Result:
+    {select (i : int[0, 5], j : int[2, 10])
+     action: [i][j]
+      ((c1<=4) && (c1>3)) }
+--
+clock c1;
+chan c[5][int[2,10]];
+--
+i : int[0,4], j : int[2,10]
+c[i][j]?
+c1>4
+--
+i : int[0,4], j : int[2,10]
+c[i][j]?
+c1 <= 3

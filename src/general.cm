@@ -1,0 +1,17 @@
+Group
+    structure Settings
+    structure SettingsRW
+    structure Util
+is
+    settings-rw.sig
+    settings-rw.sml
+    settings.sig
+    settings.sml
+
+    util.sml
+
+    ./graphviz/sources.cm
+    ./config/sources.cm
+    $/basis.cm
+    $/smlnj-lib.cm
+

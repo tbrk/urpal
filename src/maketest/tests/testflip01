@@ -1,0 +1,17 @@
+Very simple test
+
+Result:
+{select ()
+ action: 
+  ((x>2) && (x<=3)) }
+--
+int x;
+chan c;
+--
+
+c?
+x > 3
+--
+
+c?
+x <= 2

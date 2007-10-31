@@ -1,0 +1,24 @@
+Mixed select and variable subscripts
+
+Result:
+    {select (j : int[2, 10])
+     action: [x][j]
+     ((y==x) && ((c1>3) && (c1<=4))) }
+    {select (j : int[2, 10])
+     action: [y][j]
+     ((y!=x) && (c1<=4)) }
+    {select (j : int[2, 10])
+     action: [x][j]
+     ((y!=x) && (c1>3)) }
+--
+clock c1;
+chan c[5][int[2,10]];
+int x, y;
+--
+j : int[2,10]
+c[y][j]?
+c1>4
+--
+j : int[2,10]
+c[x][j]?
+c1 <= 3

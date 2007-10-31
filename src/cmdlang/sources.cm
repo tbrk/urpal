@@ -1,0 +1,29 @@
+Group
+    signature CMD_LANG
+    structure CmdLang
+
+    signature CMD_ENV
+    structure CmdEnv
+is
+    cmdlang.sig
+    cmdlang.sml
+
+    cmdenv.sig
+    cmdenv.sml
+
+    cmdloop.sml
+    cmdlang.grm
+    cmdlang.lex
+
+    nta-util.sig
+    nta-util.sml
+
+    ../lib/sources.cm
+    ../parse/sources.cm
+    ../graphviz/sources.cm
+    ../maketest/sources.cm
+    ../xml/sources.cm
+    ../general.cm
+    $/basis.cm
+    $/smlnj-lib.cm
+    $/ml-yacc-lib.cm

@@ -1,0 +1,49 @@
+Test formation of partitions for three variables.
+
+Result:
+{select ()
+ action: [z]
+ (((y==x) && (y==z)) && (((s!=(2+5)) && (t>2)) && (t<=3))) }
+{select ()
+ action: [y]
+ (((x==z) && (y!=x)) && (t>2)) }
+{select ()
+ action: [z]
+ (((x==z) && (y!=x)) && ((s!=(2+5)) && (t<=3))) }
+{select ()
+ action: [x]
+ (((y==x) && (y!=z)) && ((t<=3) && (t>2))) }
+{select ()
+ action: [z]
+ (((y==x) && (y!=z)) && (s!=(2+5))) }
+{select ()
+ action: [x]
+ (((y==z) && (x!=y)) && (t<=3)) }
+{select ()
+ action: [z]
+ (((y==z) && (x!=y)) && ((s!=(2+5)) && (t>2))) }
+{select ()
+ action: [y]
+ ((((y!=z) && (y!=x)) && (z!=x)) && (t>2)) }
+{select ()
+ action: [z]
+ ((((y!=z) && (y!=x)) && (z!=x)) && (s!=(2+5))) }
+{select ()
+ action: [x]
+ ((((y!=z) && (y!=x)) && (z!=x)) && (t<=3)) }
+--
+int x, y, z;
+int s, t;
+chan c[7 * 8];
+--
+
+c[x]?
+t > 3
+--
+
+c[y]?
+t <= 2
+--
+
+c[z]?
+s == 2 + 5

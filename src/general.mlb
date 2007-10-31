@@ -1,0 +1,21 @@
+(* $Id$ *)
+
+local
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/sml-nj.mlb
+    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+
+    ./graphviz/sources.mlb
+    ./config/sources.mlb
+
+    settings.sig
+    settings-rw.sig
+    settings-rw.sml
+    settings.sml
+
+    util.sml
+in
+    structure Settings
+    structure SettingsRW
+    structure Util
+end

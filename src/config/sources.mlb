@@ -1,0 +1,15 @@
+local
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/sml-nj.mlb
+    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+    ../lib/sources.mlb
+
+    config.lex.sml
+    config-lexer.sig
+    config-tree.sig
+    config-tree-fn.sml
+    config-tree.sml
+in
+    signature CONFIG_TREE
+    structure ConfigTree
+end

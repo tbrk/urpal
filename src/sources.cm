@@ -1,0 +1,19 @@
+Group
+    structure Urpal
+    structure Settings
+is
+    urpal.sml
+    commands.sig
+    commands.sml
+
+    general.cm
+    xml/sources.cm
+    parse/sources.cm
+    maketest/sources.cm
+    graphviz/sources.cm
+    cmdlang/sources.cm
+
+    $/fxlib.cm
+    $/basis.cm
+    $/smlnj-lib.cm
+

@@ -1,0 +1,20 @@
+local
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/basis/sml-nj.mlb
+    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+    /usr/local/lib/sml-fxp/src/fxlib.mlb
+
+    general.mlb
+    xml/sources.mlb
+    parse/sources.mlb
+    maketest/sources.mlb
+    graphviz/sources.mlb
+    cmdlang/sources.mlb
+
+    commands.sig
+    commands.sml
+    urpal.sml
+in
+    main.sml
+end
+

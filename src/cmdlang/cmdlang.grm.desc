@@ -1,0 +1,1890 @@
+
+state 0:
+
+	cmd : . stmt 
+	cmd : . QUIT 
+
+	ID	shift 8
+	QUIT	shift 7
+	LIST	shift 6
+	SHOW	shift 5
+	WRITEGRAPHICS	shift 4
+	DROP	shift 3
+	HELP	shift 2
+
+	cmd	goto 134
+	stmt	goto 1
+
+	.	error
+
+
+state 1:
+
+	cmd : stmt .  (reduce by rule 0)
+
+
+
+	.	reduce by rule 0
+
+
+state 2:
+
+	stmt : HELP .  (reduce by rule 5)
+
+
+
+	.	reduce by rule 5
+
+
+state 3:
+
+	stmt : DROP . ID 
+
+	ID	shift 9
+
+
+	.	error
+
+
+state 4:
+
+	stmt : WRITEGRAPHICS . LPAR expr COMMA STRING COMMA ID RPAR 
+
+	LPAR	shift 10
+
+
+	.	error
+
+
+state 5:
+
+	stmt : SHOW .  (reduce by rule 3)
+	stmt : SHOW . ID 
+
+	ID	shift 11
+
+
+	.	reduce by rule 3
+
+
+state 6:
+
+	stmt : LIST .  (reduce by rule 2)
+
+
+
+	.	reduce by rule 2
+
+
+state 7:
+
+	cmd : QUIT .  (reduce by rule 1)
+
+
+
+	.	reduce by rule 1
+
+
+state 8:
+
+	stmt : ID . ASSIGN expr 
+
+	ASSIGN	shift 12
+
+
+	.	error
+
+
+state 9:
+
+	stmt : DROP ID .  (reduce by rule 7)
+
+
+
+	.	reduce by rule 7
+
+
+state 10:
+
+	stmt : WRITEGRAPHICS LPAR . expr COMMA STRING COMMA ID RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 13
+
+	.	error
+
+
+state 11:
+
+	stmt : SHOW ID .  (reduce by rule 4)
+
+
+
+	.	reduce by rule 4
+
+
+state 12:
+
+	stmt : ID ASSIGN . expr 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 30
+
+	.	error
+
+
+state 13:
+
+	stmt : WRITEGRAPHICS LPAR expr . COMMA STRING COMMA ID RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 31
+
+
+	.	error
+
+
+state 14:
+
+	expr : LBRACE . idlist RBRACE 
+	expr : LBRACE . idsubstlist RBRACE 
+	expr : LBRACE . RBRACE 
+
+	ID	shift 38
+	RBRACE	shift 37
+
+	idlist	goto 36
+	idsubstlist	goto 35
+	subst	goto 34
+
+	.	error
+
+
+state 15:
+
+	expr : LBARBRACE . actionlist RBARBRACE 
+	expr : LBARBRACE . actionsubstlist RBARBRACE 
+	expr : LBARBRACE . RBARBRACE 
+
+	ID	shift 44
+	RBARBRACE	shift 43
+
+	action	goto 42
+	actionlist	goto 41
+	actionsubst	goto 40
+	actionsubstlist	goto 39
+
+	.	error
+
+
+state 16:
+
+	expr : SETINITIAL . expr COMMA ID RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 45
+
+	.	error
+
+
+state 17:
+
+	expr : CONFLATE . expr COMMA expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 46
+
+	.	error
+
+
+state 18:
+
+	expr : PARAMETERS . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 47
+
+	.	error
+
+
+state 19:
+
+	expr : SPLIT . expr COMMA expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 48
+
+	.	error
+
+
+state 20:
+
+	expr : CHANNELS . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 49
+
+	.	error
+
+
+state 21:
+
+	expr : TABULATE . expr COMMA expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 50
+
+	.	error
+
+
+state 22:
+
+	expr : ACCEPTALL . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 51
+
+	.	error
+
+
+state 23:
+
+	expr : NAMES . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 52
+
+	.	error
+
+
+state 24:
+
+	expr : SCALE . expr COMMA REAL RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 53
+
+	.	error
+
+
+state 25:
+
+	expr : RENAMETRANS . expr COMMA expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 54
+
+	.	error
+
+
+state 26:
+
+	expr : RENAMELOCS . expr COMMA expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 55
+
+	.	error
+
+
+state 27:
+
+	expr : MAKETEST . expr RPAR 
+	expr : MAKETEST . expr COMMA expr COMMA expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 56
+
+	.	error
+
+
+state 28:
+
+	expr : DROP . expr COMMA expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 57
+
+	.	error
+
+
+state 29:
+
+	expr : ID .  (reduce by rule 31)
+
+
+
+	.	reduce by rule 31
+
+
+state 30:
+
+	stmt : ID ASSIGN expr .  (reduce by rule 6)
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	reduce by rule 6
+
+
+state 31:
+
+	stmt : WRITEGRAPHICS LPAR expr COMMA . STRING COMMA ID RPAR 
+
+	STRING	shift 58
+
+
+	.	error
+
+
+state 32:
+
+	expr : expr UNION . expr 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 59
+
+	.	error
+
+
+state 33:
+
+	expr : expr BACKSLASH . expr 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 60
+
+	.	error
+
+
+state 34:
+
+	idsubstlist : subst .  (reduce by rule 34)
+	idsubstlist : subst . COMMA idsubstlist 
+
+	COMMA	shift 61
+
+
+	.	reduce by rule 34
+
+
+state 35:
+
+	expr : LBRACE idsubstlist . RBRACE 
+
+	RBRACE	shift 62
+
+
+	.	error
+
+
+state 36:
+
+	expr : LBRACE idlist . RBRACE 
+
+	RBRACE	shift 63
+
+
+	.	error
+
+
+state 37:
+
+	expr : LBRACE RBRACE .  (reduce by rule 27)
+
+
+
+	.	reduce by rule 27
+
+
+state 38:
+
+	idlist : ID .  (reduce by rule 32)
+	idlist : ID . COMMA idlist 
+	subst : ID . RARROW ID 
+	subst : ID . DBLARROW ID 
+
+	COMMA	shift 66
+	DBLARROW	shift 65
+	RARROW	shift 64
+
+
+	.	reduce by rule 32
+
+
+state 39:
+
+	expr : LBARBRACE actionsubstlist . RBARBRACE 
+
+	RBARBRACE	shift 67
+
+
+	.	error
+
+
+state 40:
+
+	actionsubstlist : actionsubst .  (reduce by rule 44)
+	actionsubstlist : actionsubst . COMMA actionsubstlist 
+
+	COMMA	shift 68
+
+
+	.	reduce by rule 44
+
+
+state 41:
+
+	expr : LBARBRACE actionlist . RBARBRACE 
+
+	RBARBRACE	shift 69
+
+
+	.	error
+
+
+state 42:
+
+	actionlist : action .  (reduce by rule 41)
+	actionlist : action . COMMA actionlist 
+	actionsubst : action . RARROW action 
+	actionsubst : action . DBLARROW action 
+
+	COMMA	shift 72
+	DBLARROW	shift 71
+	RARROW	shift 70
+
+
+	.	reduce by rule 41
+
+
+state 43:
+
+	expr : LBARBRACE RBARBRACE .  (reduce by rule 30)
+
+
+
+	.	reduce by rule 30
+
+
+state 44:
+
+	action : ID . QUESTION 
+	action : ID . EXCLAM 
+	actionlist : ID .  (reduce by rule 40)
+	actionlist : ID . COMMA actionlist 
+	actionsubst : ID . RARROW action 
+	actionsubst : ID . RARROW ID 
+	actionsubst : ID . DBLARROW ID 
+
+	QUESTION	shift 77
+	EXCLAM	shift 76
+	COMMA	shift 75
+	DBLARROW	shift 74
+	RARROW	shift 73
+
+
+	.	reduce by rule 40
+
+
+state 45:
+
+	expr : SETINITIAL expr . COMMA ID RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 78
+
+
+	.	error
+
+
+state 46:
+
+	expr : CONFLATE expr . COMMA expr RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 79
+
+
+	.	error
+
+
+state 47:
+
+	expr : PARAMETERS expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 80
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 48:
+
+	expr : SPLIT expr . COMMA expr RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 81
+
+
+	.	error
+
+
+state 49:
+
+	expr : CHANNELS expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 82
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 50:
+
+	expr : TABULATE expr . COMMA expr RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 83
+
+
+	.	error
+
+
+state 51:
+
+	expr : ACCEPTALL expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 84
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 52:
+
+	expr : NAMES expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 85
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 53:
+
+	expr : SCALE expr . COMMA REAL RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 86
+
+
+	.	error
+
+
+state 54:
+
+	expr : RENAMETRANS expr . COMMA expr RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 87
+
+
+	.	error
+
+
+state 55:
+
+	expr : RENAMELOCS expr . COMMA expr RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 88
+
+
+	.	error
+
+
+state 56:
+
+	expr : MAKETEST expr . RPAR 
+	expr : MAKETEST expr . COMMA expr COMMA expr RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 90
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 89
+
+
+	.	error
+
+
+state 57:
+
+	expr : DROP expr . COMMA expr RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 91
+
+
+	.	error
+
+
+state 58:
+
+	stmt : WRITEGRAPHICS LPAR expr COMMA STRING . COMMA ID RPAR 
+
+	COMMA	shift 92
+
+
+	.	error
+
+
+state 59:
+
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+	expr : expr UNION expr .  (reduce by rule 24)
+
+	BACKSLASH	shift 33
+
+
+	.	reduce by rule 24
+
+
+state 60:
+
+	expr : expr . BACKSLASH expr 
+	expr : expr BACKSLASH expr .  (reduce by rule 23)
+	expr : expr . UNION expr 
+
+
+
+	.	reduce by rule 23
+
+
+state 61:
+
+	idsubstlist : subst COMMA . idsubstlist 
+
+	ID	shift 94
+
+	idsubstlist	goto 93
+	subst	goto 34
+
+	.	error
+
+
+state 62:
+
+	expr : LBRACE idsubstlist RBRACE .  (reduce by rule 26)
+
+
+
+	.	reduce by rule 26
+
+
+state 63:
+
+	expr : LBRACE idlist RBRACE .  (reduce by rule 25)
+
+
+
+	.	reduce by rule 25
+
+
+state 64:
+
+	subst : ID RARROW . ID 
+
+	ID	shift 95
+
+
+	.	error
+
+
+state 65:
+
+	subst : ID DBLARROW . ID 
+
+	ID	shift 96
+
+
+	.	error
+
+
+state 66:
+
+	idlist : ID COMMA . idlist 
+
+	ID	shift 98
+
+	idlist	goto 97
+
+	.	error
+
+
+state 67:
+
+	expr : LBARBRACE actionsubstlist RBARBRACE .  (reduce by rule 29)
+
+
+
+	.	reduce by rule 29
+
+
+state 68:
+
+	actionsubstlist : actionsubst COMMA . actionsubstlist 
+
+	ID	shift 101
+
+	action	goto 100
+	actionsubst	goto 40
+	actionsubstlist	goto 99
+
+	.	error
+
+
+state 69:
+
+	expr : LBARBRACE actionlist RBARBRACE .  (reduce by rule 28)
+
+
+
+	.	reduce by rule 28
+
+
+state 70:
+
+	actionsubst : action RARROW . action 
+
+	ID	shift 103
+
+	action	goto 102
+
+	.	error
+
+
+state 71:
+
+	actionsubst : action DBLARROW . action 
+
+	ID	shift 103
+
+	action	goto 104
+
+	.	error
+
+
+state 72:
+
+	actionlist : action COMMA . actionlist 
+
+	ID	shift 107
+
+	action	goto 106
+	actionlist	goto 105
+
+	.	error
+
+
+state 73:
+
+	actionsubst : ID RARROW . action 
+	actionsubst : ID RARROW . ID 
+
+	ID	shift 109
+
+	action	goto 108
+
+	.	error
+
+
+state 74:
+
+	actionsubst : ID DBLARROW . ID 
+
+	ID	shift 110
+
+
+	.	error
+
+
+state 75:
+
+	actionlist : ID COMMA . actionlist 
+
+	ID	shift 107
+
+	action	goto 106
+	actionlist	goto 111
+
+	.	error
+
+
+state 76:
+
+	action : ID EXCLAM .  (reduce by rule 39)
+
+
+
+	.	reduce by rule 39
+
+
+state 77:
+
+	action : ID QUESTION .  (reduce by rule 38)
+
+
+
+	.	reduce by rule 38
+
+
+state 78:
+
+	expr : SETINITIAL expr COMMA . ID RPAR 
+
+	ID	shift 112
+
+
+	.	error
+
+
+state 79:
+
+	expr : CONFLATE expr COMMA . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 113
+
+	.	error
+
+
+state 80:
+
+	expr : PARAMETERS expr RPAR .  (reduce by rule 22)
+
+
+
+	.	reduce by rule 22
+
+
+state 81:
+
+	expr : SPLIT expr COMMA . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 114
+
+	.	error
+
+
+state 82:
+
+	expr : CHANNELS expr RPAR .  (reduce by rule 15)
+
+
+
+	.	reduce by rule 15
+
+
+state 83:
+
+	expr : TABULATE expr COMMA . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 115
+
+	.	error
+
+
+state 84:
+
+	expr : ACCEPTALL expr RPAR .  (reduce by rule 17)
+
+
+
+	.	reduce by rule 17
+
+
+state 85:
+
+	expr : NAMES expr RPAR .  (reduce by rule 14)
+
+
+
+	.	reduce by rule 14
+
+
+state 86:
+
+	expr : SCALE expr COMMA . REAL RPAR 
+
+	REAL	shift 116
+
+
+	.	error
+
+
+state 87:
+
+	expr : RENAMETRANS expr COMMA . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 117
+
+	.	error
+
+
+state 88:
+
+	expr : RENAMELOCS expr COMMA . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 118
+
+	.	error
+
+
+state 89:
+
+	expr : MAKETEST expr COMMA . expr COMMA expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 119
+
+	.	error
+
+
+state 90:
+
+	expr : MAKETEST expr RPAR .  (reduce by rule 9)
+
+
+
+	.	reduce by rule 9
+
+
+state 91:
+
+	expr : DROP expr COMMA . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 120
+
+	.	error
+
+
+state 92:
+
+	stmt : WRITEGRAPHICS LPAR expr COMMA STRING COMMA . ID RPAR 
+
+	ID	shift 121
+
+
+	.	error
+
+
+state 93:
+
+	idsubstlist : subst COMMA idsubstlist .  (reduce by rule 35)
+
+
+
+	.	reduce by rule 35
+
+
+state 94:
+
+	subst : ID . RARROW ID 
+	subst : ID . DBLARROW ID 
+
+	DBLARROW	shift 65
+	RARROW	shift 64
+
+
+	.	error
+
+
+state 95:
+
+	subst : ID RARROW ID .  (reduce by rule 36)
+
+
+
+	.	reduce by rule 36
+
+
+state 96:
+
+	subst : ID DBLARROW ID .  (reduce by rule 37)
+
+
+
+	.	reduce by rule 37
+
+
+state 97:
+
+	idlist : ID COMMA idlist .  (reduce by rule 33)
+
+
+
+	.	reduce by rule 33
+
+
+state 98:
+
+	idlist : ID .  (reduce by rule 32)
+	idlist : ID . COMMA idlist 
+
+	COMMA	shift 66
+
+
+	.	reduce by rule 32
+
+
+state 99:
+
+	actionsubstlist : actionsubst COMMA actionsubstlist .  (reduce by rule 45)
+
+
+
+	.	reduce by rule 45
+
+
+state 100:
+
+	actionsubst : action . RARROW action 
+	actionsubst : action . DBLARROW action 
+
+	DBLARROW	shift 71
+	RARROW	shift 70
+
+
+	.	error
+
+
+state 101:
+
+	action : ID . QUESTION 
+	action : ID . EXCLAM 
+	actionsubst : ID . RARROW action 
+	actionsubst : ID . RARROW ID 
+	actionsubst : ID . DBLARROW ID 
+
+	QUESTION	shift 77
+	EXCLAM	shift 76
+	DBLARROW	shift 74
+	RARROW	shift 73
+
+
+	.	error
+
+
+state 102:
+
+	actionsubst : action RARROW action .  (reduce by rule 49)
+
+
+
+	.	reduce by rule 49
+
+
+state 103:
+
+	action : ID . QUESTION 
+	action : ID . EXCLAM 
+
+	QUESTION	shift 77
+	EXCLAM	shift 76
+
+
+	.	error
+
+
+state 104:
+
+	actionsubst : action DBLARROW action .  (reduce by rule 50)
+
+
+
+	.	reduce by rule 50
+
+
+state 105:
+
+	actionlist : action COMMA actionlist .  (reduce by rule 43)
+
+
+
+	.	reduce by rule 43
+
+
+state 106:
+
+	actionlist : action .  (reduce by rule 41)
+	actionlist : action . COMMA actionlist 
+
+	COMMA	shift 72
+
+
+	.	reduce by rule 41
+
+
+state 107:
+
+	action : ID . QUESTION 
+	action : ID . EXCLAM 
+	actionlist : ID .  (reduce by rule 40)
+	actionlist : ID . COMMA actionlist 
+
+	QUESTION	shift 77
+	EXCLAM	shift 76
+	COMMA	shift 75
+
+
+	.	reduce by rule 40
+
+
+state 108:
+
+	actionsubst : ID RARROW action .  (reduce by rule 46)
+
+
+
+	.	reduce by rule 46
+
+
+state 109:
+
+	action : ID . QUESTION 
+	action : ID . EXCLAM 
+	actionsubst : ID RARROW ID .  (reduce by rule 47)
+
+	QUESTION	shift 77
+	EXCLAM	shift 76
+
+
+	.	reduce by rule 47
+
+
+state 110:
+
+	actionsubst : ID DBLARROW ID .  (reduce by rule 48)
+
+
+
+	.	reduce by rule 48
+
+
+state 111:
+
+	actionlist : ID COMMA actionlist .  (reduce by rule 42)
+
+
+
+	.	reduce by rule 42
+
+
+state 112:
+
+	expr : SETINITIAL expr COMMA ID . RPAR 
+
+	RPAR	shift 122
+
+
+	.	error
+
+
+state 113:
+
+	expr : CONFLATE expr COMMA expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 123
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 114:
+
+	expr : SPLIT expr COMMA expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 124
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 115:
+
+	expr : TABULATE expr COMMA expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 125
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 116:
+
+	expr : SCALE expr COMMA REAL . RPAR 
+
+	RPAR	shift 126
+
+
+	.	error
+
+
+state 117:
+
+	expr : RENAMETRANS expr COMMA expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 127
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 118:
+
+	expr : RENAMELOCS expr COMMA expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 128
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 119:
+
+	expr : MAKETEST expr COMMA expr . COMMA expr RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	BACKSLASH	shift 33
+	UNION	shift 32
+	COMMA	shift 129
+
+
+	.	error
+
+
+state 120:
+
+	expr : DROP expr COMMA expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 130
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 121:
+
+	stmt : WRITEGRAPHICS LPAR expr COMMA STRING COMMA ID . RPAR 
+
+	RPAR	shift 131
+
+
+	.	error
+
+
+state 122:
+
+	expr : SETINITIAL expr COMMA ID RPAR .  (reduce by rule 18)
+
+
+
+	.	reduce by rule 18
+
+
+state 123:
+
+	expr : CONFLATE expr COMMA expr RPAR .  (reduce by rule 21)
+
+
+
+	.	reduce by rule 21
+
+
+state 124:
+
+	expr : SPLIT expr COMMA expr RPAR .  (reduce by rule 20)
+
+
+
+	.	reduce by rule 20
+
+
+state 125:
+
+	expr : TABULATE expr COMMA expr RPAR .  (reduce by rule 19)
+
+
+
+	.	reduce by rule 19
+
+
+state 126:
+
+	expr : SCALE expr COMMA REAL RPAR .  (reduce by rule 13)
+
+
+
+	.	reduce by rule 13
+
+
+state 127:
+
+	expr : RENAMETRANS expr COMMA expr RPAR .  (reduce by rule 12)
+
+
+
+	.	reduce by rule 12
+
+
+state 128:
+
+	expr : RENAMELOCS expr COMMA expr RPAR .  (reduce by rule 11)
+
+
+
+	.	reduce by rule 11
+
+
+state 129:
+
+	expr : MAKETEST expr COMMA expr COMMA . expr RPAR 
+
+	ID	shift 29
+	DROP	shift 28
+	MAKETEST	shift 27
+	RENAMELOCS	shift 26
+	RENAMETRANS	shift 25
+	SCALE	shift 24
+	NAMES	shift 23
+	ACCEPTALL	shift 22
+	TABULATE	shift 21
+	CHANNELS	shift 20
+	SPLIT	shift 19
+	PARAMETERS	shift 18
+	CONFLATE	shift 17
+	SETINITIAL	shift 16
+	LBARBRACE	shift 15
+	LBRACE	shift 14
+
+	expr	goto 132
+
+	.	error
+
+
+state 130:
+
+	expr : DROP expr COMMA expr RPAR .  (reduce by rule 16)
+
+
+
+	.	reduce by rule 16
+
+
+state 131:
+
+	stmt : WRITEGRAPHICS LPAR expr COMMA STRING COMMA ID RPAR .  (reduce by rule 8)
+
+
+
+	.	reduce by rule 8
+
+
+state 132:
+
+	expr : MAKETEST expr COMMA expr COMMA expr . RPAR 
+	expr : expr . BACKSLASH expr 
+	expr : expr . UNION expr 
+
+	RPAR	shift 133
+	BACKSLASH	shift 33
+	UNION	shift 32
+
+
+	.	error
+
+
+state 133:
+
+	expr : MAKETEST expr COMMA expr COMMA expr RPAR .  (reduce by rule 10)
+
+
+
+	.	reduce by rule 10
+
+
+state 134:
+
+
+	SEMICOLON	accept
+	EOF	accept
+
+
+	.	error
+
+154 of 675 action table entries left after compaction
+47 goto table entries
