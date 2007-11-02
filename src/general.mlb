@@ -12,7 +12,8 @@ local
 
     settings.sig
     settings_rw.sig
-    settingsrw.sml
+    settingsrwfn.sml
+    posix-settingsrw.sml
     settings.sml
 
     util.sml

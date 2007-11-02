@@ -8,7 +8,7 @@ local
     ../lib/sources.mlb
 
     ann "nonexhaustiveMatch ignore" in
-        actiontrans.sig
+        action_trans.sig
         actiontrans.sml
         clock_expression.sig
         clockexpression.sml
@@ -17,8 +17,8 @@ local
     end
     partitions.sml
 
-    trans_flip.sig
-    transflip.sml
+    transition_flipper.sig
+    transitionflipper.sml
 
     make_test.sig
     maketest.sml
