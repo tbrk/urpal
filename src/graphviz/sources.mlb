@@ -8,9 +8,9 @@ local
     x11color.sml
 
     attribute.sig
-    edgeattribute.sig
-    graphattribute.sig
-    nodeattribute.sig
+    edge_attribute.sig
+    graph_attribute.sig
+    node_attribute.sig
     id.sig
 
     dot.sig

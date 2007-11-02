@@ -42,9 +42,9 @@ is
 
     typeddot.sml
     typedattributes.sml
-    edgeattribute.sig
-    graphattribute.sig
-    nodeattribute.sig
+    edge_attribute.sig
+    graph_attribute.sig
+    node_attribute.sig
     typeddotio.sml
     typeddotutil.sml
 

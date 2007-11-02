@@ -1,6 +1,6 @@
-(* $Id$ *)
+(* $Id: settings-rw.sml 328 2007-10-31 06:05:10Z tbourke $ *)
 
-structure SettingsRW :> SETTINGS_RW =
+functor SettingsRWFn (val checkFile : string -> bool) :> SETTINGS_RW =
 struct
   val version                    = concat [Version.version, " (",
                                            Version.svnversion, ")"]
@@ -123,23 +123,20 @@ struct
   fun validate () = let
 
       fun check test (name, path) = let
-          val r = test (Posix.FileSys.stat path) handle SysErr => false
+          val r = test path handle SysErr => false
           val _ = if r then ()
                   else warn ["setting ", name, " (", path ,") is invalid."]
         in r end
 
-      val checkPath = check Posix.FileSys.ST.isDir
-      val checkFile = check Posix.FileSys.ST.isReg
-
       fun checkoFile (_, NONE)   = true
-        | checkoFile (s, SOME p) = checkFile (s, p)
+        | checkoFile (s, SOME p) = check checkFile (s, p)
       
       fun addFile (f, d) = OS.Path.joinDirFile {dir=d, file=f}
 
       val results = [ checkoFile ("dtd_path", dtdPath ()),
-                      checkFile  ("graphviz/path",
-                                    foldl addFile (graphvizPath ())
-                                                  ["bin", "dot"])
+                      check checkFile ("graphviz/path",
+                                      foldl addFile (graphvizPath ())
+                                            ["bin", "dot"])
                     ]
     in List.all (fn x=>x) results end
 
