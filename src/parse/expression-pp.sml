@@ -7,7 +7,7 @@
  *
  *)
 
-functor ExpressionPP (structure PPD : PP_DESC
+functor ExpressionPPFn (structure PPD : PP_DESC
                       structure E : EXPRESSION)
   :> EXPRESSION_PP where type stream    = PPD.PPS.stream
                      and type pp_desc   = PPD.pp_desc

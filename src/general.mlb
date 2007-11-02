@@ -11,8 +11,8 @@ local
     version.sml
 
     settings.sig
-    settings-rw.sig
-    settings-rw.sml
+    settings_rw.sig
+    settingsrw.sml
     settings.sml
 
     util.sml

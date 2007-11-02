@@ -17,7 +17,7 @@
  *        of declaration or statement?)
  *)
 
-functor Expression (structure FilePos : FILE_POS) : EXPRESSION =
+functor ExpressionFn (structure FilePos : FILE_POS) : EXPRESSION =
 struct
   
   (* shortcuts over Atom and AtomSet *)

@@ -1,4 +1,4 @@
 (* $Id$ *)
 
-structure Expression = Expression (structure FilePos = FilePos)
+structure Expression = ExpressionFn (structure FilePos = FilePos)
 

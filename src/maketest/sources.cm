@@ -6,21 +6,21 @@ Group
     signature MAKE_TEST
     structure MakeTest
 is
-    trans-flip.sig
-    trans-flip.sml
+    transition_flipper.sig
+    transitionflipper.sml
     partitions.sml
 
-    action-trans.sig
-    action-trans.sml
-    clock-expression.sig
-    clock-expression.sml
-    clkexpr-trans.sig
-    clkexpr-trans.sml
+    action_trans.sig
+    actiontrans.sml
+    clock_expression.sig
+    clockexpression.sml
+    clk_expr_trans.sig
+    clkexprtrans.sml
 
-    make-test.sig
-    make-test.sml
+    make_test.sig
+    maketest.sml
 
-    test-trans-flip.sml
+    testtransflip.sml
     ../parse/sources.cm
     ../general.cm
     ../lib/sources.cm

@@ -8,22 +8,22 @@ local
     ../lib/sources.mlb
 
     ann "nonexhaustiveMatch ignore" in
-        action-trans.sig
-        action-trans.sml
-        clock-expression.sig
-        clock-expression.sml
-        clkexpr-trans.sig
-        clkexpr-trans.sml
+        actiontrans.sig
+        actiontrans.sml
+        clock_expression.sig
+        clockexpression.sml
+        clk_expr_trans.sig
+        clkexprtrans.sml
     end
-        partitions.sml
+    partitions.sml
 
-    trans-flip.sig
-    trans-flip.sml
+    trans_flip.sig
+    transflip.sml
 
-    make-test.sig
-    make-test.sml
+    make_test.sig
+    maketest.sml
 
-    ann "nonexhaustiveMatch ignore" in test-trans-flip.sml end
+    ann "nonexhaustiveMatch ignore" in testtransflip.sml end
 in
     signature TRANSITION_FLIPPER
     structure TransitionFlipper

@@ -3,8 +3,13 @@ Group
     structure SettingsRW
     structure Util
 is
-    settings-rw.sig
-    settings-rw.sml
+    settings_rw.sig
+    settingsrwfn.sml
+#if defined(OPSYS_WIN32)
+    win-settingsrw.sml
+#else
+    posix-settingsrw.sml
+#endif
     settings.sig
     settings.sml
 

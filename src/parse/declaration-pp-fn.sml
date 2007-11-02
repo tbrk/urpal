@@ -7,12 +7,12 @@
  *
  *)
 
-functor DeclarationPP (structure PPD : PP_DESC
-                       structure EPP : EXPRESSION_PP
-                       structure D   : DECLARATION
-                       sharing type EPP.ty = D.ty
-                       sharing type PPD.pp_desc = EPP.pp_desc
-                       sharing type D.expr = EPP.expr)
+functor DeclarationPPFn (structure PPD : PP_DESC
+                         structure EPP : EXPRESSION_PP
+                         structure D   : DECLARATION
+                         sharing type EPP.ty = D.ty
+                         sharing type PPD.pp_desc = EPP.pp_desc
+                         sharing type D.expr = EPP.expr)
   :> DECLARATION_PP where type stream      = PPD.PPS.stream
                       and type pp_desc     = PPD.pp_desc
                       and type decl        = D.decl

@@ -13,11 +13,11 @@ struct
   structure OutPPS = PPStreamFn (structure Token  = StringToken
                                        and Device = SimpleTextIODev)
   structure OutPPD = PPDescFn (OutPPS)
-  structure EPP = ExpressionPP (structure PPD=OutPPD and E=Expression)
-  structure DPP = DeclarationPP (structure PPD=OutPPD and D=Declaration
-                                 and EPP=EPP)
-  structure OutEnvPP = EnvironmentPP (structure PPD=OutPPD and Env=Env
-                                      and EPP=EPP and DPP=DPP)
+  structure EPP = ExpressionPPFn (structure PPD=OutPPD and E=Expression)
+  structure DPP = DeclarationPPFn (structure PPD=OutPPD and D=Declaration
+                                   and EPP=EPP)
+  structure OutEnvPP = EnvironmentPPFn (structure PPD=OutPPD and Env=Env
+                                        and EPP=EPP and DPP=DPP)
 
   type env = Env.env
   type outstream = TextIO.StreamIO.outstream

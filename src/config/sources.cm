@@ -3,10 +3,10 @@ Group
     structure ConfigTree
 is
     config.lex
-    config-lexer.sig
-    config-tree.sig
-    config-tree-fn.sml
-    config-tree.sml
+    config_lexer.sig
+    config_tree.sig
+    configtreefn.sml
+    configtree.sml
 
     ../lib/sources.cm
 

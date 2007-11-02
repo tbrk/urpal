@@ -15,43 +15,43 @@ Group
     structure ActionMap
     structure ActionSet
 is
-    uppaal-parse.sig
-    uppaal-parse.sml
+    uppaal_parse.sig
+    uppaalparse.sml
 
     declaration.sig
     declaration.sml
 
-    declaration-pp-fn.sml
-    declaration-pp.sig
+    declarationppfn.sml
+    declaration_pp.sig
 
     environment.sig
     environment.sml
 
-    environment-cvt.sig
-    environment-cvt.sml
-    environment-pp-fn.sml
-    environment-pp.sig
+    environment_cvt.sig
+    environmentcvt.sml
+    environmentppfn.sml
+    environment_pp.sig
 
     expression.sig
     expression.sml
-    expression-fn.sml
+    expressionfn.sml
 
-    expression-cvt.sig
-    expression-cvt.sml
-    expression-pp.sig
-    expression-pp.sml
+    expression_cvt.sig
+    expressioncvt.sml
+    expression_pp.sig
+    expressionpp.sml
 
-    parsed-nta.sml
-    ppdev-string.sml
+    parsednta.sml
+    ppdevstring.sml
     result.sig
     result.sml
 
     uppaal.lex
     uppaal.grm
 
-    action-map.sml
-    action-red-black-map.sml
-    action-set.sml
+    actionmap.sml
+    actionredblackmap.sml
+    actionset.sml
 
     ../general.cm
     ../xml/sources.cm

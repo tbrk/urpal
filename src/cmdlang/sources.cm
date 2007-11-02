@@ -5,18 +5,18 @@ Group
     signature CMD_ENV
     structure CmdEnv
 is
-    cmdlang.sig
+    cmd_lang.sig
     cmdlang.sml
 
-    cmdenv.sig
+    cmd_env.sig
     cmdenv.sml
 
     cmdloop.sml
     cmdlang.grm
     cmdlang.lex
 
-    nta-util.sig
-    nta-util.sml
+    nta_util.sig
+    ntautil.sml
 
     ../lib/sources.cm
     ../parse/sources.cm
@@ -27,3 +27,4 @@ is
     $/basis.cm
     $/smlnj-lib.cm
     $/ml-yacc-lib.cm
+

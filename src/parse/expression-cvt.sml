@@ -19,14 +19,14 @@ struct
   structure StringPPS = PPStreamFn (structure Token = StringToken
                                           and Device = PPDevString)
   structure StringPPD = PPDescFn (StringPPS)
-  structure StringEPP = ExpressionPP (structure PPD=StringPPD and E=E)
+  structure StringEPP = ExpressionPPFn (structure PPD=StringPPD and E=E)
 
   structure OutPPS = PPStreamFn (structure Token  = StringToken
                                        and Device = SimpleTextIODev)
   structure OutPPD = PPDescFn (OutPPS)
-  structure OutEPP = ExpressionPP (structure PPD=OutPPD and E=E)
-  structure OutDPP = DeclarationPP (structure PPD=OutPPD
-                                    and D=D and EPP=OutEPP)
+  structure OutEPP = ExpressionPPFn (structure PPD=OutPPD and E=E)
+  structure OutDPP = DeclarationPPFn (structure PPD=OutPPD
+                                      and D=D and EPP=OutEPP)
 
   type expr = E.expr
    and ty   = E.ty

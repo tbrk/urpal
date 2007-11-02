@@ -11,18 +11,18 @@ local
     $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
     $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
 
-    cmdenv.sig
+    cmd_env.sig
     cmdenv.sml
 
-    nta-util.sig
-    nta-util.sml
+    nta_util.sig
+    ntautil.sml
 
     cmdloop.sml
     cmdlang.grm.sig
     cmdlang.grm.sml
     cmdlang.lex.sml
 
-    cmdlang.sig
+    cmd_lang.sig
     cmdlang.sml
 in
     signature CMD_LANG

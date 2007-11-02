@@ -48,7 +48,8 @@ tags: $(SRC)
 	exctags -R --exclude=.cm --exclude=*.grm.sml *
 
 clean:
-	-@find . \( $(SKIPCM) -name *.grm.sml -o -name *.lex.sml \) \
+	-@find . \( $(SKIPCM) -name *.grm.sml -o -name *.lex.sml \
+		    -o -name *.grm.sig -o -name *.grm.desc \)    \
 	 	-print -exec rm {} \;
 	-@for f in $(SRCDIRS); do rm -r $$f/.cm; done
 

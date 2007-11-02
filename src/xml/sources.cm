@@ -13,23 +13,23 @@ Group
     structure TextNta
 is
     nta.sig
-    nta-fn.sml
-    nta-output.sig
-    nta-output-fn.nj.sml
-    nta-types-output.sig
-    nta-types.sig
-    text-nta.sml
+    ntafn.sml
+    nta_output.sig
+    ntaoutputfn.nj.sml
+    nta_types_output.sig
+    nta_types.sig
+    textnta.sml
 
-    uppaal-xml.sig
-    uppaal-xml.sml
+    uppaal_xml.sig
+    uppaalxml.sml
 
-    uppaal-dtd.sig
-    uppaal-dtd.sml
-    uppaal-hooks.sml
-    uppaal-resolver.sml
+    uppaal_dtd.sig
+    uppaaldtd.sml
+    uppaalhooks.sml
+    uppaalresolver.sml
 
-    xml-writer.sig
-    xml-writer.sml
+    xml_writer.sig
+    xmlwriter.sml
 
     ../lib/sources.cm
     ../general.cm

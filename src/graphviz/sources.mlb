@@ -4,37 +4,37 @@ local
     $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
     $(SML_LIB)/smlnj-lib/PP/pp-lib.mlb
 
-    x11-color.sig
-    x11-color.sml
+    x11_color.sig
+    x11color.sml
 
     attribute.sig
-    edge-attribute.sig
-    graph-attribute.sig
-    node-attribute.sig
+    edgeattribute.sig
+    graphattribute.sig
+    nodeattribute.sig
     id.sig
 
     dot.sig
-    dot-fn.sml
+    dotfn.sml
     ann "nonexhaustiveMatch ignore" in
-        show-att-fn.sml
+        showattfn.sml
     end
-    dot-pp-fn.sml
+    dotppfn.sml
 
-    text-attribute.sml
-    text-dot.sml
-    text-dot-io.sml
+    textattribute.sml
+    textdot.sml
+    textdotio.sml
 
-    typed-attributes.sml
-    typed-dot.sml
-    typed-dot-io.sml
-    typed-dot-util.sml
+    typedattributes.sml
+    typeddot.sml
+    typeddotio.sml
+    typeddotutil.sml
 
     plain.sig
-    plain-fn.sml
-    text-plain.sml
+    plainfn.sml
+    textplain.sml
 
     graphviz.sig
-    graphviz-fn.sml
+    graphvizfn.sml
     unix-graphviz.sml
 in
     signature DOT

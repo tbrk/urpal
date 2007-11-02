@@ -7,7 +7,7 @@
  *
  *)
 
-functor EnvironmentPP (
+functor EnvironmentPPFn (
   structure PPD : PP_DESC
   structure Env : ENVIRONMENT
   structure EPP : EXPRESSION_PP
