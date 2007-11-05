@@ -1,3 +1,4 @@
+(* $Id$ *)
 Group
     signature CMD_LANG
     structure CmdLang

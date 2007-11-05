@@ -1,4 +1,4 @@
 (* $Id$ *)
 
-structure Settings = SettingsRW :> SETTINGS
+structure Settings :> SETTINGS = SettingsRW
 

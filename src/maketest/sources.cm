@@ -1,3 +1,4 @@
+(* $Id$ *)
 Group
     signature TRANSITION_FLIPPER
     structure TransitionFlipper

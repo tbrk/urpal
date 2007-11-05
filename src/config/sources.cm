@@ -1,3 +1,4 @@
+(* $Id$ *)
 Group
     signature CONFIG_TREE
     structure ConfigTree
