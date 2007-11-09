@@ -33,15 +33,22 @@ struct
 
   val dotScale = 100.0
 
-  fun usedChannels (P.Template {transitions, ...}) = let
+  fun actions (P.Template {transitions, ...}) = let
       fun insert ((nm, dir), []) = [(nm, dir)]
         | insert ((nm, dir),  (x as (nm', dir'))::xs) =
             if nm=:=nm' andalso dir=dir' then x::xs else x::insert ((nm, dir), xs)
 
-      fun addChan (P.Transition {sync=(NONE, _), ...}, l) = l
-        | addChan (P.Transition {sync=(SOME (nm, dir, _), _), ...}, l)
+      fun addAct (P.Transition {sync=(NONE, _), ...}, l) = l
+        | addAct (P.Transition {sync=(SOME (nm, dir, _), _), ...}, l)
               = insert ((nm, dir), l)
-    in foldl addChan [] transitions end
+    in foldl addAct [] transitions end
+
+  fun channelSet (P.Template {transitions, ...}) = let
+      fun addSync (P.Transition {sync=(NONE, _), ...}          , s) = s
+        | addSync (P.Transition {sync=(SOME (c, _, _), _), ...}, s) = s <+ c
+    in foldl addSync AtomSet.empty transitions end
+
+  fun channels t = AtomSet.listItems (channelSet t)
 
   fun warnIfCommitted t =
      if List.exists P.Location.isCommitted (P.Template.selLocations t)
@@ -49,7 +56,7 @@ struct
                      " contains a committed location (not supported)."] else ()
 
   fun warnOnChannels (t as P.Template {declaration=env,...}) = let
-      fun checkChannel (nm, _) = let
+      fun checkChannel nm = let
           val pre = Atom.toString nm
         in case Env.findVal env nm of
              NONE => SOME [pre, " not in scope."]
@@ -64,7 +71,7 @@ struct
 
            | _   => SOME [pre, " not a channel."]
         end
-    in List.app Util.warn (List.mapPartial checkChannel (usedChannels t)) end
+    in List.app Util.warn (List.mapPartial checkChannel (channels t)) end
 
   local
     structure PLoc = P.Location
@@ -124,14 +131,6 @@ struct
       
     in foldl spl (PTem.updTransitions tplate []) transitions end
   end (* local *)
-
-  fun channelSet transitions = let
-      fun addSync (P.Transition {sync=(NONE, _), ...}          , s) = s
-        | addSync (P.Transition {sync=(SOME (c, _, _), _), ...}, s) = s <+ c
-    in foldl addSync AtomSet.empty transitions end
-
-  fun channels (P.Template {transitions, ...})
-          = AtomSet.listItems (channelSet transitions)
 
   local
     structure IMap = IntBinaryMap

@@ -306,6 +306,9 @@ struct
   val trueExpr  = BoolCExpr true
   val falseExpr = BoolCExpr false
 
+  fun otherDirection Input  = Output
+    | otherDirection Output = Input
+
   fun andexpr (BoolCExpr true,          e2)                      = e2
     | andexpr (e1 as (BoolCExpr false), e2)                      = e1
     | andexpr (e1,                      BoolCExpr true)          = e1
@@ -338,14 +341,6 @@ struct
         | conflict (Deadlock _)                     = false
 
         | conflict e = let val s = getFreeNames e
-(* TODO: DEBUG ONLY! *)
-(*val _ = TextIO.print "    : cs1="
-val _ = AtomSet.app (fn a=> TextIO.print (Atom.toString a ^ " ")) cs1
-val _ = TextIO.print "\n    : cs2="
-val _ = AtomSet.app (fn a=> TextIO.print (Atom.toString a ^ " ")) cs2
-val _ = TextIO.print "\n    : s="
-val _ = AtomSet.app (fn a=> TextIO.print (Atom.toString a ^ " ")) s
-val _ = TextIO.print "\n"*)
                        in s <^> cs1 andalso s <^> cs2 end
 
     in conflict e end

@@ -19,7 +19,6 @@ struct
   infix <+ <- ++ </ =:= ; open Symbol
 
   exception InvalidChannelId of symbol
-  exception MissingChannelIds of symbol list
   exception SilentTransition 
   exception NoChannels
   exception BadSubscriptType of string * string
@@ -128,7 +127,7 @@ struct
   fun channels (P.Template {transitions, ...})
           = AtomSet.listItems (channelSet transitions)
 
-  fun invertActionAndAddInvariant (env, invmap)
+  fun invertActionAndAddInvariant (env, invmap, dontFlipSet)
       (P.Transition {id, source=source as P.LocId src, target,
                      guard=(g, gpos), sync=(sync, syncpos),
                      select, update, comments, position, color, nails}) = let
@@ -153,9 +152,9 @@ struct
                           * avoid by using E.andexpr. *)
 
       val sync' = case sync of
-                    NONE                    => NONE
-                  | SOME (s, E.Input, idx)  => SOME (s, E.Output, idx)
-                  | SOME (s, E.Output, idx) => SOME (s, E.Input,  idx)
+                    NONE             => NONE
+                  | SOME (s,dir,idx) => if s <- dontFlipSet then sync
+                                        else SOME (s,E.otherDirection dir,idx)
     in
       P.Transition {id=id, source=source, target=target,
                     guard=(g', gpos), sync=(sync', syncpos), 
@@ -185,9 +184,9 @@ struct
       val cIdGiven = foldl AtomSet.add' AtomSet.empty channelIds
       val cIdUsed  = channelSet transitions
       val cMissing = AtomSet.difference (cIdUsed, cIdGiven)
-      val _ = if AtomSet.isEmpty cMissing
-              then () else raise MissingChannelIds (AtomSet.listItems cMissing)
-      
+      val _ = if AtomSet.isEmpty cMissing then ()
+              else Util.warn ("channels are missing from the testing list: "::
+                              (map Atom.toString (AtomSet.listItems cMissing)))
       val (tplate',err as P.Location {id=errLocId,...})= P.Location.new t "Err"
       val err = P.Location.updColor err (Settings.errorColor ())
 
@@ -198,8 +197,8 @@ struct
       val invarianttrans = formInvariantTrans (errLocId, locations)
       val fliptrans = formInverseTrans (errLocId, declaration, channelIds)
                                        (locations, transitions)
-      val normtrans = map (invertActionAndAddInvariant (declaration, invMap))
-                          transitions
+      val normtrans = map (invertActionAndAddInvariant
+                           (declaration, invMap, cMissing)) transitions
       
       (* Not quite per the Stoelinga definition. *)
       val errorloop = [P.Transition {id=NONE, source=errLocId, target=errLocId,

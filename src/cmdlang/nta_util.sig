@@ -9,9 +9,10 @@ sig
 
   val expandUrgentLocs    : ParsedNta.template -> ParsedNta.template
 
-  val usedChannels        : ParsedNta.template
+  val actions             : ParsedNta.template
                             -> (symbol * Expression.direction) list
   val channels            : ParsedNta.template -> symbol list
+  val channelSet          : ParsedNta.template -> AtomSet.set
 
   exception CannotSplitChannelArrays
   val split               : ParsedNta.template *

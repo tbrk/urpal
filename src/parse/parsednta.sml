@@ -29,6 +29,12 @@ struct
   and noSync      = NONE
   and noUpdate    = []
 
+  val noParameter     = []
+  val noDeclaration   = Env.base_env
+  val noImports       = NONE
+  val noInstantiation = NONE
+  val noSystem        = ""
+
   type outstream = TextIO.StreamIO.outstream
   fun pr strm str = TextIO.StreamIO.output (strm, str)
 

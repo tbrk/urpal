@@ -16,5 +16,11 @@ structure TextNta = NtaFn (type invariant     = string option
                             val noGuard       = NONE
                             val noSync        = NONE
                             val noUpdate      = NONE
+
+                            val noParameter     = NONE
+                            val noDeclaration   = NONE
+                            val noImports       = NONE
+                            val noInstantiation = NONE
+                            val noSystem        = ""
                           )
 

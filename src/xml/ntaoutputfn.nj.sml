@@ -103,7 +103,9 @@ struct
       then outLabel ("invariant", invariantPos,
                      fn()=> T.outputInvariant (os, invariant)) else ();
 
-      outPosLabel ("comments", commentsPos, comments);
+      case comments of
+        NONE   => ()
+      | SOME c => outLabel ("comments", commentsPos, fn()=> pr c);
 
       outFlag ("urgent", urgent);
       outFlag ("committed", committed);
@@ -151,7 +153,10 @@ struct
       then outLabel ("assignment", updatePos,
                      fn()=> T.outputUpdate (os, update)) else ();
 
-      outPosLabel ("comments", commentsPos, comments);
+      case comments of
+        NONE   => ()
+      | SOME c => outLabel ("comments", commentsPos, fn()=> pr c);
+
       app prNail nails;
       pr "</transition>"
     end

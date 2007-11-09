@@ -5,7 +5,6 @@ sig
   type symbol = Atom.atom
 
   exception InvalidChannelId of Atom.atom
-  exception MissingChannelIds of Atom.atom list
   exception NoChannels
   exception SilentTransition
 

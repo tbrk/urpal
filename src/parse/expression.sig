@@ -155,6 +155,8 @@ sig
      contain variables from both sets, returning true if one is found.      *)
   val conflictExists : AtomSet.set * AtomSet.set * expr -> bool
 
+  val otherDirection : direction -> direction
+
   (* Ignores pos values.
      Strictly syntactic equality (e.g. ignores commutativity).
      Assumes functions return the same result given the same input arguments.

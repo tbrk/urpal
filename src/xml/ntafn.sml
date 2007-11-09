@@ -22,6 +22,12 @@ struct
   val noSync         = T.noSync
   val noUpdate       = T.noUpdate
 
+  val noParameter     = T.noParameter
+  val noDeclaration   = T.noDeclaration
+  val noImports       = T.noImports
+  val noInstantiation = T.noInstantiation
+  val noSystem        = T.noSystem
+
   datatype locId = LocId of int
   datatype location = Location of {
                    id          : locId,
@@ -88,6 +94,12 @@ struct
              instantiation=instantiation, system=system}
 
   structure Template = struct
+    fun new (name, initial) = Template {
+                                name=(name, NONE),
+                                parameter=(noParameter, NONE),
+                                declaration=noDeclaration,
+                                initial=initial, locations=[], transitions=[]}
+
     fun transform {m11, m12, m21, m22,  tx,  ty}
            (Template {name=(namev, namep), parameter=(paramv, paramp),
                       declaration, initial, locations, transitions}) =

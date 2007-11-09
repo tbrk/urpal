@@ -50,6 +50,13 @@ fun addCoords layoutengine (srcPred, dstPred)
                       (NtaU.addCoordsFromPlain (withIds, plain)))
   end
 
+fun doMakeMCS51 path = let
+    val ins = TextIO.getInstream (TextIO.openIn (Atom.toString path))
+    val prog = MCS51.parse TextIO.StreamIO.inputLine ins
+    val t = MCS51.toTemplate (prog, {showinstrs=true, position=true, maxrows=8})
+  in CE.Template t end
+    handle IO.Io {cause, ...} => CE.Fail (General.exnMessage cause)
+
 fun doMakeTest (CE.Template t, CE.Symbols chanset, CE.Symbols varset) = (let
         val chans = AtomSet.listItems chanset
         val _ = NtaU.warnIfCommitted t
@@ -65,11 +72,7 @@ fun doMakeTest (CE.Template t, CE.Symbols chanset, CE.Symbols varset) = (let
       in CE.Template t end
       handle MakeTest.InvalidChannelId c => CE.Fail ("invalid channel id "
                                                      ^Atom.toString c)
-           | MakeTest.NoChannels => CE.Fail "empty channel list"
-           | MakeTest.MissingChannelIds ids => CE.Fail (ListFormat.fmt
-                  {final="", sep=", ", fmt=Atom.toString,
-                   init="channel(s) missing from the inversion list: "} ids)
-      )
+           | MakeTest.NoChannels => CE.Fail "empty channel list")
 
   | doMakeTest (f as CE.Fail _, _, _)        = f
   | doMakeTest (_, f as CE.Fail _, _)        = f
@@ -90,10 +93,9 @@ fun doSetInitial (CE.Template t, nm)  =
   | doSetInitial (f as CE.Fail _, _) = f
   | doSetInitial _ = CE.Fail "bad args: setinitial(<template>, <name>)"
 
-fun doNames (CE.Template t)  = CE.Symbols
-      (foldl AtomSet.add' emptyset (NtaU.channels t))
-  | doNames (f as CE.Fail _) = f
-  | doNames _ = CE.Fail "bad args: names(<template>)"
+fun doChannels (CE.Template t)  = CE.Symbols (NtaU.channelSet t)
+  | doChannels (f as CE.Fail _) = f
+  | doChannels _ = CE.Fail "bad args: channels(<template>)"
 
 fun doRestriction (CE.Symbols s1, CE.Symbols s2) = CE.Symbols
                                                 (AtomSet.difference (s1, s2))
@@ -212,20 +214,20 @@ fun doScale (CE.Template t, s)  = CE.Template (
   | doScale (f as CE.Fail _, _) = f
   | doScale (_, _) = CE.Fail "bad args: scale(<template>, <real>)"
 
-fun doChannels (CE.Template t) = CE.Symbols (
-        foldl (fn ((n, _), s)=> s <+ n) emptyset (NtaUtil.usedChannels t))
-  | doChannels (f as CE.Fail _) = f
-  | doChannels _ = CE.Fail "bad args: channels(<template>)"
+fun doActions (CE.Template t) = CE.Actions (
+        foldl ActionSet.add' ActionSet.empty (NtaU.actions t))
+  | doActions (f as CE.Fail _) = f
+  | doActions _ = CE.Fail "bad args: actions(<template>)"
 
 fun doTabulate (CE.Template t, CE.Symbols lset) = let
-    val locs = NtaUtil.namesetToLocset (lset, t)
+    val locs = NtaU.namesetToLocset (lset, t)
     fun dstP (PNta.LocId i) = IntBinarySet.member (locs, i)
-  in CE.Template (NtaUtil.tabulateAll (dstP, t)) end
+  in CE.Template (NtaU.tabulateAll (dstP, t)) end
   | doTabulate (f as CE.Fail _, _) = f
   | doTabulate (_, f as CE.Fail _) = f
   | doTabulate _ = CE.Fail "bad args: tabulate(<template>, <locnames>)"
 
-fun doSplit (CE.Template t,CE.ActionMap am) = CE.Template(NtaUtil.split (t,am))
+fun doSplit (CE.Template t,CE.ActionMap am) = CE.Template(NtaU.split (t,am))
   | doSplit (f as CE.Fail _, _) = f
   | doSplit (_, f as CE.Fail _) = f
   | doSplit _ = CE.Fail "bad args: split(<template>, <actionmap>)"
@@ -267,12 +269,13 @@ fun echo (f as CE.Fail s) = ((pr [s]); f)
 
 fun help () = app (fn t=>pr [t]) [
       "acceptall(<actionset>)",
+      "actions(<template>)",
       "channels(<template>)",
       "conflate(<template>, <namemap>)",
       "drop(<template>, <nameset>)",
+      "makemcs51(<filepath>)",
       "maketest(<template>)",
       "maketest(<template>, <nameset>, <nameset>)",
-      "names(<template>)",
       "parameters(<template>)",
       "renamelocs(<template>, <namemap>)",
       "renametrans(<template>, <actionmap>)",
@@ -282,7 +285,7 @@ fun help () = app (fn t=>pr [t]) [
       "tabulate(<template>, <nameset>)",
       "<template> \\ <actionset>",
       "<nameset> \\ <nameset>",
-      "<nameset> ++ <namset>"
+      "<nameset> ++ <nameset>"
     ]
 
 %%
@@ -299,8 +302,8 @@ fun help () = app (fn t=>pr [t]) [
 
 %term ID of Atom.atom | INTEGER of int | REAL of real | STRING of string |
       QUIT | LIST | SHOW | WRITEGRAPHICS | DROP |
-      MAKETEST | RENAMELOCS | RENAMETRANS | SCALE | NAMES | ACCEPTALL |
-      TABULATE | CHANNELS | SPLIT | PARAMETERS | HELP | CONFLATE |
+      MAKEMCS51 | MAKETEST | RENAMELOCS | RENAMETRANS | SCALE | ACTIONS |
+      ACCEPTALL | TABULATE | CHANNELS | SPLIT | PARAMETERS | HELP | CONFLATE |
       SETINITIAL |
       LPAR | RPAR | LSQPAR | RSQPAR | LBARBRACE | RBARBRACE | LBRACE | RBRACE |
       QUESTION | EXCLAM | SLASH | BACKSLASH | UNION | ASSIGN | COMMA |
@@ -327,98 +330,97 @@ fun help () = app (fn t=>pr [t]) [
 
 %%
 
-cmd: stmt                                 ((CmdLoop.Continue, stmt initialEnv))
-   | QUIT                                 ((CmdLoop.Stop, initialEnv))
+cmd: stmt                             ((CmdLoop.Continue, stmt initialEnv))
+   | QUIT                             ((CmdLoop.Stop, initialEnv))
 
-stmt: LIST                                (listTemplates)
-    | SHOW                                (showVals)
-    | SHOW ID                             (showVal ID)
-    | HELP                                (fn e=>(help(); e))
-    | ID ASSIGN expr                      (fn e=>insert (e, ID, expr e))
-    | DROP ID                             (fn e=>(fn(e,v)=>(echo v; e))
-                                                      (drop (e, ID)))
+stmt: LIST                            (listTemplates)
+    | SHOW                            (showVals)
+    | SHOW ID                         (showVal ID)
+    | HELP                            (fn e=>(help(); e))
+    | ID ASSIGN expr                  (fn e=>insert (e, ID, expr e))
+    | expr                            (fn e=>(pr[CmdEnv.toString (expr e)]; e))
+    | DROP ID                         (fn e=>(fn(e,v)=>(echo v; e))
+                                             (drop (e, ID)))
     | WRITEGRAPHICS LPAR expr COMMA STRING COMMA ID RPAR
-                                          (fn e=>(echo (doWriteGraphics
+                                      (fn e=>(echo (doWriteGraphics
                                              (expr e, STRING, ID)); e))
 
-expr: MAKETEST expr RPAR                  (fn e=>doMakeTest' (expr e, e))
+expr: ACCEPTALL expr RPAR             (fn e=>doAcceptAll (e, expr e))
+    | ACTIONS expr RPAR               (fn e=>doActions (expr e))
+    | CHANNELS expr RPAR              (fn e=>doChannels (expr e))
+    | CONFLATE expr COMMA expr RPAR   (fn e=>doConflate (expr1 e, expr2 e))
+    | DROP expr COMMA expr RPAR       (fn e=>doDropLoc (expr1 e, expr2 e))
+    | MAKEMCS51 ID RPAR               (fn e=>doMakeMCS51 ID)
+    | MAKETEST expr RPAR              (fn e=>doMakeTest' (expr e, e))
     | MAKETEST expr COMMA expr COMMA expr RPAR
-                                          (fn e=>doMakeTest (expr1 e,
+                                      (fn e=>doMakeTest (expr1 e,
                                                              expr2 e, expr3 e))
-    | RENAMELOCS expr COMMA expr RPAR     (fn e=>doRenameLocs (expr1 e, expr2 e))
-    | RENAMETRANS expr COMMA expr RPAR    (fn e=>doRenameTrans (expr1 e,
+    | PARAMETERS expr RPAR            (fn e=>doParameters (expr e))
+    | RENAMELOCS expr COMMA expr RPAR (fn e=>doRenameLocs (expr1 e, expr2 e))
+    | RENAMETRANS expr COMMA expr RPAR(fn e=>doRenameTrans (expr1 e,
                                                                 expr2 e))
-    | SCALE expr COMMA REAL RPAR          (fn e=>doScale (expr1 e, REAL))
-    | NAMES expr RPAR                     (fn e=>doNames (expr e))
-    | CHANNELS expr RPAR                  (fn e=>doChannels (expr e))
-    | DROP expr COMMA expr RPAR           (fn e=>doDropLoc (expr1 e, expr2 e))
-    | ACCEPTALL expr RPAR                 (fn e=>doAcceptAll (e, expr e))
-    | SETINITIAL expr COMMA ID RPAR       (fn e=>doSetInitial (expr e, ID))
-    | TABULATE expr COMMA expr RPAR       (fn e=>doTabulate (expr1 e, expr2 e))
-    | SPLIT expr COMMA expr RPAR          (fn e=>doSplit (expr1 e, expr2 e))
-    | CONFLATE expr COMMA expr RPAR       (fn e=>doConflate (expr1 e, expr2 e))
-    | PARAMETERS expr RPAR                (fn e=>doParameters (expr e))
-    | expr BACKSLASH expr                 (fn e=>doRestriction
-                                                   (expr1 e, expr2 e))
-    | expr UNION expr                     (fn e=>doUnion
-                                                   (expr1 e, expr2 e))
-    | LBRACE idlist RBRACE                (fn e=>CE.Symbols
-                                             (foldl AtomSet.add'
-                                                emptyset idlist))
-    | LBRACE idsubstlist RBRACE           (fn e=>CE.SymbolMap
+    | SCALE expr COMMA REAL RPAR      (fn e=>doScale (expr1 e, REAL))
+    | SETINITIAL expr COMMA ID RPAR   (fn e=>doSetInitial (expr e, ID))
+    | SPLIT expr COMMA expr RPAR      (fn e=>doSplit (expr1 e, expr2 e))
+    | TABULATE expr COMMA expr RPAR   (fn e=>doTabulate (expr1 e, expr2 e))
+    | expr BACKSLASH expr             (fn e=>doRestriction (expr1 e, expr2 e))
+    | expr UNION expr                 (fn e=>doUnion (expr1 e, expr2 e))
+    | LBRACE idlist RBRACE            (fn e=>CE.Symbols (foldl AtomSet.add'
+                                                             emptyset idlist))
+    | LBRACE idsubstlist RBRACE       (fn e=>CE.SymbolMap
                                              (foldl AtomMap.insert'
                                                 AtomMap.empty idsubstlist))
-    | LBRACE RBRACE                       (fn e=>CE.Symbols AtomSet.empty)
-    | LBARBRACE actionlist RBARBRACE      (fn e=>CE.Actions
-                                             (foldl ActionSet.add'
-                                                ActionSet.empty actionlist))
-    | LBARBRACE actionsubstlist RBARBRACE (fn e=>CE.ActionMap
-                                             (foldl ActionMap.insert'
-                                                ActionMap.empty
-                                                actionsubstlist))
-    | LBARBRACE RBARBRACE                 (fn e=>CE.Actions ActionSet.empty)
-    | ID                                  (fn e=>case CE.getValue e ID of
+    | LBRACE RBRACE                   (fn e=>CE.Symbols AtomSet.empty)
+    | LBARBRACE actionlist RBARBRACE  (fn e=>CE.Actions (foldl ActionSet.add'
+                                                  ActionSet.empty actionlist))
+    | LBARBRACE actionsubstlist RBARBRACE
+                                      (fn e=>CE.ActionMap
+                                               (foldl ActionMap.insert'
+                                                  ActionMap.empty
+                                                  actionsubstlist))
+    | LBARBRACE RBARBRACE             (fn e=>CE.Actions ActionSet.empty)
+    | ID                              (fn e=>case CE.getValue e ID of
                                                NONE  => CE.Fail ("unknown id "
                                                           ^ Atom.toString ID)
                                              | SOME v=> v)
 
-idlist: ID                                ([ID])
-      | ID COMMA idlist                   (ID::idlist)
+idlist: ID                            ([ID])
+      | ID COMMA idlist               (ID::idlist)
 
-idsubstlist: subst                        (subst)
-           | subst COMMA idsubstlist      (subst @ idsubstlist)
+idsubstlist: subst                    (subst)
+           | subst COMMA idsubstlist  (subst @ idsubstlist)
 
-subst: ID RARROW ID                       ([(ID1, ID2)])
-     | ID DBLARROW ID                     ([(ID1, ID2), (ID1, ID2)])
+subst: ID RARROW ID                   ([(ID1, ID2)])
+     | ID DBLARROW ID                 ([(ID1, ID2), (ID1, ID2)])
 
-action: ID QUESTION                       ((ID, CE.Input))
-      | ID EXCLAM                         ((ID, CE.Output))
+action: ID QUESTION                   ((ID, CE.Input))
+      | ID EXCLAM                     ((ID, CE.Output))
 
-actionlist: ID                            ([(ID, CE.Input),(ID, CE.Output)])
-          | action                        ([action])
-          | ID COMMA actionlist           ([(ID, CE.Input),(ID, CE.Output)]
-                                           @ actionlist)
-          | action COMMA actionlist       (action::actionlist)
+actionlist: ID                        ([(ID, CE.Input),(ID, CE.Output)])
+          | action                    ([action])
+          | ID COMMA actionlist       ([(ID, CE.Input),(ID, CE.Output)]
+                                       @ actionlist)
+          | action COMMA actionlist   (action::actionlist)
 
-actionsubstlist: actionsubst              (actionsubst)
+actionsubstlist: actionsubst          (actionsubst)
                | actionsubst COMMA actionsubstlist
-                                          (actionsubst @ actionsubstlist)
+                                      (actionsubst @ actionsubstlist)
 
-actionsubst: ID RARROW action             ([((ID1, CE.Input), action),
-                                            ((ID1, CE.Output),action)])
-           | ID RARROW ID                 ( [((ID1, CE.Input),
-                                              (ID2, CE.Input)),
-                                             ((ID1, CE.Output),
-                                              (ID2, CE.Output))])
-           | ID DBLARROW ID               ( [((ID1, CE.Input),
-                                              (ID2, CE.Input)),
-                                             ((ID1, CE.Output),
-                                              (ID2, CE.Output)),
-                                             ((ID2, CE.Input),
-                                              (ID1, CE.Input)),
-                                             ((ID2, CE.Output),
-                                              (ID1, CE.Output))])
-           | action RARROW action         ([(action1, action2)])
-           | action DBLARROW action       ([(action1, action2),
-                                            (action2, action1)])
+actionsubst: ID RARROW action         ([((ID1, CE.Input), action),
+                                        ((ID1, CE.Output),action)])
+           | ID RARROW ID             ( [((ID1, CE.Input),
+                                          (ID2, CE.Input)),
+                                         ((ID1, CE.Output),
+                                          (ID2, CE.Output))])
+           | ID DBLARROW ID           ( [((ID1, CE.Input),
+                                          (ID2, CE.Input)),
+                                         ((ID1, CE.Output),
+                                          (ID2, CE.Output)),
+                                         ((ID2, CE.Input),
+                                          (ID1, CE.Input)),
+                                         ((ID2, CE.Output),
+                                          (ID1, CE.Output))])
+           | action RARROW action     ([(action1, action2)])
+           | action DBLARROW action   ([(action1, action2),
+                                        (action2, action1)])
 

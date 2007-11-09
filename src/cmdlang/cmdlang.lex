@@ -29,13 +29,14 @@ structure Keyword =
              val ident=Tokens.ID
              val keywords= [
                 ("acceptall", Tokens.ACCEPTALL),
+                ("actions",   Tokens.ACTIONS),
                 ("channels",  Tokens.CHANNELS),
                 ("conflate",  Tokens.CONFLATE),
                 ("drop",      Tokens.DROP),
                 ("help",      Tokens.HELP),
                 ("list",      Tokens.LIST),
+                ("makemcs51", Tokens.MAKEMCS51),
                 ("maketest",  Tokens.MAKETEST),
-                ("names",     Tokens.NAMES),
                 ("parameters",Tokens.PARAMETERS),
                 ("renamelocs",Tokens.RENAMELOCS),
                 ("renametrans",Tokens.RENAMETRANS),
@@ -68,7 +69,7 @@ strchar=([\\]["] | [^"\n]);
                                         FilePos.currpos (yyarg, yypos),
                          FilePos.currpos (yyarg,
                                            yypos + String.size yytext - 1)));
-<INITIAL>{alpha}+{ws}*\(
+<INITIAL>{alpha}({alpha}|{digit})*{ws}*\(
                    => (Keyword.keyword (stripParen(yytext),
                                         FilePos.currpos (yyarg, yypos),
                          FilePos.currpos (yyarg,

@@ -12,7 +12,7 @@ structure CmdLang : CMD_LANG = struct
                                  structure Lex = Lex)
 
   fun parse rdr (env, ostrm) = let
-      val prError   = FilePos.error "blah" (* (Settings.progName^":")*)
+      val prError   = FilePos.error (Settings.progName^":")
 
       val strm = ref ostrm
       fun read _ = case rdr (!strm) of

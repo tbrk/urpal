@@ -69,6 +69,8 @@ sig
    * them as necessary (thus invalidating all external ids) *)
 
   structure Template : sig
+    val new            : (string * locId option) -> template
+
     val transform      : {m11:real,m12:real,m21:real,m22:real,tx:real,ty:real}
                          -> template -> template
     (* Transform each pos value via:  | m11  m12  0 |

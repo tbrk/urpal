@@ -24,6 +24,7 @@ is
     ../graphviz/sources.cm
     ../maketest/sources.cm
     ../xml/sources.cm
+    ../mcs51/sources.cm
     ../general.cm
     $/basis.cm
     $/smlnj-lib.cm

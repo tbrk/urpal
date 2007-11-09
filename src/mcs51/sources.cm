@@ -1,0 +1,24 @@
+(* $Id$ *)
+Group
+    signature MCS51
+    signature MCS51_INSTRUCTION
+    structure MCS51
+is
+    mcs51.grm
+    mcs51.lex
+
+    mcs51.sig
+    mcs51.sml
+
+    mcs51_instruction.sig
+    mcs51instruction.sml
+
+    maketimed.sml
+
+    ../lib/sources.cm
+    ../parse/sources.cm
+    ../general.cm
+    $/basis.cm
+    $/smlnj-lib.cm (* KeywordFn *)
+    $/ml-yacc-lib.cm
+

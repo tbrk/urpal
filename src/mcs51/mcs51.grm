@@ -1,0 +1,231 @@
+(* $Id: cmdlang.grm 326 2007-10-31 05:39:12Z tbourke $
+ *
+ * 20071024 T. Bourke
+ *   Original code. Simple Intel MCS-51 assembly
+ *)
+
+fun intToIndirect 0 = ASM.Reg0
+  | intToIndirect 1 = ASM.Reg1
+  | intToIndirect _ = raise Fail "Bad indirect from lexer"
+
+fun intToRegister 0 = ASM.R0
+  | intToRegister 1 = ASM.R1
+  | intToRegister 2 = ASM.R2
+  | intToRegister 3 = ASM.R3
+  | intToRegister 4 = ASM.R4
+  | intToRegister 5 = ASM.R5
+  | intToRegister 6 = ASM.R6
+  | intToRegister 7 = ASM.R7
+  | intToRegister _ = raise Fail "Bad register from lexer"
+
+%%
+%name MCS51
+%noshift EOF
+%eop SEMICOLON EOF
+%pure
+%pos FilePos.pos
+%verbose
+
+%header (functor MCS51LrValsFn (structure Token   : TOKEN
+                                structure FilePos : FILE_POS
+                                structure ASM     : MCS51_INSTRUCTION))
+
+%term A | C | AB | DPTR | PC |
+      ADD | ADDC | SUBB | INC | DEC | MUL | DIV | DA | ANL | ORL | XRL |
+      CLR | CPL | RL | RLC | RR | RRC | SWAP | MOV | MOVC | MOVX | PUSH |
+      POP | XCH | XCHD | SETB | ACALL | LCALL | RET | RETI | AJMP | LJMP |
+      SJMP | JMP | JZ | JNZ | JC | JNC | JB | JNB | JBC | CJNE | DJNZ | NOP |
+      DIRECT of Atom.atom | INDIRECT of int |
+      REGISTER of int | IMMEDIATE of string |
+      COMMA | PLUS | AT | SEMICOLON | COLON | SLASH | UNKNOWN | EOF
+
+%nonterm program   of (string option * ASM.t) list
+       | linstrlist of (string option * ASM.t) list
+       | linstr    of (string option * ASM.t)
+       | instr     of ASM.t
+       | direct    of ASM.direct
+       | immediate of ASM.data
+       | data16    of ASM.data16
+       | addr11    of ASM.addr11
+       | addr16    of ASM.addr16
+       | bit       of ASM.bit
+       | rel       of ASM.rel
+       | label     of string
+       | indirect  of ASM.reg0or1
+       | register  of ASM.reg
+
+%keyword ADD ADDC SUBB INC DEC MUL DIV DA ANL ORL XRL
+%keyword CLR CPL RL RLC RR RRC SWAP MOV MOVC MOVX PUSH
+%keyword POP XCH XCHD SETB ACALL LCALL RET RETI AJMP LJMP
+%keyword SJMP JMP JZ JNZ JC JNC JB JNB JBC CJNE DJNZ NOP
+
+%value INDIRECT (0)
+%value REGISTER (0)
+%value IMMEDIATE ("dummy")
+
+%%
+
+program: linstrlist               (linstrlist)
+
+linstrlist: linstr                ([linstr])
+          | linstr linstrlist     (linstr::linstrlist)
+
+linstr: instr SEMICOLON             ((NONE, instr))
+      | label COLON instr SEMICOLON ((SOME label, instr))
+
+instr: ADD A COMMA register       (ASM.ADD_reg register)
+     | ADD A COMMA direct         (ASM.ADD_dir direct)
+     | ADD A COMMA indirect       (ASM.ADD_ind indirect)
+     | ADD A COMMA immediate      (ASM.ADD_imm immediate)
+
+     | ADDC A COMMA register      (ASM.ADDC_reg register)
+     | ADDC A COMMA direct        (ASM.ADDC_dir direct)
+     | ADDC A COMMA indirect      (ASM.ADDC_ind indirect)
+     | ADDC A COMMA immediate     (ASM.ADDC_imm immediate)
+
+     | SUBB A COMMA register      (ASM.SUBB_reg register)
+     | SUBB A COMMA direct        (ASM.SUBB_dir direct)
+     | SUBB A COMMA indirect      (ASM.SUBB_ind indirect)
+     | SUBB A COMMA immediate     (ASM.SUBB_imm immediate)
+
+     | INC A                      (ASM.INC_acc)
+     | INC register               (ASM.INC_reg register)
+     | INC direct                 (ASM.INC_dir direct)
+     | INC indirect               (ASM.INC_ind indirect)
+
+     | DEC A                      (ASM.DEC_acc)
+     | DEC register               (ASM.DEC_reg register)
+     | DEC direct                 (ASM.DEC_dir direct)
+     | DEC indirect               (ASM.DEC_ind indirect)
+
+     | INC DPTR                   (ASM.INC_DPTR)
+     | MUL AB                     (ASM.MUL)
+     | DIV AB                     (ASM.DIV)
+     | DA  A                      (ASM.DA)
+
+     | ANL A COMMA register       (ASM.ANL_reg register)
+     | ANL A COMMA direct         (ASM.ANL_dir direct)
+     | ANL A COMMA indirect       (ASM.ANL_ind indirect)
+     | ANL A COMMA immediate      (ASM.ANL_imm immediate)
+     | ANL direct COMMA A         (ASM.ANL_A_dir direct)
+     | ANL direct COMMA immediate (ASM.ANL_dir_imm (direct, immediate))
+
+     | ORL A COMMA register       (ASM.ORL_reg register)
+     | ORL A COMMA direct         (ASM.ORL_dir direct)
+     | ORL A COMMA indirect       (ASM.ORL_ind indirect)
+     | ORL A COMMA immediate      (ASM.ORL_imm immediate)
+     | ORL direct COMMA A         (ASM.ORL_A_dir direct)
+     | ORL direct COMMA immediate (ASM.ORL_dir_imm (direct, immediate))
+
+     | XRL A COMMA register       (ASM.XRL_reg register)
+     | XRL A COMMA direct         (ASM.XRL_dir direct)
+     | XRL A COMMA indirect       (ASM.XRL_ind indirect)
+     | XRL A COMMA immediate      (ASM.XRL_imm immediate)
+     | XRL direct COMMA A         (ASM.XRL_A_dir direct)
+     | XRL direct COMMA immediate (ASM.XRL_dir_imm (direct, immediate))
+
+     | CLR A                      (ASM.CLR)
+     | CPL A                      (ASM.CPL)
+     | RL A                       (ASM.RL)
+     | RLC A                      (ASM.RLC)
+     | RR A                       (ASM.RR)
+     | RRC A                      (ASM.RRC)
+     | SWAP A                     (ASM.SWAP)
+
+     | MOV A COMMA register       (ASM.MOV_regToA register)
+     | MOV A COMMA direct         (ASM.MOV_dirToA direct)
+     | MOV A COMMA indirect       (ASM.MOV_indToA indirect)
+     | MOV A COMMA immediate      (ASM.MOV_immToA immediate)
+
+     | MOV register COMMA A       (ASM.MOV_AToReg register)
+     | MOV register COMMA direct  (ASM.MOV_dirToReg (register, direct))
+     | MOV register COMMA immediate (ASM.MOV_immToReg (register,
+                                                       immediate))
+
+     | MOV direct COMMA A         (ASM.MOV_AToDir direct)
+     | MOV direct COMMA register  (ASM.MOV_regToDir (direct, register))
+     | MOV direct COMMA direct    (ASM.MOV_dirToDir (direct1, direct2))
+     | MOV direct COMMA indirect  (ASM.MOV_indToDir (direct, indirect))
+     | MOV direct COMMA immediate (ASM.MOV_immToDir (direct, immediate))
+
+     | MOV indirect COMMA A       (ASM.MOV_AToInd indirect)
+     | MOV indirect COMMA direct  (ASM.MOV_dirToInd (indirect, direct))
+     | MOV indirect COMMA immediate (ASM.MOV_immToInd (indirect,
+                                                       immediate))
+
+     | MOV DPTR COMMA data16      (ASM.MOVDPTR data16)
+
+     | MOVC A COMMA AT PLUS DPTR  (ASM.MOVC_DPTR)
+     | MOVC A COMMA AT PLUS PC    (ASM.MOVC_PC)
+
+     | MOVX A COMMA indirect      (ASM.MOVX_From8 indirect)
+     | MOVX A COMMA AT DPTR       (ASM.MOVX_From16)
+     | MOVX indirect              (ASM.MOVX_To8 indirect)
+     | MOVX AT DPTR COMMA A       (ASM.MOVX_To16)
+
+     | PUSH direct                (ASM.PUSH direct)
+     | POP direct                 (ASM.POP direct)
+
+     | XCH register               (ASM.XCH_rn register)
+     | XCH direct                 (ASM.XCH_dir direct)
+     | XCH indirect               (ASM.XCH_ind indirect)
+
+     | XCHD indirect              (ASM.XCHD_ind indirect)
+
+     | CLR C                      (ASM.CLR_c)
+     | CLR bit                    (ASM.CLR_bit bit)
+     | SETB C                     (ASM.SETB_c)
+     | SETB bit                   (ASM.SETB_bit bit)
+     | CPL C                      (ASM.CPL_c)
+     | CPL bit                    (ASM.CPL_bit bit)
+
+     | ANL bit                    (ASM.ANL_bit bit)
+     | ANL SLASH bit              (ASM.ANL_cbit bit)
+     | ORL bit                    (ASM.ORL_bit bit)
+     | ORL SLASH bit              (ASM.ORL_cbit bit)
+
+     | MOV C COMMA bit            (ASM.MOV_bitToC bit)
+     | MOV direct COMMA C         (ASM.MOV_cToBit((ASM.stringToBit o
+                                   ASM.directToString) direct))
+         (* bit - avoid reduce/reduce conflict *)
+
+     | ACALL addr11               (ASM.ACALL addr11)
+     | LCALL addr16               (ASM.LCALL addr16)
+     | RET                        (ASM.RET)
+     | RETI                       (ASM.RETI)
+     | AJMP addr11                (ASM.AJMP addr11)
+     | LJMP addr16                (ASM.LJMP addr16)
+     | SJMP rel                   (ASM.SJMP rel)
+     | JMP AT A PLUS DPTR         (ASM.JMP_DPTR)
+     | JZ rel                     (ASM.JZ rel)
+     | JNZ rel                    (ASM.JNZ rel)
+     | JC rel                     (ASM.JC rel)
+     | JNC rel                    (ASM.JNC rel)
+     | JB bit COMMA rel           (ASM.JB (bit, rel))
+     | JNB bit COMMA rel          (ASM.JNB (bit, rel))
+     | JBC bit COMMA rel          (ASM.JBC (bit, rel))
+
+     | CJNE A COMMA direct COMMA rel (ASM.CJNE_dirToA (direct, rel))
+     | CJNE A COMMA immediate COMMA rel (ASM.CJNE_immToA (immediate,rel))
+     | CJNE register COMMA immediate COMMA rel
+                          (ASM.CJNE_immToReg (register, immediate, rel))
+     | CJNE indirect COMMA immediate COMMA rel
+                          (ASM.CJNE_immToInd (indirect, immediate, rel))
+
+     | DJNZ register COMMA rel    (ASM.DJNZ_reg (register, rel))
+     | DJNZ direct COMMA rel      (ASM.DJNZ_dir (direct, rel))
+
+     | NOP                        (ASM.NOP)
+
+indirect: INDIRECT                (intToIndirect INDIRECT)
+register: REGISTER                (intToRegister REGISTER)
+
+immediate: IMMEDIATE (ASM.stringToData IMMEDIATE)
+direct: DIRECT    (ASM.stringToDirect (Atom.toString DIRECT))
+data16: DIRECT    (ASM.stringToData16 (Atom.toString DIRECT))
+addr11: DIRECT    (ASM.stringToAddr11 (Atom.toString DIRECT))
+addr16: DIRECT    (ASM.stringToAddr16 (Atom.toString DIRECT))
+bit:    DIRECT    (ASM.stringToBit (Atom.toString DIRECT))
+rel:    DIRECT    (ASM.stringToRel (Atom.toString DIRECT))
+label:  DIRECT    (Atom.toString (DIRECT))
+

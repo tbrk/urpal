@@ -19,5 +19,12 @@ sig
   type imports
   type instantiation
   type system
+
+  val noParameter     : parameter
+  val noDeclaration   : declaration
+  val noImports       : imports
+  val noInstantiation : instantiation
+  val noSystem        : system
+
 end
 
