@@ -1,16 +1,18 @@
 (* $Id$ *)
 
 structure Symbol : SYMBOL = struct
-  infix <+ <- ++ </ =:=
+  infix <+ <- ++ <\ \ =:=
 
   type symbol = Atom.atom
   type symbolset = AtomSet.set
 
   fun set <+ item = AtomSet.add (set, item)
-  fun set </ item = AtomSet.difference (set, AtomSet.singleton item)
+  fun set <\ item = AtomSet.difference (set, AtomSet.singleton item)
+  fun setA \ setB = AtomSet.difference (setA, setB)
   fun i <- set    = AtomSet.member (set, i)
   val op++        = AtomSet.union
   val emptyset    = AtomSet.empty
+  val `           = Atom.atom
 
   fun s1 =:= s2   = Atom.compare (s1, s2) = EQUAL
 

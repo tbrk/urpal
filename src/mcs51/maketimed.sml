@@ -2,25 +2,48 @@
 
 structure MakeTimed = struct
 
+  (* shortcuts over Atom and AtomSet *)
+  infix <+ <- ++ <\ \ =:=  (*`*); open Symbol
+
   structure ASM = MCS51Instruction
         and E = Expression
+        and D = Declaration
         and P = ParsedNta
 
-  val cycleConst = E.VarExpr (E.SimpleVar (Atom.atom "P", E.nopos))
-  val cycleClk   = E.VarExpr (E.SimpleVar (Atom.atom "x", E.nopos))
+  val nmCycleConst = `"P"
+  val nmCycleClk   = `"x"
+  val nmAccum      = `"A"
+  val nmCarry      = `"C"
+  val nmIRAM       = `"IRAM"
+  val nmERAM       = `"ERAM"
+  val nmBITS       = `"BITS"
+  val nmR          = Vector.tabulate (8, (fn i=> `("R"^Int.toString i)))
+
+  val cycleConst = E.VarExpr (E.SimpleVar (nmCycleConst, E.nopos))
+  val cycleClk   = E.VarExpr (E.SimpleVar (nmCycleClk, E.nopos))
 
   val one  = E.IntCExpr 1
   val zero = E.IntCExpr 0
+  val maxbyte = E.IntCExpr 255
   
   local
     fun makeVar s       = E.VarExpr (E.SimpleVar (Atom.atom s, E.nopos))
-    val accum = makeVar "A"
-    val carry = makeVar "C"
-    val iram  = E.SimpleVar (Atom.atom "IRAM", E.nopos)
-    val eram  = E.SimpleVar (Atom.atom "ERAM", E.nopos)
-    val bits  = E.SimpleVar (Atom.atom "BITS", E.nopos)
+    val accum = E.VarExpr (E.SimpleVar (nmAccum, E.nopos))
+    val carry = E.VarExpr (E.SimpleVar (nmCarry, E.nopos))
+    val iram  = E.SimpleVar (nmIRAM, E.nopos)
+    val eram  = E.SimpleVar (nmERAM, E.nopos)
+    val bits  = E.SimpleVar (nmBITS, E.nopos)
 
-    fun regToVar r      = makeVar (ASM.regToString r)
+    fun regToAtom ASM.R0 = Vector.sub (nmR, 0)
+      | regToAtom ASM.R1 = Vector.sub (nmR, 1)
+      | regToAtom ASM.R2 = Vector.sub (nmR, 2)
+      | regToAtom ASM.R3 = Vector.sub (nmR, 3)
+      | regToAtom ASM.R4 = Vector.sub (nmR, 4)
+      | regToAtom ASM.R5 = Vector.sub (nmR, 5)
+      | regToAtom ASM.R6 = Vector.sub (nmR, 6)
+      | regToAtom ASM.R7 = Vector.sub (nmR, 7)
+
+    fun regToVar r      = E.VarExpr (E.SimpleVar (regToAtom r, E.nopos))
     fun subscriptVar (v,idxex) = E.VarExpr (E.SubscriptVar(v, idxex, E.nopos))
     fun directToVar d   = subscriptVar (iram, makeVar (ASM.directToString d))
     fun indirectToVar r = subscriptVar (iram, makeVar (ASM.indToString r))
@@ -30,7 +53,7 @@ structure MakeTimed = struct
     fun assign (s,v,a) = [E.AssignExpr{var=s,aop=a,expr=v,pos=E.nopos}]
   in
 
-  fun makeAction (ASM.ADD_reg r)  = assign (accum, regToVar r,      E.PlusEqOp)
+  fun makeAction (ASM.ADD_reg r)  = assign(accum,regToVar r,E.PlusEqOp)(*{{{1*)
     | makeAction (ASM.ADD_dir d)  = assign (accum, directToVar d,   E.PlusEqOp)
     | makeAction (ASM.ADD_ind r)  = assign (accum, indirectToVar r, E.PlusEqOp)
     | makeAction (ASM.ADD_imm d)  = assign (accum, immToVar d,      E.PlusEqOp)
@@ -182,6 +205,7 @@ structure MakeTimed = struct
     | makeAction (ASM.DJNZ_dir (d,_)) = assign (directToVar d, one, E.MinusEqOp)
 
     | makeAction (ASM.NOP)        = []
+    (*}}}1*)
 
   fun jumpsTo (ASM.ACALL _)     = NONE (* could try... *)
     | jumpsTo (ASM.LCALL _)     = NONE (* ...to simulate... *)
@@ -219,8 +243,48 @@ structure MakeTimed = struct
                                                zero, rel)
     | jumpGuard _ = NONE
 
+  local
+    val byte = E.INT (SOME (zero, maxbyte), E.NoQual)
+    fun mkArray (n, ty) = E.ARRAY (ty,E.Type (E.INT
+                                        (SOME (zero, E.IntCExpr (n - 1)),
+                                        E.NoQual)))
+    fun mkReg (r, rs) = (r, D.VarDecl {id=r, ty=E.BOOL E.NoQual,
+                                       initial=SOME (D.SimpleInit E.falseExpr),
+                                       pos=E.nopos}) :: rs
+
+    val varMap = foldl AtomMap.insert' AtomMap.empty (
+      (nmCycleConst,D.VarDecl {id=nmCycleConst, ty=E.INT (NONE, E.Const),
+                               initial=NONE, pos=E.nopos})::
+      (nmCycleClk,  D.VarDecl {id=nmCycleClk, ty=E.CLOCK,
+                               initial=NONE, pos=E.nopos})::
+      (nmAccum,     D.VarDecl {id=nmAccum, ty=byte,
+                               initial=SOME (D.SimpleInit zero), pos=E.nopos})::
+      (nmCarry,     D.VarDecl {id=nmAccum, ty=E.BOOL E.NoQual,
+                               initial=SOME (D.SimpleInit E.falseExpr),
+                               pos=E.nopos})::
+      (nmIRAM,      D.VarDecl {id=nmIRAM, ty=mkArray (128, byte),
+                               initial=NONE, pos=E.nopos})::
+      (nmERAM,      D.VarDecl {id=nmIRAM, ty=mkArray (10, byte),
+                               initial=NONE, pos=E.nopos})::
+      (nmBITS,      D.VarDecl {id=nmIRAM, ty=mkArray (128, E.BOOL E.NoQual),
+                               initial=NONE, pos=E.nopos})::
+      Vector.foldl mkReg [] nmR)
+  in
+  fun varToDecl nm = AtomMap.find (varMap, nm)
+  end
+
+
   end (* local *)
-  
+
+  local
+    val columnSep       = 280   (* distance between columns               *)
+    val rowSep          = 120   (* distance between rows                  *)
+    val invariantHorOff = 6     (* horizontal offset for invariant label  *)
+    val invariantVerOff = 8     (* vertical offset for invariant label    *)
+
+    infixr :::
+    fun NONE ::: xs = xs | (SOME x) ::: xs = x::xs
+  in
   fun actionConstraint (a, rel) = let
       val nc = ASM.numCycles a
       val t  = if nc = 1 then cycleConst
@@ -232,8 +296,8 @@ structure MakeTimed = struct
     | makeTimed (instrs, {showinstrs, position, maxrows}) = let
 
       local val (currx, curry, n) = (ref 0, ref 0, ref 0)
-            fun incx () = (currx := (!currx) + 160; curry := 0)
-            fun incy () = (curry := (!curry) + 120)
+            fun incx () = (currx := (!currx) + columnSep; curry := 0)
+            fun incy () = (curry := (!curry) + rowSep)
       in fun incPos () = SOME (!currx, !curry)
                          before (n := ((!n) + 1) mod maxrows;
                                  if (!n) = 0 then incx () else incy ())
@@ -264,36 +328,13 @@ structure MakeTimed = struct
             end
         in Option.mapPartial f (jumpGuard act) end
 
-      fun addSeqTrans (src, act, dst) = let
-          val ac = actionConstraint (act, E.GeOp)
-          val g  = case jumpGuard act of
-                     NONE         => ac
-                   | SOME (jg, _) => E.andexpr (E.negate jg, ac)
-        in
-          P.Transition {id=NONE, source=src, target=dst,
-                        select=([], NONE), guard=(g, NONE),
-                        sync=(makeSync act,NONE), update=(makeAction act,NONE),
-                        comments=(SOME (ASM.toString act), NONE), position=NONE,
-                        color=NONE, nails=[]}
-        end
-
-      fun addSeqTransitions map xs = let
-          fun f [] = []
-            | f [(loc,act)] = (case jumpsTo act of
-                     NONE     => []
-                   | SOME jdst=> [addSeqTrans(loc,act,labelToLoc map (jdst,loc))])
-            | f ((src,act)::(ts as (dst,_)::_)) =
-                    (case jumpsTo act of
-                       NONE      =>addSeqTrans (src,act,dst)
-                     | SOME jdst =>addSeqTrans (src,act,labelToLoc map (jdst,dst)))
-                    ::f ts
-        in f xs end
-
       fun addloc ((nmo, act), (template, map, lids)) = let
           val lid = P.Location.newId template
-          val l = P.Location {id=lid, position=nextPos (), color=NONE,
-                          name=(NONE, NONE),
-                          invariant=(actionConstraint (act, E.LeOp), NONE),
+          val pos = nextPos ()
+          val ipos = Option.map (fn (x, y)=>(x + invariantHorOff,
+                                             y + invariantVerOff)) pos
+          val l = P.Location {id=lid, position=pos, color=NONE,name=(NONE,NONE),
+                          invariant=(actionConstraint (act, E.LeOp), ipos),
                           comments=(nmo, NONE), urgent=false, committed=false}
           val map' = case nmo of
                        NONE   => map
@@ -314,16 +355,53 @@ structure MakeTimed = struct
 
       val lids = rev rlids
       val template = P.Template.updInitial template (SOME (#1 (hd lids)))
+      val locIdToPos = P.Location.toMap (template, valOf o P.Location.selPos)
+
+      fun addSeqTrans (src, act, dst) = let
+          val ac = actionConstraint (act, E.GeOp)
+          val g  = case jumpGuard act of
+                     NONE         => ac
+                   | SOME (jg, _) => E.andexpr (E.negate jg, ac)
+
+          val (SOME (sp as (sx, _)), SOME (dp as (dx, _))) = (locIdToPos src,
+                                                              locIdToPos dst)
+          val nails = if sx = dx then [] else Layout.joinColumns (sp, dp)
+        in
+          P.Transition {id=NONE, source=src, target=dst,
+                        select=([], NONE), guard=(g, NONE),
+                        sync=(makeSync act,NONE), update=(makeAction act,NONE),
+                        comments=(SOME (ASM.toString act), NONE), position=NONE,
+                        color=NONE, nails=nails}
+        end
+
+      fun addSeqTransitions map xs = let
+          fun f [] = []
+            | f [(loc,act)] = (case jumpsTo act of
+                     NONE     => []
+                   | SOME jdst=> [addSeqTrans(loc,act,labelToLoc map (jdst,loc))])
+            | f ((src,act)::(ts as (dst,_)::_)) =
+                    (case jumpsTo act of
+                       NONE      =>addSeqTrans (src,act,dst)
+                     | SOME jdst =>addSeqTrans (src,act,labelToLoc map (jdst,dst)))
+                    ::f ts
+        in f xs end
 
       val seqTrans = addSeqTransitions locmap lids
-      val jmpTrans = List.mapPartial (addJmpTrans locmap) lids
+      val jmpTrans  = List.mapPartial (addJmpTrans locmap) lids
+      val trans = (Layout.matrixTrans (locIdToPos, jmpTrans))
+                  @ (map (Layout.positionLabels locIdToPos) seqTrans)
 
-      val _ = TextIO.print (concat ["len=", Int.toString (length seqTrans),
-                                    ",", Int.toString (length jmpTrans)])
+      val vars = foldl (fn (t, s)=>P.freeTransitionNames t ++ s)
+                       (emptyset <+ nmCycleConst <+ nmCycleClk) trans
+
+      val vardecls = AtomSet.foldl (fn (v,vs)=>varToDecl v:::vs) [] vars
+      val decls = Environment.addDeclarations (P.noDeclaration,
+                                               Environment.TemplateScope,
+                                               vardecls)
     in
-      (* TODO: add variable declarations? *)
-      P.Template.updTransitions template (jmpTrans @ seqTrans)
+      P.Template.updDeclaration (P.Template.updTransitions template trans) decls
     end
+  end (* local *)
 
 end
 

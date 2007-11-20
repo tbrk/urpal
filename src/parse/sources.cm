@@ -12,6 +12,7 @@ Group
 
     structure ExpressionCvt
 
+    signature PARSED_NTA
     structure ParsedNta
     structure ActionMap
     structure ActionSet
@@ -42,6 +43,7 @@ is
     expression_pp.sig
     expressionpp.sml
 
+    parsed_nta.sig
     parsednta.sml
     ppdevstring.sml
     result.sig

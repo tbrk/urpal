@@ -18,6 +18,7 @@ is
     ../lib/sources.cm
     ../parse/sources.cm
     ../general.cm
+    ../layout/sources.cm
     $/basis.cm
     $/smlnj-lib.cm (* KeywordFn *)
     $/ml-yacc-lib.cm

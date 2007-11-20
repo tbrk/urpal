@@ -21,7 +21,7 @@ in struct
 
   exception SelectIdConflictsWithForAll of symbol list * symbol list
 
-  infix <+ <- ++ </ =:= ; open Symbol
+  infix <+ <- ++ <\ \ =:= ; open Symbol
   
   (* Invariants:
        - names contains all free names and those bound by select and forall
@@ -164,7 +164,7 @@ fun showPartitions showitem partitions = let
                partition=E.renameVar (r, partition),
                guard=ClkE.rename (r, guard),
                action=map renameAction action,
-               names=(names </ old) <+ new}
+               names=(names <\ old) <+ new}
     end
 
   local (*{{{1*)

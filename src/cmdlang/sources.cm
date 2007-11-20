@@ -25,6 +25,7 @@ is
     ../maketest/sources.cm
     ../xml/sources.cm
     ../mcs51/sources.cm
+    ../layout/sources.cm
     ../general.cm
     $/basis.cm
     $/smlnj-lib.cm

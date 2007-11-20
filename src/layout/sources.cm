@@ -1,0 +1,14 @@
+group
+    signature LAYOUT
+    structure Layout
+is
+    layout.sig
+    layout.sml
+
+    ../lib/sources.cm
+    ../graphviz/sources.cm
+    ../parse/sources.cm
+    ../general.cm
+    $/smlnj-lib.cm
+    $/basis.cm
+

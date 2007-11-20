@@ -21,7 +21,7 @@ functor ExpressionFn (structure FilePos : FILE_POS) : EXPRESSION =
 struct
   
   (* shortcuts over Atom and AtomSet *)
-  infix <+ <- ++ </ =:= ; open Symbol
+  infix <+ <- ++ <\ \ =:= ; open Symbol
 
   type pos = FilePos.pos
   val nopos = FilePos.zero
@@ -322,12 +322,11 @@ struct
     | orexpr (e1, e2) = BinBoolExpr {left=e1, bop=OrOp, right=e2, pos=nopos}
 
   fun conflictExists (cs1, cs2, e) = let
-      infix <^> </;
+      infix <^>;
       fun set1 <^> set2 = not (AtomSet.isEmpty
                                   (AtomSet.intersection (set1, set2)))
-      fun set </ item   = AtomSet.difference (set, AtomSet.singleton item)
 
-      fun hideThenCheck (s, e) = conflictExists (cs1 </ s, cs2 </ s, e)
+      fun hideThenCheck (s, e) = conflictExists (cs1 <\ s, cs2 <\ s, e)
 
       fun conflict (NotExpr {expr, ...})            = conflict expr
         | conflict (BinBoolExpr {left, right, ...}) = conflict left

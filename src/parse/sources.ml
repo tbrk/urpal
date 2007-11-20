@@ -22,6 +22,7 @@ use "parse/environment_pp.sig";
 use "parse/environmentppfn.sml";
 use "parse/environment_cvt.sig";
 use "parse/environmentcvt.sml";
+use "parse/parsed_nta.sig";
 use "parse/parsednta.sml";
 use "parse/result.sig";
 use "parse/result.sml";

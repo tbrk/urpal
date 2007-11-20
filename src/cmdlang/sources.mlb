@@ -5,6 +5,7 @@ local
     ../graphviz/sources.mlb
     ../maketest/sources.mlb
     ../xml/sources.mlb
+    ../layout/sources.mlb
     ../general.mlb
 
     $(SML_LIB)/basis/basis.mlb

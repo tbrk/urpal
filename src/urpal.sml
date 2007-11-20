@@ -83,8 +83,9 @@ in
       val _ = tryConfigFiles ()
       val (cmds, {inputfile, outputfile}) = CMD.processCommands args
       val _ = Settings.validate ()
+      val freshEnv = SOME (CmdEnv.fromNta ParsedNta.emptyNta)
 
-      fun doCmd (CMD.ScriptFile filename, NONE)     = raise NoInputFile
+      fun doCmd (a as CMD.ScriptFile _, NONE)       = doCmd (a, freshEnv)
         | doCmd (CMD.ScriptFile filename, SOME env) = let
               val ins = TextIO.openIn filename
             in
@@ -92,11 +93,11 @@ in
                             (env, TextIO.getInstream ins)
             end
 
-        | doCmd (CMD.ScriptText script, NONE)       = raise NoInputFile
+        | doCmd (a as CMD.ScriptText _, NONE)       = doCmd (a, freshEnv)
         | doCmd (CMD.ScriptText script, SOME env)   =
               CmdLang.parse (fn""=>NONE|s=>SOME(s,"")) (env, script)
 
-        | doCmd (CMD.ScriptTerminal, NONE)          = raise NoInputFile
+        | doCmd (a as CMD.ScriptTerminal, NONE)     = doCmd (a, freshEnv)
         | doCmd (CMD.ScriptTerminal, SOME env)      = let
               fun getLine ins = (TextIO.print "> ";
                                  TextIO.StreamIO.inputLine ins)
@@ -125,7 +126,7 @@ in
 
     in
       case cmds of
-        CMD.TestFlip::_ => testFlip (inputfile, outputfile)
+        [CMD.TestFlip] => testFlip (inputfile, outputfile)
 
       | _ => let
                val ntao      = Option.mapPartial readNta inputfile

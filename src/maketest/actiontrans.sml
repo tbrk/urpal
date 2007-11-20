@@ -16,7 +16,7 @@ in struct
   exception ActionSubWithDuplicate of symbol
   exception BadSubscriptCount
 
-  infix <+ <- ++ </ =:= ; open Symbol
+  infix <+ <- ++ <\ \ =:= ; open Symbol
   
   (* transition actions have been checked against restrictions *)
   datatype actionsub = SelectSub of symbol | FreeExprSub of E.expr

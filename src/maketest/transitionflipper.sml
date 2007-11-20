@@ -52,7 +52,7 @@ in struct
   exception FlipFailed of string
 
   (* shortcuts over Atom and AtomSet *)
-  infix <+ <- ++ </ =:= ; open Symbol
+  infix <+ <- ++ <\ \ =:= ; open Symbol
 
   type t = {selectids:  E.boundid list,
             actionsubs: E.expr list,

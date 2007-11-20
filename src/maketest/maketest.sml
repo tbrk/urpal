@@ -16,7 +16,7 @@ structure MakeTest : MAKE_TEST
 =
 struct
   (* shortcuts over Atom and AtomSet *)
-  infix <+ <- ++ </ =:= ; open Symbol
+  infix <+ <- ++ <\ \ =:= ; open Symbol
 
   exception InvalidChannelId of symbol
   exception SilentTransition 

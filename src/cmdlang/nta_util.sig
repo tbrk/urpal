@@ -19,20 +19,9 @@ sig
                               (symbol * Expression.direction) ActionMap.map
                             -> ParsedNta.template
 
-  val toDot               : bool -> ParsedNta.template -> TypedDot.graph
-
-  val addCoordsFromPlain  : ParsedNta.template * TextPlain.graph
-                            -> ParsedNta.template
   val stripTransitionIds  : ParsedNta.template -> ParsedNta.template
   val addTransitionIds    : (ParsedNta.transition -> bool) ->
                             ParsedNta.template -> ParsedNta.template
-  val tabulateTransLabels : (int * int) * (ParsedNta.transition -> bool)
-                                        * ParsedNta.template
-                            -> ParsedNta.template
-  val tabulateAll         : (ParsedNta.locId -> bool) * ParsedNta.template
-                            -> ParsedNta.template
-      (* lay labels out in tabular format given either a position and predicate
-       * on transitions, or a predicate on destination ids. *)
 
   val addTransitions      : ParsedNta.template * ParsedNta.transition list
                             -> ParsedNta.template

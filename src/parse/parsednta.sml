@@ -71,8 +71,28 @@ struct
 end
 end
 
+structure ParsedNtaOutput = NtaOutputFn (structure T = ParsedOutput
+                                         structure S = TextIO.StreamIO)
+
+structure E = Expression
 in
-structure ParsedNta = NtaOutputFn (structure T = ParsedOutput
-                                   structure S = TextIO.StreamIO)
+structure ParsedNta : PARSED_NTA = struct
+  open ParsedNtaOutput
+
+  (* shortcuts over Atom and AtomSet *)
+  infix <+ <- ++ <\ \ =:= ; open Symbol
+
+  fun freeTransitionNames (Transition {select=(sel, _), guard=(g, _),
+                                      sync=(sync, _), update=(upd, _), ...}) =
+    let
+      fun syncSubs NONE = [] | syncSubs (SOME (_, _, subs)) = subs
+      val exprListNames = foldl (fn (e, s)=> s ++ (E.getFreeNames e)) emptyset
+
+      val boundnms = foldl (fn (E.BoundId (nm, _, _), s)=> s <+ nm) emptyset sel
+      val updatenms = exprListNames upd
+      val syncnms = exprListNames (syncSubs sync)
+    in (updatenms ++ syncnms ++ E.getFreeNames g) \ boundnms end
+
+end 
 end (* local *)
 

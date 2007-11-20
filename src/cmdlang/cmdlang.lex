@@ -64,6 +64,13 @@ strchar=([\\]["] | [^"\n]);
 <INITIAL>{ws}+     => (continue());
 <INITIAL>{newline} => (FilePos.nextline (yyarg, yypos + 1); continue());
 
+<INITIAL>"true"    => (Tokens.BOOL (true,
+			 FilePos.currpos (yyarg, yypos),
+                         FilePos.currpos (yyarg, yypos + 3)));
+<INITIAL>"false"   => (Tokens.BOOL (false,
+			 FilePos.currpos (yyarg, yypos),
+                         FilePos.currpos (yyarg, yypos + 4)));
+
 <INITIAL>("list"|"show"|"writegraphics"|"quit"|"drop"|"help")
                    => (Keyword.keyword (yytext,
                                         FilePos.currpos (yyarg, yypos),

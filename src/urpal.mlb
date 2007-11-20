@@ -9,6 +9,8 @@ local
     parse/sources.mlb
     maketest/sources.mlb
     graphviz/sources.mlb
+    layout/sources.mlb
+    mcs51/sources.mlb
     cmdlang/sources.mlb
 
     commands.sig

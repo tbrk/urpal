@@ -35,6 +35,7 @@ local
     environment_cvt.sig
     environmentcvt.sml
 
+    parsed_nta.sig
     parsednta.sml
     result.sig
     result.sml
@@ -62,6 +63,7 @@ in
 
     structure ExpressionCvt
 
+    signature ParsedNta
     structure ParsedNta
     structure ActionMap
     structure ActionSet

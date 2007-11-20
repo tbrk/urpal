@@ -74,6 +74,12 @@ struct
               system        : system
              }
 
+  val emptyNta = Nta {imports=noImports,
+                      declaration=noDeclaration,
+                      templates=[],
+                      instantiation=noInstantiation,
+                      system=noSystem}
+
   fun selTemplates (Nta {templates, ...}) = templates
   fun updTemplates (Nta {imports, declaration, instantiation,
                          system, ...}) tplates =
@@ -382,6 +388,12 @@ struct
     fun nameToId (Template {locations, ...}) name = let
         fun f (Location {name=(SOME name', _), ...}) = (name=name') | f _ = false
       in Option.map selId (List.find f locations) end
+
+    fun toMap (Template {locations, ...}, f) = let
+        fun getId l = let val LocId i = selId l in i end
+        fun ins (l, m) = IntBinaryMap.insert (m, getId l, f l)
+        val map = foldl ins IntBinaryMap.empty locations
+      in fn (LocId i) => IntBinaryMap.find (map, i) end
     
   end (* Location *)
 

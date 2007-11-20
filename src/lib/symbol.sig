@@ -1,7 +1,7 @@
 (* $Id$
  *
  * Shortcuts over Atom and AtomSet.
- *    infix <+ <- ++ </ =:= ; open Symbol
+ *    infix <+ <- ++ <\ \ =:=  (*`*); open Symbol
  *)
 
 signature SYMBOL = sig
@@ -11,11 +11,13 @@ signature SYMBOL = sig
 
   val emptyset   : symbolset
 
-  val <+         : symbolset * symbol -> symbolset
-  val <-         : symbol * symbolset -> bool
-  val ++         : symbolset * symbolset -> symbolset
-  val </         : symbolset * symbol -> symbolset
-  val =:=        : symbol * symbol -> bool
+  val <+         : symbolset * symbol -> symbolset    (* add    *)
+  val <-         : symbol * symbolset -> bool         (* member *)
+  val ++         : symbolset * symbolset -> symbolset (* union  *)
+  val <\         : symbolset * symbol -> symbolset    (* difference *)
+  val \          : symbolset * symbolset -> symbolset (* difference *)
+  val =:=        : symbol * symbol -> bool            (* equality *)
+  val `          : string -> symbol                   (* atom *)
 
   val getNewName : symbol * symbolset -> symbol
 

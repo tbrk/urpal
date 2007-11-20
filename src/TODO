@@ -1,0 +1,14 @@
+
+Possible improvements
+---------------------
+
+* Get rid of pos fields from expressions, they only seem to be needed during
+  type checking (which we don't do anyway).
+
+* Tidy up the layout submodule. Make it more useful and generic.
+
+* Rework the maketest submodule in light of the technical report
+  (simplify, more reuse from generic routines in nta/parsednta).
+  Possibly separate out the bits for creating and manipulating clock
+  expressions (could be useful for other types of Uppaal manipulations.)
+

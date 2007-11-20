@@ -10,7 +10,7 @@ structure CE   = CmdEnv
       and Gviz = Graphviz
 
 (* shortcuts over Atom and AtomSet *)
-infix <+ <- ++ </ =:= ; open Symbol
+infix <+ <- ++ <\ \ =:= ; open Symbol
 
 type actionsubst = (Atom.atom * CE.direction) * (Atom.atom * CE.direction)
 
@@ -42,18 +42,20 @@ fun addCoords layoutengine (srcPred, dstPred)
     fun p (PNta.Transition {source=s, target=t, ...}) = (srcPred s orelse
                                                          dstPred t)
     val withIds = NtaU.addTransitionIds p template
-    val dot     = NtaU.toDot true withIds
+    val dot     = Layout.toDot true withIds
   in
     case Gviz.makePlain layoutengine dot of
       NONE       => (Util.warn ["could not lay out "^n]; template)
     | SOME plain => (NtaU.stripTransitionIds
-                      (NtaU.addCoordsFromPlain (withIds, plain)))
+                      (Layout.addCoordsFromPlain (withIds, plain)))
   end
 
-fun doMakeMCS51 path = let
-    val ins = TextIO.getInstream (TextIO.openIn (Atom.toString path))
+fun doMakeMCS51 (path, maxrows, showinstrs) = let
+    val ins = TextIO.getInstream (TextIO.openIn path)
     val prog = MCS51.parse TextIO.StreamIO.inputLine ins
-    val t = MCS51.toTemplate (prog, {showinstrs=true, position=true, maxrows=8})
+    val t = MCS51.toTemplate (prog, {showinstrs=showinstrs,
+                                     position=true,
+                                     maxrows=maxrows})
   in CE.Template t end
     handle IO.Io {cause, ...} => CE.Fail (General.exnMessage cause)
 
@@ -222,7 +224,7 @@ fun doActions (CE.Template t) = CE.Actions (
 fun doTabulate (CE.Template t, CE.Symbols lset) = let
     val locs = NtaU.namesetToLocset (lset, t)
     fun dstP (PNta.LocId i) = IntBinarySet.member (locs, i)
-  in CE.Template (NtaU.tabulateAll (dstP, t)) end
+  in CE.Template (Layout.tabulateAll (dstP, t)) end
   | doTabulate (f as CE.Fail _, _) = f
   | doTabulate (_, f as CE.Fail _) = f
   | doTabulate _ = CE.Fail "bad args: tabulate(<template>, <locnames>)"
@@ -238,7 +240,7 @@ fun doAcceptAll (env, CE.Symbols chanset) =
       val actions = ActionSet.listItems actionset
       val iet =NtaU.makeInputEnabler (actions, CmdEnv.globalDecl env)
       val iet'=addCoords (Settings.graphvizEngine()) (fn _=>true,fn _=>true) iet
-      val iet''=NtaU.tabulateTransLabels ((0,0), (fn _=>true), iet')
+      val iet''=Layout.tabulateTransLabels ((0,0), (fn _=>true), iet')
     in CE.Template iet'' end
 
   | doAcceptAll (_, f as CE.Fail _) = f
@@ -246,7 +248,7 @@ fun doAcceptAll (env, CE.Symbols chanset) =
 
 fun doWriteGraphics (CE.Template t, path, outty) = (let
     val out = TextIO.openOut path
-    val dot = NtaU.toDot false t
+    val dot = Layout.toDot false t
   in
     (case Atom.toString outty of
        "PS"  => (Gviz.makeFile (Settings.graphvizEngine(),Gviz.PS) (out,dot);
@@ -273,7 +275,7 @@ fun help () = app (fn t=>pr [t]) [
       "channels(<template>)",
       "conflate(<template>, <namemap>)",
       "drop(<template>, <nameset>)",
-      "makemcs51(<filepath>)",
+      "makemcs51(<filepath>, [maxrows], [showinstrs])",
       "maketest(<template>)",
       "maketest(<template>, <nameset>, <nameset>)",
       "parameters(<template>)",
@@ -301,7 +303,7 @@ fun help () = app (fn t=>pr [t]) [
                                   structure CmdEnv  : CMD_ENV))
 
 %term ID of Atom.atom | INTEGER of int | REAL of real | STRING of string |
-      QUIT | LIST | SHOW | WRITEGRAPHICS | DROP |
+      BOOL of bool | QUIT | LIST | SHOW | WRITEGRAPHICS | DROP |
       MAKEMCS51 | MAKETEST | RENAMELOCS | RENAMETRANS | SCALE | ACTIONS |
       ACCEPTALL | TABULATE | CHANNELS | SPLIT | PARAMETERS | HELP | CONFLATE |
       SETINITIAL |
@@ -350,7 +352,15 @@ expr: ACCEPTALL expr RPAR             (fn e=>doAcceptAll (e, expr e))
     | CHANNELS expr RPAR              (fn e=>doChannels (expr e))
     | CONFLATE expr COMMA expr RPAR   (fn e=>doConflate (expr1 e, expr2 e))
     | DROP expr COMMA expr RPAR       (fn e=>doDropLoc (expr1 e, expr2 e))
-    | MAKEMCS51 ID RPAR               (fn e=>doMakeMCS51 ID)
+
+    | MAKEMCS51 STRING RPAR           (fn e=>doMakeMCS51 (STRING, 10, true))
+    | MAKEMCS51 STRING COMMA INTEGER RPAR
+                                      (fn e=>doMakeMCS51 (STRING,INTEGER,true))
+    | MAKEMCS51 STRING COMMA BOOL RPAR
+                                      (fn e=>doMakeMCS51 (STRING, 10, BOOL))
+    | MAKEMCS51 STRING COMMA INTEGER COMMA BOOL RPAR
+                                      (fn e=>doMakeMCS51 (STRING,INTEGER,BOOL))
+
     | MAKETEST expr RPAR              (fn e=>doMakeTest' (expr e, e))
     | MAKETEST expr COMMA expr COMMA expr RPAR
                                       (fn e=>doMakeTest (expr1 e,

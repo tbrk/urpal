@@ -53,6 +53,8 @@ sig
                    system        : system
                  }
 
+  val emptyNta       : nta
+
   val selTemplates   : nta -> template list
   val updTemplates   : nta -> template list -> nta
   val selDeclaration : nta -> declaration
@@ -134,6 +136,8 @@ sig
 
     val mkCommitted    : location -> location
     val mkUrgent       : location -> location
+
+    val toMap          : template * (location -> 'a) -> (locId -> 'a option)
   end
 
   structure Transition : sig

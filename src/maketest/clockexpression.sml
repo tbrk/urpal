@@ -26,7 +26,7 @@ in struct
              | Or  of t * t
 
   (* shortcuts over Atom and AtomSet *)
-  infix <+ <- ++ </ =:= ; open Symbol
+  infix <+ <- ++ <\ \ =:= ; open Symbol
 
   local (*{{{1*)
     (* TODO: fix smlnj-lib and replace with:

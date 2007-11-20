@@ -11,7 +11,7 @@ HEAP2EXEC=heap2exec
 SKIPCM=-type d -name '.cm' -prune -type f -o
 SRC!=find . $(SKIPCM) -name '*sml' -o -name '*sig'
 SRCDIRS=. ./cmdlang ./config ./graphviz ./graphviz ./lib \
-	./maketest ./parse ./xml
+	./maketest ./parse ./xml ./mcs51 ./layout
 
 urpal: $(SRC) version.sml
 	ml-build sources.cm Urpal.main urpal

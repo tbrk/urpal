@@ -13,7 +13,8 @@ structure MCS51Instruction :> MCS51_INSTRUCTION = struct
    and bit    = string
    and rel    = string
 
-  datatype t = (* arithmetic *)
+  datatype t = (*{{{1*)
+               (* arithmetic *)
                ADD_reg of reg
              | ADD_dir of direct
              | ADD_ind of reg0or1
@@ -153,6 +154,7 @@ structure MCS51Instruction :> MCS51_INSTRUCTION = struct
              | DJNZ_dir of direct * rel
 
              | NOP
+             (*}}}1*)
 
   fun regToString R0 = "R0" | regToString R1 = "R1"
     | regToString R2 = "R2" | regToString R3 = "R3"
@@ -172,7 +174,7 @@ structure MCS51Instruction :> MCS51_INSTRUCTION = struct
   fun bitToString bit       = bit
   fun relToString rel       = rel
 
-  fun toString (ADD_reg r)       = "ADD A,"^regToString r
+  fun toString (ADD_reg r)       = "ADD A,"^regToString r (*{{{1*)
     | toString (ADD_dir d)       = "ADD A,"^directToString d
     | toString (ADD_ind r)       = "ADD A,"^indToString r
     | toString (ADD_imm data)    = "ADD A,"^immToString data
@@ -321,8 +323,9 @@ structure MCS51Instruction :> MCS51_INSTRUCTION = struct
               = concat ["DJNZ ", directToString d, ",", relToString rl]
 
     | toString (NOP) = "NOP"
+    (*}}}1*)
 
-  fun numCycles (INC_DPTR)            = 2
+  fun numCycles (INC_DPTR)            = 2 (*{{{1*)
     | numCycles (MUL)                 = 4
     | numCycles (DIV)                 = 4
     | numCycles (ANL_dir_imm _)       = 2
@@ -369,8 +372,9 @@ structure MCS51Instruction :> MCS51_INSTRUCTION = struct
     | numCycles (DJNZ_reg _)          = 2
     | numCycles (DJNZ_dir _)          = 2
     | numCycles _                     = 1
+    (*}}}1*)
 
-  fun numBytes (ADD_reg _)            = 1
+  fun numBytes (ADD_reg _)            = 1 (*{{{1*)
     | numBytes (ADD_dir _)            = 2
     | numBytes (ADD_ind _)            = 1
     | numBytes (ADD_imm _)            = 2
@@ -481,6 +485,7 @@ structure MCS51Instruction :> MCS51_INSTRUCTION = struct
     | numBytes (DJNZ_reg _)           = 2
     | numBytes (DJNZ_dir _)           = 3
     | numBytes (NOP)                  = 1
+    (*}}}1*)
 
   fun stringToDirect s = s
   fun stringToData s   = s
