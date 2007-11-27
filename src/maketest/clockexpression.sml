@@ -89,13 +89,14 @@ in struct
 
   val getVarFree = E.getFreeNames o E.VarExpr
 
+  fun getTermFree (NonClock e)            = E.getFreeNames e
+    | getTermFree (CRel (s, _, cv))       = getVarFree s ++ getValFree cv
+    | getTermFree (CDiff (s1, s2, _, cv)) = getVarFree s1 ++ getVarFree s2
+                                                          ++ getValFree cv
+
   fun getFree (And (c1, c2))                 = getFree c1 ++ getFree c2
     | getFree (Or (c1, c2))                  = getFree c1 ++ getFree c2
-    | getFree (Term (NonClock e))            = E.getFreeNames e
-    | getFree (Term (CRel (s, _, cv)))       = getVarFree s ++ getValFree cv
-    | getFree (Term (CDiff (s1, s2, _, cv))) = getVarFree s1
-                                                 ++ getVarFree s2
-                                                 ++ getValFree cv
+    | getFree (Term t)                       = getTermFree t
     
   local (*{{{1*)
     fun isClk (env, v) = case Env.findVarExprType env v
@@ -271,24 +272,45 @@ in struct
 
     in ren clockexpr end
 
-  fun conflictExists (cs1, cs2, e) = let
-      infix <^>;
-      fun set1 <^> set2 = not (AtomSet.isEmpty
-                                (AtomSet.intersection (set1, set2)))
+  (* see tech. report: canswap predicate *)
+  fun conflictExists (sE, sA, psi) = let
+      exception ConflictingQuantifiers
 
-      fun hasconCT (NonClock e)   = E.conflictExists (cs1, cs2, e)
-        | hasconCT (CRel (v, _, cv)) = let
-            val s = getVarFree v ++ getValFree cv
-          in s <^> cs1 andalso s <^> cs2 end
+      fun termToPairs ct = let
+          val f = getTermFree ct
+          val e = AtomSet.intersection (f, sE)
+          val a = AtomSet.intersection (f, sA)
+        in
+          if not (AtomSet.isEmpty e) andalso not (AtomSet.isEmpty a)
+          then raise ConflictingQuantifiers else (e, a)
+        end
 
-        | hasconCT (CDiff (v1, v2, _, cv)) = let 
-            val s = getVarFree v1 ++ getVarFree v2 ++ getValFree cv
-          in s <^> cs1 andalso s <^> cs2 end
+      fun pairUnion ((e1,a1), (e2,a2)) = (e1 ++ e2, a1 ++ a2)
+      val emptyPair = (emptyset, emptyset)
 
-      fun hasconCE (And (e1, e2)) = hasconCE e1 orelse hasconCE e2
-        | hasconCE (Or (e1, e2))  = hasconCE e1 orelse hasconCE e2
-        | hasconCE (Term ct)      = hasconCT ct
-    in hasconCE e end
+      fun findCommon ((e,a), (se,sa)) = let
+          val ei = if AtomSet.isEmpty a then se ++ e else se
+          val ai = if AtomSet.isEmpty e then sa ++ a else sa
+        in (ei, ai) end
+
+      val termPairs = map (fn cl=>map termToPairs cl) psi
+        (* [ [(E,A), ..., (E,A)], ..., [(E,A), ..., (E,A)] ] *)
+      val clausePairs = map (fn cl=>foldl pairUnion emptyPair cl) termPairs
+        (* [ (E,A), ..., (E,A) ] *)
+
+      val (sEf, sAf) = foldl findCommon emptyPair clausePairs
+
+      fun conflict ([], _) = false
+        | conflict ((e, a)::xs, (confE, confA)) =
+            if (AtomSet.isSubset (e, sEf) andalso AtomSet.isEmpty (a))
+               orelse (AtomSet.isSubset (a, sAf) andalso AtomSet.isEmpty (e))
+            then conflict (xs, (confE, confA))
+            else if not (AtomSet.isEmpty (AtomSet.intersection (e, confE)))
+                 orelse not (AtomSet.isEmpty (AtomSet.intersection (a, confA)))
+                 then true else conflict (xs, (confE ++ e, confA ++ a))
+
+    in conflict (clausePairs, (sEf, sAf)) end
+       handle ConflictingQuantifiers => true
 
   local (*{{{1*)
     datatype termchoice =

@@ -411,6 +411,15 @@ struct
                      guard=guard, sync=(syn', synP),
                      update=update, comments=comments, position=position,
                      color=color, nails=nails}
+
+    fun selSelect (Transition {select=(sel, _),...}) = sel
+    fun updSelect (Transition {id, source, target, select=(_,selP), guard,
+                               sync, update, comments,
+                               position, color, nails}) sel =
+        Transition {id=id, source=source, target=target,
+                     select=(sel, selP), guard=guard, sync=sync,
+                     update=update, comments=comments, position=position,
+                     color=color, nails=nails}
     
     fun selEndPoints (Transition {source, target, ...}) = (source, target)
     fun updEndPoints (Transition {id, select, guard, sync, update, comments,

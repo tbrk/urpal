@@ -196,40 +196,41 @@ fun showPartitions showitem partitions = let
   in (*}}}1*)
   fun negate invariant (CETrans {actselect, gselect, forall,
                                  guard, partition, action, names}) =
-      if ClkE.conflictExists (addNameTypes gselect, addNameTypes forall, guard)
-      then raise SelectIdConflictsWithForAll (#1 (ListPair.unzip gselect),
-                                              #1 (ListPair.unzip forall))
-      else let
-             val g' = ClkE.negate guard
-             val e  = case invariant of
-                        ClkE.Term (ClkE.NonClock (E.BoolCExpr true)) => g'
-                      | _ => ClkE.And (invariant, g')
+       let
+         val g' = ClkE.negate guard
+         val e  = case invariant of
+                    ClkE.Term (ClkE.NonClock (E.BoolCExpr true)) => g'
+                  | _ => ClkE.And (invariant, g')
+         val dnf = ClkE.toDNF e
+       in
+         if ClkE.conflictExists (addNameTypes gselect, addNameTypes forall, dnf)
+         then raise SelectIdConflictsWithForAll (#1 (ListPair.unzip gselect),
+                                                 #1 (ListPair.unzip forall))
+         else let
+           val (trans, fall)=ListPair.unzip (map
+                (makeTrans (actselect, forall, gselect, partition, action)) dnf)
+                (* NB: forall and gselect are switched! (after having ensured
+                 *     names are disjoint, and `non-conflicting') *)
 
-              val (trans, fall)=ListPair.unzip (map
-                      (makeTrans (actselect, forall, gselect,
-                                  partition, action)) (ClkE.toDNF e))
-                 (* NB: forall and gselect are switched! (after having ensured
-                  *     names are disjoint, and `non-conflicting') *)
-
-              val splitFAlls=pairwiseIntersect (fall, emptyset)
-           in
-              if AtomSet.isEmpty splitFAlls then trans
-              else (Util.warn ["forall bindings ",
-                               ListFormat.fmt {init="(", sep=", ", final=")",
-                                               fmt=Atom.toString}
-                                 (AtomSet.listItems splitFAlls),
-                           " are shared across disjuncts: likely split zones"];
-                    [CETrans {actselect=actselect,
-                              gselect=forall,
-                              forall=gselect,
-                              partition=partition,
-                              guard=e,
-                              action=action,
-                              names=names}])
-              (* An improvement would be to split where possible,
-                 i.e. partition on shared foralls, transitive on overlap. *)
-           end
-
+           val splitFAlls=pairwiseIntersect (fall, emptyset)
+         in
+            if AtomSet.isEmpty splitFAlls then trans
+            else (Util.warn ["forall bindings ",
+                             ListFormat.fmt {init="(", sep=", ", final=")",
+                                             fmt=Atom.toString}
+                               (AtomSet.listItems splitFAlls),
+                         " are shared across disjuncts: likely split zones"];
+                  [CETrans {actselect=actselect,
+                            gselect=forall,
+                            forall=gselect,
+                            partition=partition,
+                            guard=e,
+                            action=action,
+                            names=names}])
+            (* An improvement would be to split where possible,
+               i.e. partition on shared foralls, transitive on overlap. *)
+         end
+       end
   end (* local *)
 
   local (*{{{1*)

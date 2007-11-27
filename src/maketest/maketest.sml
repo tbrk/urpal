@@ -215,7 +215,7 @@ struct
 
   (********** Jensen extensions: ****************************************)
   (* This section was written very quickly. It would probably benefit from
-   * restructuring and refactoring *)
+   * restructuring, refactoring, and more thought... *)
 
   fun makeComparison map = let 
     (* makeComparison env map expr
@@ -338,7 +338,7 @@ struct
 
     (* map a list of name/subscript-type pairs to a list of
      * name/index-variable pairs, updating the environment as appropriate *)
-    fun allocateIndexVariables (env, chansAndTypes) = let
+    fun allocateIndexVariables (env, chansAndTypes, selectids) = let
         fun f (vars, [], usednames, done) = (vars, done)
           | f (vars, (nm, subtys)::chans, usednames, done) = let
                 val (vars', usednames', idxvars) = allocVars (vars,vars,
@@ -349,7 +349,8 @@ struct
 
         fun addId ((nm, ity), env) = Env.addId Env.TemplateScope
                                                ((nm, indexToType ity), env)
-        val (idxvars, chanList) = f ([], chansAndTypes, Env.usedIds env, [])
+        val (idxvars, chanList) = f ([], chansAndTypes,
+                                     selectids ++ Env.usedIds env, [])
 
       in (foldl addId env idxvars, chanList) end
 
@@ -559,8 +560,13 @@ struct
                            then [((nm, subs), dir)] else []
         in (hasDir E.Input) @ (hasDir E.Output) end
 
+      fun addSelIds (tr, s) = let
+          fun add (E.BoundId (nm, _, _), u) = u <+ nm
+        in foldl add s (P.Transition.selSelect tr) end
+
       val urgchans = List.mapPartial chanTypeToSubs channels
-      val (decls, urgchanIdxs) = allocateIndexVariables (decls, urgchans)
+      val sids = foldl addSelIds emptyset trans
+      val (decls, urgchanIdxs) = allocateIndexVariables (decls, urgchans, sids)
       val urgchans = List.concat (map addUsedDirections urgchanIdxs)
     in
       if null urgchans then t

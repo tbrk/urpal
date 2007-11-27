@@ -36,11 +36,11 @@ fun insert (e, id, CE.Fail s) = (pre ["fail: ", s]; e)
 
 fun drop (e, id) = CE.remove (e, id)
 
-fun addCoords layoutengine (srcPred, dstPred)
+fun addCoords layoutengine locIdPred
               (template as PNta.Template {name=(n,_), ...}) =
   let
-    fun p (PNta.Transition {source=s, target=t, ...}) = (srcPred s orelse
-                                                         dstPred t)
+    fun p (PNta.Transition {source=s, target=t, ...}) = (locIdPred s orelse
+                                                         locIdPred t)
     val withIds = NtaU.addTransitionIds p template
     val dot     = Layout.toDot true withIds
   in
@@ -70,7 +70,7 @@ fun doMakeTest (CE.Template t, CE.Symbols chanset, CE.Symbols varset) = (let
         val t = MakeTest.addReadyChecks chans (errl, t)
         val t = NtaU.addTransitions (t, checkVarTransFun errl)
         val t = addCoords (Settings.graphvizEngine ())
-                            (fn _=>false, fn l=> l=errl) t
+                      (NtaU.locsWithoutPositions t) t
       in CE.Template t end
       handle MakeTest.InvalidChannelId c => CE.Fail ("invalid channel id "
                                                      ^Atom.toString c)
@@ -239,7 +239,7 @@ fun doAcceptAll (env, CE.Symbols chanset) =
   | doAcceptAll (env, CE.Actions actionset) = let
       val actions = ActionSet.listItems actionset
       val iet =NtaU.makeInputEnabler (actions, CmdEnv.globalDecl env)
-      val iet'=addCoords (Settings.graphvizEngine()) (fn _=>true,fn _=>true) iet
+      val iet'=addCoords (Settings.graphvizEngine()) (fn _=>true) iet
       val iet''=Layout.tabulateTransLabels ((0,0), (fn _=>true), iet')
     in CE.Template iet'' end
 
@@ -275,7 +275,7 @@ fun help () = app (fn t=>pr [t]) [
       "channels(<template>)",
       "conflate(<template>, <namemap>)",
       "drop(<template>, <nameset>)",
-      "makemcs51(<filepath>, [maxrows], [showinstrs])",
+      "makemcs51(<filepath>, [maxrows, [showinstrs]])",
       "maketest(<template>)",
       "maketest(<template>, <nameset>, <nameset>)",
       "parameters(<template>)",

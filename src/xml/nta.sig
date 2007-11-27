@@ -151,6 +151,9 @@ sig
     val selNails       : transition -> pos list
     val updNails       : transition -> pos list -> transition
 
+    val selSelect      : transition -> select
+    val updSelect      : transition -> select -> transition
+
     val selEndPoints   : transition -> locId * locId
     val updEndPoints   : transition -> locId * locId -> transition
 

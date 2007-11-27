@@ -19,6 +19,8 @@ sig
                               (symbol * Expression.direction) ActionMap.map
                             -> ParsedNta.template
 
+  val locsWithoutPositions : ParsedNta.template -> (ParsedNta.locId -> bool)
+
   val stripTransitionIds  : ParsedNta.template -> ParsedNta.template
   val addTransitionIds    : (ParsedNta.transition -> bool) ->
                             ParsedNta.template -> ParsedNta.template

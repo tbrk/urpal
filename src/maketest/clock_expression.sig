@@ -33,7 +33,7 @@ signature CLOCK_EXPRESSION = sig
   val toExpr         : t * (symbol * Expression.ty) list -> Expression.expr
 
   val rename         : {old: symbol, new: symbol} * t -> t
-  val conflictExists : symbolset * symbolset * t -> bool 
+  val conflictExists : symbolset * symbolset * clockterm list list -> bool 
 
   val toDNF          : t -> clockterm list list
   val fromDNF        : clockterm list list -> t

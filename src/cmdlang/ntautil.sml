@@ -193,6 +193,13 @@ struct
                               position=position, nails=nails})
         end
 
+  fun locsWithoutPositions (P.Template {locations,...}) = let
+      val add = IntBinarySet.add
+      fun f (P.Location {id=P.LocId i, position=NONE, ...}, s) = add (s, i)
+        | f (_, s) = s
+      val locs = foldl f IntBinarySet.empty locations
+    in fn (P.LocId i) => IntBinarySet.member (locs, i) end
+
   fun stripTransitionIds (P.Template  {name, parameter, declaration, initial,
                                        locations, transitions}) =
       P.Template {name=name, parameter=parameter, declaration=declaration,

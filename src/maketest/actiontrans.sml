@@ -106,7 +106,7 @@ in struct
 
         | checksubs (_::tys, act::acts, usedsels) = let
               val names = E.getFreeNames act
-              fun selectId n = not (isSome (AtomMap.find (sids, n)))
+              fun selectId n = isSome (AtomMap.find (sids, n))
             in
               if AtomSet.exists selectId names
               then raise ActSubWithNonSimpleSelect act
