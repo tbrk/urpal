@@ -121,6 +121,9 @@ sig
     val selColor       : location -> string option
     val updColor       : location -> string option -> location
 
+    val selInvariant   : location -> invariant
+    val updInvariant   : location -> invariant -> location
+
     val selPos         : location -> pos option
     val updPos         : location -> pos option -> location
 

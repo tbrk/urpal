@@ -36,7 +36,7 @@ struct
   val loopHorOffset   = ~40   (* self-loop horizontal offset            *)
   val loopVerOffset   = 30    (* self-loop vertical offset              *)
   val jumpHorOffset   = ~80   (* same-column jump transition separation *)
-  val crossColEdge    = 60    (* cross-column horizontal shift          *)
+  val crossColEdge    = 140   (* cross-column horizontal shift colsep/2 *)
 
 
   fun toDot forLayoutOnly (P.Template {name=(name, _), parameter, initial,

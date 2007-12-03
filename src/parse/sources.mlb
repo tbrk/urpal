@@ -63,7 +63,7 @@ in
 
     structure ExpressionCvt
 
-    signature ParsedNta
+    signature PARSED_NTA
     structure ParsedNta
     structure ActionMap
     structure ActionSet

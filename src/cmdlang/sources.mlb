@@ -6,6 +6,7 @@ local
     ../maketest/sources.mlb
     ../xml/sources.mlb
     ../layout/sources.mlb
+    ../mcs51/sources.mlb
     ../general.mlb
 
     $(SML_LIB)/basis/basis.mlb

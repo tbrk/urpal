@@ -1,0 +1,30 @@
+(* $Id$ *)
+local
+    $(SML_LIB)/basis/basis.mlb
+    $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+
+    ../lib/sources.mlb
+    ../parse/sources.mlb
+    ../general.mlb
+    ../layout/sources.mlb
+
+    mcs51_instruction.sig
+    mcs51instruction.sml
+
+    mcs51.grm.sig
+    mcs51.grm.sml
+    mcs51.lex.sml
+
+    ann "nonexhaustiveMatch ignore" in
+    maketimed.sml
+    end
+
+    mcs51.sig
+    mcs51.sml
+in
+
+    signature MCS51
+    signature MCS51_INSTRUCTION
+    structure MCS51
+end

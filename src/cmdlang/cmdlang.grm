@@ -82,11 +82,16 @@ fun doMakeTest (CE.Template t, CE.Symbols chanset, CE.Symbols varset) = (let
   | doMakeTest _ = CE.Fail
                      "bad args: maketest(<template> [, <nameset>, <nameset>])"
 
-fun doMakeTest' (v, env) = case CmdEnv.getValue env (Atom.atom "channels") of
+fun doMakeTest' (v, env) = case CE.getValue env (Atom.atom "channels") of
      NONE => CE.Fail "channels is not present"
-   | SOME chans => (case CmdEnv.getValue env (Atom.atom "globals") of
+   | SOME chans => (case CE.getValue env (Atom.atom "globals") of
                       NONE => CE.Fail "globals is not present"
                     | SOME globals => doMakeTest (v, chans, globals))
+
+fun multisectTime (CE.Template t, expr) = CE.Template (NtaU.scaleClocks
+                                                         (t, expr))
+  | multisectTime (f as CE.Fail _, _)   = f
+  | multisectTime _ = CE.Fail "bad args: multisecttime(<template>, <int|var>)"
 
 fun doSetInitial (CE.Template t, nm)  =
       (case PNta.Location.nameToId t (Atom.toString nm) of
@@ -238,7 +243,7 @@ fun doAcceptAll (env, CE.Symbols chanset) =
       doAcceptAll (env, CE.Actions (CE.symbolsToActions chanset))
   | doAcceptAll (env, CE.Actions actionset) = let
       val actions = ActionSet.listItems actionset
-      val iet =NtaU.makeInputEnabler (actions, CmdEnv.globalDecl env)
+      val iet =NtaU.makeInputEnabler (actions, CE.globalDecl env)
       val iet'=addCoords (Settings.graphvizEngine()) (fn _=>true) iet
       val iet''=Layout.tabulateTransLabels ((0,0), (fn _=>true), iet')
     in CE.Template iet'' end
@@ -270,14 +275,21 @@ fun echo (f as CE.Fail s) = ((pr [s]); f)
   | echo v                = v
 
 fun help () = app (fn t=>pr [t]) [
+      "--commands--",
+      "drop <template>",
+      "list",
+      "show [<id>]",
+      "<id> = <expression>",
+      "writegraphics (<template>, <path>, <PS|Dot|SVG>)",
+      "--expressions--",
       "acceptall(<actionset>)",
       "actions(<template>)",
       "channels(<template>)",
       "conflate(<template>, <namemap>)",
-      "drop(<template>, <nameset>)",
       "makemcs51(<filepath>, [maxrows, [showinstrs]])",
       "maketest(<template>)",
       "maketest(<template>, <nameset>, <nameset>)",
+      "multisecttime(<template>, <int|var>)",
       "parameters(<template>)",
       "renamelocs(<template>, <namemap>)",
       "renametrans(<template>, <actionmap>)",
@@ -306,7 +318,7 @@ fun help () = app (fn t=>pr [t]) [
       BOOL of bool | QUIT | LIST | SHOW | WRITEGRAPHICS | DROP |
       MAKEMCS51 | MAKETEST | RENAMELOCS | RENAMETRANS | SCALE | ACTIONS |
       ACCEPTALL | TABULATE | CHANNELS | SPLIT | PARAMETERS | HELP | CONFLATE |
-      SETINITIAL |
+      SETINITIAL | MULTISECTTIME |
       LPAR | RPAR | LSQPAR | RSQPAR | LBARBRACE | RBARBRACE | LBRACE | RBRACE |
       QUESTION | EXCLAM | SLASH | BACKSLASH | UNION | ASSIGN | COMMA |
       DBLARROW | RARROW | LARROW |
@@ -353,9 +365,9 @@ expr: ACCEPTALL expr RPAR             (fn e=>doAcceptAll (e, expr e))
     | CONFLATE expr COMMA expr RPAR   (fn e=>doConflate (expr1 e, expr2 e))
     | DROP expr COMMA expr RPAR       (fn e=>doDropLoc (expr1 e, expr2 e))
 
-    | MAKEMCS51 STRING RPAR           (fn e=>doMakeMCS51 (STRING, 10, true))
+    | MAKEMCS51 STRING RPAR           (fn e=>doMakeMCS51 (STRING, 10, false))
     | MAKEMCS51 STRING COMMA INTEGER RPAR
-                                      (fn e=>doMakeMCS51 (STRING,INTEGER,true))
+                                      (fn e=>doMakeMCS51 (STRING,INTEGER,false))
     | MAKEMCS51 STRING COMMA BOOL RPAR
                                       (fn e=>doMakeMCS51 (STRING, 10, BOOL))
     | MAKEMCS51 STRING COMMA INTEGER COMMA BOOL RPAR
@@ -365,6 +377,12 @@ expr: ACCEPTALL expr RPAR             (fn e=>doAcceptAll (e, expr e))
     | MAKETEST expr COMMA expr COMMA expr RPAR
                                       (fn e=>doMakeTest (expr1 e,
                                                              expr2 e, expr3 e))
+    | MULTISECTTIME expr COMMA INTEGER RPAR(fn e=>multisectTime (expr e,
+                                               Expression.IntCExpr INTEGER))
+    | MULTISECTTIME expr COMMA ID RPAR    (fn e=>multisectTime (expr e,
+                                               Expression.VarExpr (
+                                                 Expression.SimpleVar
+                                                   (ID, Expression.nopos))))
     | PARAMETERS expr RPAR            (fn e=>doParameters (expr e))
     | RENAMELOCS expr COMMA expr RPAR (fn e=>doRenameLocs (expr1 e, expr2 e))
     | RENAMETRANS expr COMMA expr RPAR(fn e=>doRenameTrans (expr1 e,

@@ -55,7 +55,7 @@ struct
            | SOME (Env.VarEntry{ty,ref=r,...}) => (case #1 (E.stripArray ty) of
                 E.CHANNEL {broadcast,...} =>
                   if broadcast
-                  then SOME [pre,"is broadcast (not supported)"]
+                  then SOME [pre," is broadcast (not supported)"]
                   else if r
                        then SOME [pre,"is passed by reference (not supported)"]
                        else NONE
@@ -321,6 +321,36 @@ struct
     in
       foldl f IntBinarySet.empty locations
     end
+
+  fun scaleClocks (tp as P.Template {locations, transitions,
+                                     declaration, ...}, sc) = let
+      fun tyIsClk E.CLOCK           = true
+        | tyIsClk (E.ARRAY (ty, _)) = tyIsClk ty
+        | tyIsClk _                 = false
+
+      fun isClock s = Option.getOpt (Option.map tyIsClk
+                                       (Env.findValType declaration s), false)
+
+      val mul = E.mulClocks (sc, isClock)
+
+      fun fTr (P.Transition {id, source, target, select=select as (sel, _),
+                             guard=(g, gP), sync, update=(upd, updP),
+                             comments, position, color, nails}) =
+        let
+          val bound = foldl (fn (E.BoundId (nm,_,_), s)=> s <+ nm) emptyset sel
+          val mul = E.mulClocks (sc, fn s=> not (s <- bound) andalso isClock s)
+        in
+          P.Transition {id=id, source=source, target=target, select=select,
+                        guard=(mul g, gP), sync=sync,
+                        update=(map mul upd, updP), comments=comments,
+                        position=position, color=color, nails=nails}
+        end
+
+      fun fLoc loc = (P.Location.updInvariant loc
+                        (mul (P.Location.selInvariant loc)))
+
+    in P.Location.map fLoc (P.Transition.map fTr tp) end
+
 end
 end (* local *)
 

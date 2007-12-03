@@ -47,11 +47,12 @@ structure MakeTimed = struct
     fun subscriptVar (v,idxex) = E.VarExpr (E.SubscriptVar(v, idxex, E.nopos))
     fun directToVar d   = subscriptVar (iram, makeVar (ASM.directToString d))
     fun indirectToVar r = subscriptVar (iram, makeVar (ASM.indToString r))
-    fun immToVar r      = makeVar (ASM.immToString r)
+    fun immToVar r      = makeVar (ASM.dataToString r)
     fun bitToVar b      = subscriptVar (bits, makeVar (ASM.bitToString b))
 
     fun assign (s,v,a) = [E.AssignExpr{var=s,aop=a,expr=v,pos=E.nopos}]
   in
+  fun addReset act = act @ assign (cycleClk, zero, E.AssignOp)
 
   fun makeAction (ASM.ADD_reg r)  = assign(accum,regToVar r,E.PlusEqOp)(*{{{1*)
     | makeAction (ASM.ADD_dir d)  = assign (accum, directToVar d,   E.PlusEqOp)
@@ -237,19 +238,23 @@ structure MakeTimed = struct
                                                       immToVar d, rel)
     | jumpGuard (ASM.CJNE_immToInd (r,d,rel)) = guardCmp (indirectToVar r, E.NeOp,
                                                       immToVar d, rel)
-    | jumpGuard (ASM.DJNZ_reg (r,rel)) = guardCmp (E.dec (regToVar r), E.NeOp,
-                                               zero, rel)
-    | jumpGuard (ASM.DJNZ_dir (d,rel)) = guardCmp (E.dec (directToVar d), E.NeOp,
-                                               zero, rel)
+    | jumpGuard (ASM.DJNZ_reg (r,rel)) = guardCmp (regToVar r, E.NeOp, one, rel)
+    | jumpGuard (ASM.DJNZ_dir (d,rel)) = guardCmp (directToVar d,E.NeOp,one,rel)
     | jumpGuard _ = NONE
+
+  fun seqGuard (ASM.DJNZ_reg (r,rel)) =SOME (E.RelExpr {left=regToVar r,
+                                         rel=E.EqOp, right=one, pos=E.nopos})
+    | seqGuard (ASM.DJNZ_dir (d,rel)) =SOME (E.RelExpr {left=directToVar d,
+                                         rel=E.EqOp, right=one, pos=E.nopos})
+    | seqGuard act = Option.map (fn (jg,_)=>E.negate jg) (jumpGuard act)
 
   local
     val byte = E.INT (SOME (zero, maxbyte), E.NoQual)
     fun mkArray (n, ty) = E.ARRAY (ty,E.Type (E.INT
                                         (SOME (zero, E.IntCExpr (n - 1)),
                                         E.NoQual)))
-    fun mkReg (r, rs) = (r, D.VarDecl {id=r, ty=E.BOOL E.NoQual,
-                                       initial=SOME (D.SimpleInit E.falseExpr),
+    fun mkReg (r, rs) = (r, D.VarDecl {id=r, ty=byte,
+                                       initial=SOME (D.SimpleInit zero),
                                        pos=E.nopos}) :: rs
 
     val varMap = foldl AtomMap.insert' AtomMap.empty (
@@ -264,9 +269,9 @@ structure MakeTimed = struct
                                pos=E.nopos})::
       (nmIRAM,      D.VarDecl {id=nmIRAM, ty=mkArray (128, byte),
                                initial=NONE, pos=E.nopos})::
-      (nmERAM,      D.VarDecl {id=nmIRAM, ty=mkArray (10, byte),
+      (nmERAM,      D.VarDecl {id=nmERAM, ty=mkArray (10, byte),
                                initial=NONE, pos=E.nopos})::
-      (nmBITS,      D.VarDecl {id=nmIRAM, ty=mkArray (128, E.BOOL E.NoQual),
+      (nmBITS,      D.VarDecl {id=nmBITS, ty=mkArray (128, E.BOOL E.NoQual),
                                initial=NONE, pos=E.nopos})::
       Vector.foldl mkReg [] nmR)
   in
@@ -322,36 +327,43 @@ structure MakeTimed = struct
               SOME (P.Transition {id=NONE, source=loc, target=dst,
                                   select=([], NONE), guard=(guard, NONE),
                                   sync=(makeSync act,NONE),
-                                  update=(makeAction act,NONE),
+                                  update=(addReset (makeAction act),NONE),
                                   comments=(SOME (ASM.toString act), NONE),
                                   position=NONE, color=NONE, nails=[]})
             end
         in Option.mapPartial f (jumpGuard act) end
 
-      fun addloc ((nmo, act), (template, map, lids)) = let
+      fun addloc ((nmo, act), (template, map, lids, n)) = let
           val lid = P.Location.newId template
           val pos = nextPos ()
+          val npos = Option.map (fn (x, y)=>(x - 25, y - 32)) pos
           val ipos = Option.map (fn (x, y)=>(x + invariantHorOff,
                                              y + invariantVerOff)) pos
-          val l = P.Location {id=lid, position=pos, color=NONE,name=(NONE,NONE),
+          val l = P.Location {id=lid, position=pos, color=NONE,
+                          name=(SOME ("s"^Int.toString n), npos),
                           invariant=(actionConstraint (act, E.LeOp), ipos),
                           comments=(nmo, NONE), urgent=false, committed=false}
           val map' = case nmo of
                        NONE   => map
                      | SOME s => AtomMap.insert (map, Atom.atom s, lid)
-        in (P.Template.updLocation template l, map', (lid, act)::lids) end
+        in (P.Template.updLocation template l, map', (lid, act)::lids, n+1) end
 
       fun addFinal false args = args
-        | addFinal true  (template, map, lids) = let
+        | addFinal true  (template, map, lids, n) = let
           val lid = P.Location.newId template
-          val l = P.Location {id=lid, position=nextPos (), color=NONE,
-                    name=(NONE, NONE), invariant=(E.trueExpr, NONE),
+          val pos = nextPos ()
+          val npos = Option.map (fn (x, y)=>(x - 25, y - 32)) pos
+          val l = P.Location {id=lid, position=pos, color=NONE,
+                    name=(SOME ("s"^Int.toString n), npos),
+                    invariant=(E.trueExpr, NONE),
                     comments=(SOME "fin", NONE), urgent=false, committed=false}
-        in (P.Template.updLocation template l, map, (lid, ASM.NOP)::lids) end
+        in
+          (P.Template.updLocation template l, map, (lid, ASM.NOP)::lids, n+1)
+        end
 
-      val (template, locmap, rlids) = addFinal
+      val (template, locmap, rlids, _) = addFinal
             (not (isSome (jumpsTo (#2 (List.last instrs)))))
-            (foldl addloc (P.Template.new ("",NONE), AtomMap.empty, []) instrs)
+            (foldl addloc (P.Template.new ("",NONE), AtomMap.empty,[],0) instrs)
 
       val lids = rev rlids
       val template = P.Template.updInitial template (SOME (#1 (hd lids)))
@@ -359,9 +371,9 @@ structure MakeTimed = struct
 
       fun addSeqTrans (src, act, dst) = let
           val ac = actionConstraint (act, E.GeOp)
-          val g  = case jumpGuard act of
-                     NONE         => ac
-                   | SOME (jg, _) => E.andexpr (E.negate jg, ac)
+          val g  = case seqGuard act of
+                     NONE    => ac
+                   | SOME sg => E.andexpr (sg, ac)
 
           val (SOME (sp as (sx, _)), SOME (dp as (dx, _))) = (locIdToPos src,
                                                               locIdToPos dst)
@@ -369,7 +381,8 @@ structure MakeTimed = struct
         in
           P.Transition {id=NONE, source=src, target=dst,
                         select=([], NONE), guard=(g, NONE),
-                        sync=(makeSync act,NONE), update=(makeAction act,NONE),
+                        sync=(makeSync act,NONE),
+                        update=(addReset (makeAction act),NONE),
                         comments=(SOME (ASM.toString act), NONE), position=NONE,
                         color=NONE, nails=nails}
         end

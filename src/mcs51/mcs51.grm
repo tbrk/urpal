@@ -21,7 +21,7 @@ fun intToRegister 0 = ASM.R0
 %%
 %name MCS51
 %noshift EOF
-%eop SEMICOLON EOF
+%eop EOL EOF
 %pure
 %pos FilePos.pos
 %verbose
@@ -37,7 +37,7 @@ fun intToRegister 0 = ASM.R0
       SJMP | JMP | JZ | JNZ | JC | JNC | JB | JNB | JBC | CJNE | DJNZ | NOP |
       DIRECT of Atom.atom | INDIRECT of int |
       REGISTER of int | IMMEDIATE of string |
-      COMMA | PLUS | AT | SEMICOLON | COLON | SLASH | UNKNOWN | EOF
+      COMMA | PLUS | AT | COLON | SLASH | UNKNOWN | EOL | EOF
 
 %nonterm program   of (string option * ASM.t) list
        | linstrlist of (string option * ASM.t) list
@@ -68,10 +68,12 @@ fun intToRegister 0 = ASM.R0
 program: linstrlist               (linstrlist)
 
 linstrlist: linstr                ([linstr])
+          | EOL                   ([])
           | linstr linstrlist     (linstr::linstrlist)
+          | EOL linstrlist        (linstrlist)
 
-linstr: instr SEMICOLON             ((NONE, instr))
-      | label COLON instr SEMICOLON ((SOME label, instr))
+linstr: instr EOL                 ((NONE, instr))
+      | label COLON instr EOL     ((SOME label, instr))
 
 instr: ADD A COMMA register       (ASM.ADD_reg register)
      | ADD A COMMA direct         (ASM.ADD_dir direct)

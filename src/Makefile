@@ -20,6 +20,7 @@ urpal: $(SRC) version.sml
 
 withmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
 	   parse/uppaal.grm.sml parse/uppaal.lex.sml \
+	   mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \
 	   config/config.lex.sml version.sml
 	$(MLTON) -verbose 1  urpal.mlb
 
@@ -37,6 +38,12 @@ parse/uppaal.grm.sml: parse/uppaal.grm
 
 parse/uppaal.lex.sml: parse/uppaal.lex
 	$(MLLEX)  parse/uppaal.lex
+
+mcs51/mcs51.grm.sml: mcs51/mcs51.grm
+	$(MLYACC) mcs51/mcs51.grm
+
+mcs51/mcs51.lex.sml: mcs51/mcs51.lex
+	$(MLLEX)  mcs51/mcs51.lex
 
 version.sml:
 	(echo "structure Version = struct ";   \

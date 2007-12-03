@@ -315,6 +315,18 @@ struct
                     urgent=urgent,
                     committed=committed}
 
+    fun selInvariant (Location {invariant=(inv, _), ...}) = inv
+    fun updInvariant (Location {id, position, color, name, invariant=(_, invP),
+                                comments, urgent, committed}) inv'
+        = Location {id=id,
+                    position=position,
+                    color=color,
+                    name=name,
+                    invariant=(inv', invP),
+                    comments=comments,
+                    urgent=urgent,
+                    committed=committed}
+
     fun selPos (Location {position, ...}) = position
     fun updPos (Location {id, name, invariant, comments, urgent, committed,
                           color, ...}) pos'

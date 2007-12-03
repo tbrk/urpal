@@ -186,7 +186,8 @@ struct
       val cMissing = AtomSet.difference (cIdUsed, cIdGiven)
       val _ = if AtomSet.isEmpty cMissing then ()
               else Util.warn ("channels are missing from the testing list: "::
-                              (map Atom.toString (AtomSet.listItems cMissing)))
+                     [ListFormat.fmt {init="", sep=", ", final="",
+                              fmt=Atom.toString} (AtomSet.listItems cMissing)])
       val (tplate',err as P.Location {id=errLocId,...})= P.Location.new t "Err"
       val err = P.Location.updColor err (Settings.errorColor ())
 

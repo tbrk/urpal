@@ -24,7 +24,7 @@ structure Keyword =
                 ("C",    Tokens.C),
                 ("AB",   Tokens.AB),
                 ("DPTR", Tokens.DPTR),
-		("PC",   Tokens.PC),
+                ("PC",   Tokens.PC),
                 ("ADD",  Tokens.ADD),
                 ("ADDC", Tokens.ADDC),
                 ("SUBB", Tokens.SUBB),
@@ -80,31 +80,35 @@ digit=[0-9];
 underscore=[_];
 ws=[\ \t];
 newline=[\n];
+comment=[;][^\n]*[\n];
 %%
+<INITIAL>{comment} => (FilePos.nextline (yyarg, yypos + size yytext);
+                       addPos (Tokens.EOL, yyarg, yypos + size yytext));
 <INITIAL>{ws}+     => (continue());
-<INITIAL>{newline} => (FilePos.nextline (yyarg, yypos + 1); continue());
+<INITIAL>{newline} => (FilePos.nextline (yyarg, yypos + 1);
+                       addPos (Tokens.EOL, yyarg, yypos));
 
 <INITIAL>"@R0"     => (Tokens.INDIRECT (0, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+3)));
+                                           FilePos.currpos (yyarg, yypos+3)));
 <INITIAL>"@R1"     => (Tokens.INDIRECT (1, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+3)));
+                                           FilePos.currpos (yyarg, yypos+3)));
 
 <INITIAL>"R0"      => (Tokens.REGISTER (0, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+2)));
+                                           FilePos.currpos (yyarg, yypos+2)));
 <INITIAL>"R1"      => (Tokens.REGISTER (1, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+2)));
+                                           FilePos.currpos (yyarg, yypos+2)));
 <INITIAL>"R2"      => (Tokens.REGISTER (2, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+2)));
+                                           FilePos.currpos (yyarg, yypos+2)));
 <INITIAL>"R3"      => (Tokens.REGISTER (3, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+2)));
+                                           FilePos.currpos (yyarg, yypos+2)));
 <INITIAL>"R4"      => (Tokens.REGISTER (4, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+2)));
+                                           FilePos.currpos (yyarg, yypos+2)));
 <INITIAL>"R5"      => (Tokens.REGISTER (5, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+2)));
+                                           FilePos.currpos (yyarg, yypos+2)));
 <INITIAL>"R6"      => (Tokens.REGISTER (6, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+2)));
+                                           FilePos.currpos (yyarg, yypos+2)));
 <INITIAL>"R7"      => (Tokens.REGISTER (7, FilePos.currpos (yyarg, yypos),
-					   FilePos.currpos (yyarg, yypos+2)));
+                                           FilePos.currpos (yyarg, yypos+2)));
 
 <INITIAL>"#"({alpha}|{digit}|{underscore})+
                    => (Tokens.IMMEDIATE (String.extract (yytext, 1, NONE),
@@ -118,7 +122,6 @@ newline=[\n];
 <INITIAL>","       => (addPos (Tokens.COMMA      ,yyarg,yypos));
 <INITIAL>"+"       => (addPos (Tokens.PLUS       ,yyarg,yypos));
 <INITIAL>"@"       => (addPos (Tokens.AT         ,yyarg,yypos));
-<INITIAL>";"       => (addPos (Tokens.SEMICOLON  ,yyarg,yypos));
 <INITIAL>":"       => (addPos (Tokens.COLON      ,yyarg,yypos));
 <INITIAL>"/"       => (addPos (Tokens.SLASH      ,yyarg,yypos));
 

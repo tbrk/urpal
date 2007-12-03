@@ -176,6 +176,13 @@ sig
   val andexpr : expr * expr -> expr
   val orexpr : expr * expr -> expr
 
+  val mulClocks : expr * (symbol -> bool) -> expr -> expr
+    (* mulClocks (m, isClockVar) e
+     * Work through e, multiplying the following by m:
+     *  -RHS of assignments to clocks.
+     *  -Either side of a relation involving a clock.
+     *)
+
   (* returnval => ((e1 && e2) == false)
      Simple and conservative syntactic checks, i.e. sound but not complete
      

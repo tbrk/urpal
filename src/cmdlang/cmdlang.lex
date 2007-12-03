@@ -37,6 +37,7 @@ structure Keyword =
                 ("list",      Tokens.LIST),
                 ("makemcs51", Tokens.MAKEMCS51),
                 ("maketest",  Tokens.MAKETEST),
+                ("multisecttime",Tokens.MULTISECTTIME),
                 ("parameters",Tokens.PARAMETERS),
                 ("renamelocs",Tokens.RENAMELOCS),
                 ("renametrans",Tokens.RENAMETRANS),

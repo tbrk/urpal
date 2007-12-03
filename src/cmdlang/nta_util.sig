@@ -34,5 +34,8 @@ sig
 
   val namesetToLocset     : AtomSet.set * ParsedNta.template
                             -> IntBinarySet.set
+
+  val scaleClocks : ParsedNta.template * Expression.expr -> ParsedNta.template
+
 end
 

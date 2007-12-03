@@ -321,6 +321,52 @@ struct
     | orexpr (e1,                      e2 as (BoolCExpr true))  = e2
     | orexpr (e1, e2) = BinBoolExpr {left=e1, bop=OrOp, right=e2, pos=nopos}
 
+
+  fun checkVar (p, VarExpr (SimpleVar (nm, _)))      = p nm
+    | checkVar (p, VarExpr (SubscriptVar (v, _, _))) = checkVar (p, VarExpr v)
+    | checkVar (_, _) = false
+
+  fun mulExpr (IntCExpr l, IntCExpr r) = IntCExpr (l * r)
+    | mulExpr (IntCExpr 0, _) = IntCExpr 0
+    | mulExpr (_, IntCExpr 0) = IntCExpr 0
+    | mulExpr (IntCExpr 1, e) = e
+    | mulExpr (e, IntCExpr 1) = e
+    | mulExpr (l, r) = BinIntExpr {left=l, bop=TimesOp, right=r, pos=nopos}
+
+  (* Given a relation expression with a clock variable on one side, we
+   * multiply the other side, as clocks can only be reset or compared in
+   * limited ways (conditional expressions cannot be used, for instance).
+   * Care must be taken though, to recurse through quantifiers and boolean
+   * connectives. *)
+  fun mulClocks (m, isClk) e = let
+      fun mul (NotExpr {expr, pos}) = NotExpr {expr=mul expr, pos=pos}
+        | mul (BinBoolExpr {left, bop, right, pos}) =
+               BinBoolExpr {left=mul left, bop=bop, right=mul right, pos=pos}
+
+        | mul (RelExpr {left=l, rel=c, right=r, pos=p}) =
+            if checkVar (isClk, l)      then RelExpr {left=l, rel=c, pos=p,
+                                                      right=mulExpr (r, m)}
+            else if checkVar (isClk, r) then RelExpr {right=r, rel=c, pos=p,
+                                                      left=mulExpr (l, m)}
+            else RelExpr {left=mul l, rel=c, right=mul r, pos=p}
+               
+        | mul (ForAllExpr {id, ty, expr, pos}) = let
+              fun isClk' s = not (s =:= id) andalso (isClk s)
+            in
+              ForAllExpr {id=id, ty=ty, pos=pos,
+                          expr=mulClocks (m, isClk') expr}
+            end
+        | mul (ExistsExpr {id, ty, expr, pos}) = let
+              fun isClk' s = not (s =:= id) andalso (isClk s)
+            in
+              ExistsExpr {id=id, ty=ty, pos=pos,
+                          expr=mulClocks (m, isClk') expr}
+            end
+
+        | mul e = e
+
+    in mul e end
+
   fun conflictExists (cs1, cs2, e) = let
       infix <^>;
       fun set1 <^> set2 = not (AtomSet.isEmpty
@@ -350,7 +396,7 @@ struct
 
     | equal (CallExpr {func=f1, args=a1, ...},
              CallExpr {func=f2, args=a2, ...})
-            = sequal (f1, f2) andalso lequal (a1,a2)
+            = f1 =:= f2 andalso lequal (a1,a2)
 
     | equal (NegExpr {expr=e1, ...},
              NegExpr {expr=e2, ...}) = equal (e1, e2)
@@ -383,11 +429,11 @@ struct
 
     | equal (ForAllExpr {id=id1, ty=t1, expr=e1, ...},
              ForAllExpr {id=id2, ty=t2, expr=e2, ...})
-            = sequal (id1, id2) andalso tyequal (t1, t2) andalso equal (e1, e2)
+            = id1 =:= id2 andalso tyequal (t1, t2) andalso equal (e1, e2)
 
     | equal (ExistsExpr {id=id1, ty=t1, expr=e1, ...},
              ExistsExpr {id=id2, ty=t2, expr=e2, ...})
-            = sequal (id1, id2) andalso tyequal (t1, t2) andalso equal (e1, e2)
+            = id1 =:= id2 andalso tyequal (t1, t2) andalso equal (e1, e2)
 
     | equal (Deadlock _, Deadlock _) = true
     | equal (_, _) = false
@@ -396,18 +442,16 @@ struct
     | lequal (x1::xs1,x2::xs2) = equal (x1, x2) andalso lequal (xs1,xs2)
     | lequal (_, _)            = false
 
-  and sequal (s1, s2) = Atom.compare (s1, s2) = EQUAL
-
   and varequal (SimpleVar (s1, _),
-                SimpleVar (s2, _)) = sequal (s1, s2)
+                SimpleVar (s2, _)) = s1 =:= s2
 
     | varequal (ReturnVar {func=f1, args=a1, ...},
                 ReturnVar {func=f2, args=a2, ...})
-                = sequal (f1, f2) andalso lequal (a1, a2)
+                = f1 =:= f2 andalso lequal (a1, a2)
 
     | varequal (RecordVar (v1, s1, _),
                 RecordVar (v2, s2, _))
-                = sequal (s1, s2) andalso varequal (v1, v2)
+                = s1 =:= s2 andalso varequal (v1, v2)
 
     | varequal (SubscriptVar (v2, e1, _),
                 SubscriptVar (v1, e2, _))
@@ -447,14 +491,14 @@ struct
              = tyequal (tyex1, tyex2)
 
     | tyequal (NAME (s1, tq1, _), NAME (s2, tq2, _))
-             = tq1=tq2 andalso sequal (s1, s2)
+             = tq1=tq2 andalso s1 =:= s2
 
     | tyequal (VOID, VOID) = true
     | tyequal (_, _) = false
   
   and fequal ([], []) = true
     | fequal ((s1, ty1)::xs1, (s2, ty2)::xs2)
-         = sequal (s1, s2) andalso tyequal (ty1, ty2) andalso fequal (xs1, xs2)
+         = s1 =:= s2 andalso tyequal (ty1, ty2) andalso fequal (xs1, xs2)
     | fequal (_, _)   = false
   (*}}}1*)
 

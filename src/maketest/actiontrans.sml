@@ -85,23 +85,49 @@ in struct
       (*{{{1*)
       fun addBound (E.BoundId (n, ty, _), m) = AtomMap.insert (m, n, ty)
       val sids = foldl addBound AtomMap.empty selectids
+      
+      fun limit (nm, rel, limit) = E.RelExpr {pos=E.nopos,
+             left=E.VarExpr (E.SimpleVar (nm, E.nopos)), rel=rel, right=limit}
+
+      (* matchSelRange (actualRange, selectedRange) *)
+      fun matchSelRange (_, E.INT(NONE, E.NoQual),
+                            E.INT(NONE, E.NoQual)) = SOME NONE
+        | matchSelRange (nm, E.INT (SOME (lRan, uRan), E.NoQual),
+                             E.INT (SOME (lSel, uSel), E.NoQual)) =
+              SOME (case (E.equal (lSel, lRan), E.equal (uSel, uRan)) of
+                  (true, true)   => NONE
+                | (true, false)  => SOME (limit (nm, E.LeOp, uSel))
+                | (false, true)  => SOME (limit (nm, E.GeOp, lSel))
+                | (false, false) => SOME (E.BinBoolExpr{pos=E.nopos,bop=E.AndOp,
+                     left=limit (nm,E.GeOp,lSel),right=limit (nm,E.LeOp,uSel)}))
+
+        | matchSelRange (nm, E.NAME (_, E.NoQual, SOME tyex1),
+                             E.NAME (_, E.NoQual, SOME tyex2))
+                          = matchSelRange (nm, tyex1, tyex2)
+
+        | matchSelRange (_, E.NAME (s1, E.NoQual, _), E.NAME (s2, E.NoQual, _)) =
+                        if s1 =:= s2 then SOME NONE else NONE
+
+        | matchSelRange (_, ty1, ty2) = if E.tyequal (ty1, ty2)
+                                        then SOME NONE else NONE
 
       fun checksubs ([], [], _) = []
 
         | checksubs (ty::tys, (act as E.VarExpr (E.SimpleVar (n, _)))::acts,
-                     usedsels) = let
-              fun already nq = n =:= nq
+                     usedsels) =
+            let fun already nq = n =:= nq
             in
               case AtomMap.find (sids, n)
-              of NONE       => FreeExprSub act
+              of NONE       => (NONE, FreeExprSub act)
                                :: checksubs (tys, acts, usedsels)
-               | SOME (ty') => if E.tyequal (ty, ty')
-                               then if List.exists already usedsels
-                                    then raise ActionSubWithDuplicate n
-                                    else SelectSub n
-                                         :: checksubs (tys, acts, n::usedsels)
-                               else raise ActSubWithBadType
-                                          {expr=act, badty=ty', goodty=ty}
+               | SOME (ty') => if List.exists already usedsels
+                               then raise ActionSubWithDuplicate n
+                               else case matchSelRange (n, ty, ty') of
+                                      NONE => raise ActSubWithBadType
+                                                {expr=act, badty=ty', goodty=ty}
+                                    | SOME gc => (gc, SelectSub n)
+                                                 :: checksubs (tys, acts,
+                                                               n::usedsels)
             end
 
         | checksubs (_::tys, act::acts, usedsels) = let
@@ -110,17 +136,21 @@ in struct
             in
               if AtomSet.exists selectId names
               then raise ActSubWithNonSimpleSelect act
-              else FreeExprSub act :: checksubs (tys, acts, usedsels)
+              else (NONE, FreeExprSub act) :: checksubs (tys, acts, usedsels)
             end
 
         | checksubs _ = raise BadSubscriptCount
 
-      val asubs = checksubs (subtypes, actionsubs, [])
+      fun addPartialConstraint (NONE, g)   = g
+        | addPartialConstraint (SOME c, g) = E.BinBoolExpr {pos=E.nopos,
+                                               left=c, bop=E.AndOp, right=g}
+
+      val (gCons, asubs) = ListPair.unzip (checksubs (subtypes, actionsubs, []))
       (*}}}1*)
     in
       ActTrans {selectids=map fromBoundId selectids,
                 actionsubs=asubs,
-                guard=guard,
+                guard=foldl addPartialConstraint guard gCons,
                 names=addBoundIds selectids
                       ++ addFreeExprNames asubs
                       ++ E.getFreeNames guard}
