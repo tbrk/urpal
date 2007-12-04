@@ -1,6 +1,6 @@
 (* $Id$
  * requires: smlnj-lib
- *	     graphviz, config
+ *	     config
  *)
 use "version.sml";
 use "settings.sig";

@@ -9,7 +9,7 @@ sig
 
   (* layout *)
   val set_graphvizPath        : string option -> unit
-  val set_graphvizEngine      : Graphviz.graph -> unit
+  val set_graphvizEngine      : string -> unit
 
   (* appearance *)
   val set_maxLabelWidth       : int -> unit

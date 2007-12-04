@@ -11,7 +11,6 @@ signature ACTION_TRANS = sig
   exception MixedSubscriptTypes of expr * expr
   exception ActSubWithNonSimpleSelect of expr
   exception ActSubWithBadType of {expr: expr, badty: ty, goodty: ty}
-  exception ActionSubWithDuplicate of symbol
   exception BadSubscriptCount
 
   (* transition actions have been checked against restrictions *)

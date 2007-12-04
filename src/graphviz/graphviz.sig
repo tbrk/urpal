@@ -13,8 +13,6 @@ sig
   datatype output = PS | SVG
   datatype graph  = Dot | Neato | Fdp | Twopi | Circo
 
-  val graphvizPath  : string ref
-
   val stringToGraph : string -> graph option
   val graphToString : graph -> string
 

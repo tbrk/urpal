@@ -12,6 +12,9 @@ structure CE   = CmdEnv
 (* shortcuts over Atom and AtomSet *)
 infix <+ <- ++ <\ \ =:= ; open Symbol
 
+fun graphvizEngine () = Option.getOpt (Graphviz.stringToGraph
+                                         (Settings.graphvizEngine ()),
+                                       Graphviz.Fdp)
 type actionsubst = (Atom.atom * CE.direction) * (Atom.atom * CE.direction)
 
 fun outln os xs = (TextIO.output (os, concat xs);
@@ -69,8 +72,7 @@ fun doMakeTest (CE.Template t, CE.Symbols chanset, CE.Symbols varset) = (let
         val (errl, t) = MakeTest.maketest (chans, t)
         val t = MakeTest.addReadyChecks chans (errl, t)
         val t = NtaU.addTransitions (t, checkVarTransFun errl)
-        val t = addCoords (Settings.graphvizEngine ())
-                      (NtaU.locsWithoutPositions t) t
+        val t = addCoords (graphvizEngine ()) (NtaU.locsWithoutPositions t) t
       in CE.Template t end
       handle MakeTest.InvalidChannelId c => CE.Fail ("invalid channel id "
                                                      ^Atom.toString c)
@@ -244,7 +246,7 @@ fun doAcceptAll (env, CE.Symbols chanset) =
   | doAcceptAll (env, CE.Actions actionset) = let
       val actions = ActionSet.listItems actionset
       val iet =NtaU.makeInputEnabler (actions, CE.globalDecl env)
-      val iet'=addCoords (Settings.graphvizEngine()) (fn _=>true) iet
+      val iet'=addCoords (graphvizEngine ()) (fn _=>true) iet
       val iet''=Layout.tabulateTransLabels ((0,0), (fn _=>true), iet')
     in CE.Template iet'' end
 
@@ -256,10 +258,10 @@ fun doWriteGraphics (CE.Template t, path, outty) = (let
     val dot = Layout.toDot false t
   in
     (case Atom.toString outty of
-       "PS"  => (Gviz.makeFile (Settings.graphvizEngine(),Gviz.PS) (out,dot);
+       "PS"  => (Gviz.makeFile (graphvizEngine (),Gviz.PS) (out,dot);
                  CE.Success)
      | "Dot" => (TypedDotIO.output (out, dot); CE.Success)
-     | "SVG" => (Gviz.makeFile (Settings.graphvizEngine(),Gviz.SVG) (out,dot);
+     | "SVG" => (Gviz.makeFile (graphvizEngine (),Gviz.SVG) (out,dot);
                  CE.Success)
      | _ => CE.Fail "bad output type, must be one of PS, Dot, or SVG.")
     before TextIO.closeOut out

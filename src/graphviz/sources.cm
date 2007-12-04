@@ -56,7 +56,7 @@ is
     plainfn.sml
     textplain.sml
 
-    ../lib/sources.cm
+    ../general.cm
 
     $/basis.cm
     $/pp-lib.cm

@@ -10,7 +10,7 @@ sig
 
   (* layout *)
   val graphvizPath        : unit -> string
-  val graphvizEngine      : unit -> Graphviz.graph
+  val graphvizEngine      : unit -> string
 
   (* appearance *)
   val maxLabelWidth       : unit -> int

@@ -13,7 +13,6 @@ in struct
   exception MixedSubscriptTypes of E.expr * E.expr
   exception ActSubWithNonSimpleSelect of E.expr
   exception ActSubWithBadType of {expr:E.expr, badty: E.ty, goodty: E.ty}
-  exception ActionSubWithDuplicate of symbol
   exception BadSubscriptCount
 
   infix <+ <- ++ <\ \ =:= ; open Symbol
@@ -111,32 +110,48 @@ in struct
         | matchSelRange (_, ty1, ty2) = if E.tyequal (ty1, ty2)
                                         then SOME NONE else NONE
 
-      fun checksubs ([], [], _) = []
+      fun listTripleUnzip xs = let
+          fun f ((a, b, c), (al, bl, cl)) = (a::al, b::bl, c::cl)
+        in List.foldr f ([], [], []) xs end
+
+      fun checksubs ([], [], _, _) = []
 
         | checksubs (ty::tys, (act as E.VarExpr (E.SimpleVar (n, _)))::acts,
-                     usedsels) =
+                     usedsels, usednames) =
             let fun already nq = n =:= nq
             in
               case AtomMap.find (sids, n)
-              of NONE       => (NONE, FreeExprSub act)
-                               :: checksubs (tys, acts, usedsels)
+              of NONE       => (NONE, FreeExprSub act, NONE)
+                               :: checksubs (tys, acts, usedsels, usednames)
                | SOME (ty') => if List.exists already usedsels
-                               then raise ActionSubWithDuplicate n
+                               then let (* select id used twice *)
+                                   val n' = getNewName (n, usednames)
+                                   val gc = E.RelExpr {left=E.VarExpr
+                                                  (E.SimpleVar (n', E.nopos)),
+                                                  rel=E.EqOp,
+                                                  right=act, pos=E.nopos}
+                                 in
+                                   (SOME gc, SelectSub n', SOME (n', ty))
+                                   :: checksubs (tys, acts,
+                                                 n'::usedsels, usednames <+ n')
+                                 end
                                else case matchSelRange (n, ty, ty') of
                                       NONE => raise ActSubWithBadType
                                                 {expr=act, badty=ty', goodty=ty}
-                                    | SOME gc => (gc, SelectSub n)
+                                    | SOME gc => (gc, SelectSub n, NONE)
                                                  :: checksubs (tys, acts,
-                                                               n::usedsels)
+                                                               n::usedsels,
+                                                               usednames)
             end
 
-        | checksubs (_::tys, act::acts, usedsels) = let
+        | checksubs (_::tys, act::acts, usedsels, usednames) = let
               val names = E.getFreeNames act
               fun selectId n = isSome (AtomMap.find (sids, n))
             in
               if AtomSet.exists selectId names
               then raise ActSubWithNonSimpleSelect act
-              else (NONE, FreeExprSub act) :: checksubs (tys, acts, usedsels)
+              else (NONE, FreeExprSub act, NONE)
+                   :: checksubs (tys, acts, usedsels, usednames)
             end
 
         | checksubs _ = raise BadSubscriptCount
@@ -145,15 +160,19 @@ in struct
         | addPartialConstraint (SOME c, g) = E.BinBoolExpr {pos=E.nopos,
                                                left=c, bop=E.AndOp, right=g}
 
-      val (gCons, asubs) = ListPair.unzip (checksubs (subtypes, actionsubs, []))
+      val usednames =addBoundIds selectids ++ E.getFreeNames guard
+                     ++ foldl (fn (e, s)=>E.getFreeNames e ++ s)
+                              emptyset actionsubs
+      val (gCons, asubs, newbindings) = listTripleUnzip
+                              (checksubs (subtypes, actionsubs, [], usednames))
       (*}}}1*)
     in
-      ActTrans {selectids=map fromBoundId selectids,
+      ActTrans {selectids=(List.mapPartial (fn i=>i) newbindings)
+                          @ (map fromBoundId selectids),
                 actionsubs=asubs,
                 guard=foldl addPartialConstraint guard gCons,
-                names=addBoundIds selectids
-                      ++ addFreeExprNames asubs
-                      ++ E.getFreeNames guard}
+                names=usednames ++ addSelectSubNames asubs}
+                                (* in case we added any new ones *)
     end
 
   fun toTrans (ActTrans {selectids, actionsubs, guard, ...}) =

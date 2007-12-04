@@ -32,7 +32,7 @@ struct
     val ref_dtdPath                = ref (NONE : string option)
     val ref_prefix                 = ref (SOME "/usr/local")
     val ref_graphvizPath           = ref (NONE : string option)
-    val ref_graphvizEngine         = ref Graphviz.Fdp
+    val ref_graphvizEngine         = ref "fdp"
     val ref_maxLabelWidth          = ref 72
     val ref_maxDeclarationWidth    = ref 72
     val ref_newColor               = ref (SOME "#f0e68c")
@@ -56,15 +56,12 @@ struct
   fun graphvizPath ()            = (case (!ref_graphvizPath, !ref_prefix) of
                                       (NONE, NONE)   => ""
                                     | (NONE, SOME p) => p
-                                    | (SOME p, _)    => p)
+                                    | (SOME g,NONE)  => g
+                                    | (SOME g,SOME p)=> if OS.Path.isRelative g
+                                                        then OS.Path.concat(p,g)
+                                                        else g)
 
-  fun set_graphvizPath NONE      = (ref_graphvizPath := NONE)
-    | set_graphvizPath (nv as SOME p) = let in
-                       ref_graphvizPath := nv;
-                       Graphviz.graphvizPath :=
-                         (if OS.Path.isRelative p andalso isSome (!ref_prefix)
-                          then OS.Path.concat (valOf (!ref_prefix), p) else p)
-                     end
+  fun set_graphvizPath nv        = (ref_graphvizPath := nv)
 
   fun set_prefix nv              = (ref_prefix := nv;
                                     case !ref_graphvizPath of
@@ -167,8 +164,7 @@ struct
       [(["max_label_width"],       set_maxLabelWidth,       %CT.getInt),
        (["max_declaration_width"], set_maxDeclarationWidth, %CT.getInt)];
 
-      updateOption (["graphviz", "engine"], set_graphvizEngine,
-                                  Graphviz.stringToGraph <**< %CT.getString);
+      updateOption (["graphviz", "engine"], set_graphvizEngine, %CT.getString);
       updateOption (["graphviz", "path"], set_graphvizPath,
                                                     some <**< %CT.getString);
 
@@ -220,9 +216,8 @@ struct
           optOffset (%"tabulate_shift",       SOME (tabulateShift ())),
 
           SOME (CT.Section (%"graphviz", [
-            CT.Entry (%"path", CT.String (graphvizPath ())),
-            CT.Entry (%"engine", CT.String (Graphviz.graphToString
-                                                 (graphvizEngine ())))])),
+            CT.Entry (%"path",   CT.String (graphvizPath ())),
+            CT.Entry (%"engine", CT.String (graphvizEngine ()))])),
 
           defEntry (%"debug",             CT.Int, debugToInt (priority ()))
         ]

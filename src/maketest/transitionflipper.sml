@@ -140,10 +140,6 @@ in struct
                    ExpressionCvt.Ty.toString badty ^ ", not "     ^
                    ExpressionCvt.Ty.toString goodty)
                   
-           | ATrans.ActionSubWithDuplicate s         => raise FlipFailed
-                ("select variable, " ^ Atom.toString s ^
-                 ", used twice as channel subscript (please rewrite)")
-
            | ATrans.BadSubscriptCount                =>
                 raise FlipFailed ("wrong number of channel subscripts")
 

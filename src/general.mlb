@@ -5,7 +5,6 @@ local
     $(SML_LIB)/basis/sml-nj.mlb
     $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
 
-    ./graphviz/sources.mlb
     ./config/sources.mlb
 
     version.sml

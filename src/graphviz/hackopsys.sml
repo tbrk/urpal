@@ -15,14 +15,27 @@ structure HackOpSys = struct
   datatype ('a, 'b) proc =
       Proc of { exec : string, infile : string, outfile : string }
 
-  fun execute (prog, args) =
-      Proc {exec    = String.concatWith " " (prog::args),
-            infile  = OS.FileSys.tmpName (),
-            outfile = OS.FileSys.tmpName () }
+  fun tmpName () = let
+      val utn = OS.FileSys.tmpName ()
+      val _  = Util.debugVeryDetailed (fn ()=>["unix tempname: ", utn])
+      val wtn = OS.Path.fromUnixPath (OS.FileSys.tmpName ())
+      val _  = Util.debugVeryDetailed (fn ()=>["win  tempname: ", wtn])
+    in OS.Path.file utn end
+
+  fun execute (prog, args) = let
+      fun f #" " = "\\ " | f c = Char.toString c
+      val exepath = String.translate f (OS.Path.toUnixPath prog)
+    in
+      Proc {exec    = String.concatWith " " (exepath::args),
+            infile  = tmpName (),
+            outfile = tmpName () }
+    end
 
   fun textOutstreamOf (Proc {outfile, ...}) = TextIO.openOut outfile
   fun textInstreamOf  (Proc {exec, infile, outfile}) = let
-      val _ = OS.Process.system (concat [exec, " -o ", infile, " ", outfile])
+      val exe = concat [exec, " -o ", infile, " ", outfile]
+      val _   = Util.debugDetailed (fn ()=>["--system(", exe, ")"])
+      val _   = OS.Process.system exe
     in TextIO.openIn infile end
 
   fun reap (Proc {infile, outfile, ...}) = (OS.FileSys.remove infile;

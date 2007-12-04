@@ -30,8 +30,6 @@ struct
   datatype output = PS | SVG
   datatype graph  = Dot | Neato | Fdp | Twopi | Circo
 
-  val graphvizPath = ref "/usr/local"
-
   fun langToOption PS  = "-Tps"
     | langToOption SVG = "-Tsvg"
 
@@ -49,7 +47,7 @@ struct
     | graphToString Circo = "circo"
 
   fun exePath exe = let
-      val d = OS.Path.concat (!graphvizPath, "bin")
+      val d = OS.Path.concat (Settings.graphvizPath (), "bin")
     in OS.Path.joinDirFile {dir=d, file=exe} end
 
   fun graphToPath Dot   = exePath "dot"
@@ -62,17 +60,24 @@ struct
    * on stdin before writing any output to stdout (otherwise deadlock is
    * possible). *)
   fun makePlain g v = let
+    val _     = Util.debugOutline (fn ()=>["executing ", graphToPath g,
+                                           " -Tplain"])
     val proc  = OpSys.execute (graphToPath g, ["-Tplain"])
     val ostrm = OpSys.textOutstreamOf proc
     val _     = output (ostrm, v)
     val _     = TextIO.closeOut ostrm
+    val _     = Util.debugDetailed (fn ()=>["--output written."])
     val istrm = TextIO.getInstream (OpSys.textInstreamOf proc)
 
     val (plain, istrm') = case Plain.scan TextIO.StreamIO.input1 istrm of
                             NONE                 => (NONE, istrm)
                           | SOME (plain, istrm') => (SOME plain, istrm')
 
+    val _     = Util.debugDetailed (fn ()=>["--reaping..."])
     val st    = OpSys.reap proc
+    val _     = Util.debugDetailed (fn ()=>["--done (",
+                                            if OS.Process.isSuccess st
+                                            then "success" else "failure", ")"])
     val _     = TextIO.StreamIO.closeIn istrm
 
   in if OS.Process.isSuccess st then plain else NONE end
@@ -88,12 +93,16 @@ struct
     in loop (TextIO.input istrm) end
 
   fun makeFile (g, lang) (fstrm, v) = let
+    val _     = Util.debugOutline (fn ()=>["executing ", graphToPath g,
+                                           " ", langToOption lang])
     val proc  = OpSys.execute (graphToPath g, [langToOption lang])
     val ostrm = OpSys.textOutstreamOf proc
     val istrm = OpSys.textInstreamOf proc
 
+    val _     = Util.debugDetailed (fn ()=>["--writing output..."])
     val _     = output (ostrm, v)
     val _     = TextIO.closeOut ostrm
+    val _     = Util.debugDetailed (fn ()=>["--done."])
 
     val _     = copyFile (istrm, fstrm) before TextIO.closeIn istrm
   in OpSys.reap proc end

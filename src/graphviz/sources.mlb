@@ -5,6 +5,8 @@ local
     $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
     $(SML_LIB)/smlnj-lib/PP/pp-lib.mlb
 
+    ../general.mlb
+
     x11_color.sig
     x11color.sml
 
@@ -36,7 +38,9 @@ local
 
     graphviz.sig
     graphvizfn.sml
-    unix-graphviz.sml
+    (*unix-graphviz.sml*)
+    hackopsys.sml
+    win-graphviz.sml
 in
     signature DOT
 

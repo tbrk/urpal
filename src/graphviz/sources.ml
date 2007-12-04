@@ -1,5 +1,6 @@
 (* $Id$
  * requires: smlnj-lib
+ *	     general
  *)
 use "graphviz/x11_color.sig";
 use "graphviz/x11color.sml";

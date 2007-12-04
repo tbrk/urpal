@@ -16,7 +16,6 @@ is
     util.sml
     version.sml
 
-    ./graphviz/sources.cm
     ./config/sources.cm
     $/basis.cm
     $/smlnj-lib.cm
