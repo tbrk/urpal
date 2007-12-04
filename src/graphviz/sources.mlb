@@ -38,9 +38,8 @@ local
 
     graphviz.sig
     graphvizfn.sml
-    (*unix-graphviz.sml*)
     hackopsys.sml
-    win-graphviz.sml
+    $(TARGET)-graphviz.sml (* unix/win *)
 in
     signature DOT
 

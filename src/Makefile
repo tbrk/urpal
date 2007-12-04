@@ -22,7 +22,14 @@ withmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
 	   parse/uppaal.grm.sml parse/uppaal.lex.sml \
 	   mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \
 	   config/config.lex.sml version.sml
-	$(MLTON) -verbose 2  urpal.mlb
+	$(MLTON) -mlb-path-map unix-path-map -verbose 1  urpal.mlb
+
+winmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
+	  parse/uppaal.grm.sml parse/uppaal.lex.sml \
+	  mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \
+	  config/config.lex.sml version.sml
+	$(MLTON) -mlb-path-map win-path-map -verbose 1 urpal.mlb
+
 
 cmdlang/cmdlang.grm.sml: cmdlang/cmdlang.grm
 	$(MLYACC) cmdlang/cmdlang.grm
