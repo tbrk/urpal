@@ -9,7 +9,7 @@ struct
 
   fun newstate () = ref {line=1, pos= ~1, depth=0}
   fun nextline (st as ref {line, depth,...}, yypos) = st := {line=line + 1,
-                                                             pos=yypos,
+                                                             pos=yypos - 1,
                                                              depth=depth}
   
   fun currpos (ref {line, pos, depth}, yypos)  = (line, yypos - pos)

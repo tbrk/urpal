@@ -2,11 +2,13 @@
 #
 URPAL_VERSION=0.9.0
 HEAP_SUFFIX=x86-bsd
+MLTONOPT=-loop-passes 1
 
 MLYACC=mlyacc
 MLLEX=mllex
 MLTON=mlton
 HEAP2EXEC=heap2exec
+STRIP=strip
 
 SKIPCM=-type d -name '.cm' -prune -type f -o
 SRC!=find . $(SKIPCM) -name '*sml' -o -name '*sig'
@@ -22,7 +24,8 @@ withmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
 	   parse/uppaal.grm.sml parse/uppaal.lex.sml \
 	   mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \
 	   config/config.lex.sml version.sml
-	$(MLTON) -mlb-path-map unix-path-map -verbose 1  urpal.mlb
+	$(MLTON) $(MLTONOPT) -mlb-path-map unix-path-map -verbose 1  urpal.mlb
+	$(STRIP) urpal
 
 winmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
 	  parse/uppaal.grm.sml parse/uppaal.lex.sml \

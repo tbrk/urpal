@@ -1,1 +1,2 @@
 TARGET unix
+SML_FXP /usr/local/lib/sml-fxp/src

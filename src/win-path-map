@@ -1,1 +1,2 @@
 TARGET win
+SML_FXP /usr/local/lib/sml-fxp/src
