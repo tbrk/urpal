@@ -11,4 +11,10 @@ Possible improvements
   (simplify, more reuse from generic routines in nta/parsednta).
   Possibly separate out the bits for creating and manipulating clock
   expressions (could be useful for other types of Uppaal manipulations.)
+	/|\
+	 |    combine these two...
+	\|/
+* Add a feature for making a model `input-enabled', i.e. adding self-loops
+  for inputs, when no other transition for the input at a location is
+  enabled.
 

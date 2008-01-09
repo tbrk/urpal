@@ -130,7 +130,8 @@ struct
   (* (pos, (dx, dy)) = positionLabel coords *)
   (* pre: length(coords) >= 2 (it includes source and target end-points) *)
   fun positionLabel [] = raise Fail "positionLabel: not called correctly"
-    | positionLabel (coords as (fx, fy)::_) = let
+    | positionLabel ([_]) = raise Fail "positionLabel: not called correctly"
+    | positionLabel (coords as (x1, y1)::(x2, y2)::_) = let
       val (maxd, dythresh) = (45.0, 10)
       (*
        * maxd     - the maximum distance between two labels, comes into effect
@@ -141,6 +142,14 @@ struct
        *            value (i.e. the line is mostly horizontal), 2 * maxd is
        *            used.
        *)
+
+       val ncoords = if x2 < x1 then rev coords else coords
+      (* Given nails: [(x1, y1), (x2, y2), ..., (xn, yn)]
+       * If the first segment (1 - 2) runs from right to left (x2 < x1)
+       * then we assume that the whole transition runs from right to left,
+       * so we reverse the list so that the selected segment is relative
+       * to the source location. *)
+
       fun limit (dx, dy) = let
           val theta = Math.atan2 (Real.fromInt dy, Real.fromInt dx)
 
@@ -167,11 +176,11 @@ struct
         end
         | f _ = raise Fail "positionLabel: internal error"
 
-    in f (case length coords of
-            2 => coords
-          | 3 => tl (coords)
-          | 4 => tl (coords)
-          | _ => tl (tl coords))
+    in f (case length ncoords of
+            2 => ncoords
+          | 3 => tl (ncoords)
+          | 4 => tl (ncoords)
+          | _ => tl (tl ncoords))
     end
 
     fun positionLabels locMap (tr as P.Transition {id, source, target,
