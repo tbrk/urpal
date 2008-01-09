@@ -60,7 +60,10 @@ fun doMakeMCS51 (path, maxrows, showinstrs) = let
                                      position=true,
                                      maxrows=maxrows})
   in CE.Template t end
-    handle IO.Io {cause, ...} => CE.Fail (General.exnMessage cause)
+    handle IO.Io {cause, ...} => (CE.Fail
+                                  (concat ["unable to open: ",
+                                           path, "(", 
+                                           General.exnMessage cause, ")"]));
 
 fun doMakeTest (CE.Template t, CE.Symbols chanset, CE.Symbols varset) = (let
         val chans = AtomSet.listItems chanset
