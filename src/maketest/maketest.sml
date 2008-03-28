@@ -45,8 +45,13 @@ struct
                         position=NONE, color=Settings.errorColor(), nails=[]}
     end
 
+  fun locName (P.Location {id=P.LocId l, name=(nameo, _), ...}) =
+      case nameo of
+         NONE   => ("unnamed state (id" ^ Int.toString l ^ ")")
+       | SOME n => "'" ^ n ^ "'"
+
   fun formInvariantTrans (errloc, locs) = let
-      fun doLoc (P.Location {id, invariant=(e, _), ...}) =
+      fun doLoc (loc as P.Location {id, invariant=(e, _), ...}) =
           if E.equal (e, E.trueExpr)
           then NONE
           else SOME (makeTransition (id, errloc, [], E.negate e, NONE))
@@ -70,17 +75,11 @@ struct
               else r
         in foldl f ([], []) end
 
-      fun flipFailed (P.Location {id=P.LocId l, name=(nameo, _), ...},
-                      chanId, errMsg) =
-        let
-          val name = case nameo of
-                       NONE   => ("unnamed state (id" ^ Int.toString l ^ ")")
-                     | SOME n => n
-        in
+      fun flipFailed (loc, chanId, errMsg) = (
           Util.warn  [errMsg];
           Util.abort ["while processing transitions on channel '",
-                      Atom.toString chanId, "' from ", name]
-        end
+                      Atom.toString chanId, "' from location ", locName loc]
+        )
 
       fun doLoc (location as P.Location {id=loc as P.LocId l,
                                          invariant=(inv, _), ...}) = let
@@ -130,14 +129,19 @@ struct
   fun invertActionAndAddInvariant (env, invmap, dontFlipSet)
       (P.Transition {id, source=source as P.LocId src, target,
                      guard=(g, gpos), sync=(sync, syncpos),
-                     select, update, comments, position, color, nails}) = let
+                     select=select as (sel, _), update,
+                     comments, position, color, nails}) =
+    let
+      fun selToEnv (E.BoundId (nm,ty,_), env) = Env.addId Env.SelectScope
+                                                          ((nm, ty), env)
       val inv = valOf (IntBinaryMap.find (invmap, src))
       val g' = if E.equal (inv, E.trueExpr)
                then g
                else if E.equal (g, E.trueExpr)
                     then inv
                     else let
-                           val simplified = TF.andexpr env (g, inv)
+                           val senv = List.foldl selToEnv env sel
+                           val simplified = TF.andexpr senv (g, inv)
                          in case simplified of
                               (E.BinBoolExpr{bop=E.OrOp,...})=>E.andexpr(inv,g)
                             | _ => simplified
@@ -171,9 +175,11 @@ struct
                      invariant=(E.trueExpr, NONE), comments=comments,
                      urgent=urgent, committed=committed}
 
-  fun maketest (channelIds,
-                t as P.Template {declaration, locations, transitions, ...}) =
+  fun maketest (channelIds, t as P.Template {name=(nm, _), declaration,
+                                             locations, transitions, ...}) =
     let
+      val _ = Util.debugVeryDetailed (fn()=>["maketest: start '", nm, "'"])
+
       val _ = if null channelIds then raise NoChannels else ()
 
       val _ = case List.find (fn c=>not (validChannelId declaration c))
@@ -195,9 +201,15 @@ struct
       fun insertInv (l, m) = IntBinaryMap.insert' (keyInv l, m)
       val invMap = foldl insertInv IntBinaryMap.empty locations
 
+      val _ = Util.debugVeryDetailed (fn()=>["maketest: formInvariantTrans..."])
       val invarianttrans = formInvariantTrans (errLocId, locations)
+
+      val _ = Util.debugVeryDetailed (fn()=>["maketest: formInverseTrans..."])
       val fliptrans = formInverseTrans (errLocId, declaration, channelIds)
                                        (locations, transitions)
+
+      val _ = Util.debugVeryDetailed
+                (fn()=>["maketest: invertActionAndAddInvariant..."])
       val normtrans = map (invertActionAndAddInvariant
                            (declaration, invMap, cMissing)) transitions
       
@@ -207,6 +219,8 @@ struct
                                      sync=(NONE,NONE), update=([],NONE),
                                      comments=(NONE,NONE),   position=NONE,
                                      color=Settings.errorColor(), nails=[]}]
+
+      val _ = Util.debugVeryDetailed (fn()=>["maketest: finished '", nm, "'"])
     in
       (errLocId, P.Location.map stripInvariant
                    (P.Template.updTransitions tplate'

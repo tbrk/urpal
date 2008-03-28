@@ -75,9 +75,7 @@ in struct
   fun andexpr env (e1, e2) = let
       val (ce1, ce1fa, used) = ClkE.fromExpr (emptyset, env, e1)
       val (ce2, ce2fa, used) = ClkE.fromExpr (used, env, e2)
-    in
-      ClkE.toExpr (ClkE.andexpr (ce1, ce2), ce1fa @ ce2fa)
-    end
+    in ClkE.toExpr (ClkE.andexpr (ce1, ce2), ce1fa @ ce2fa) end
 
   fun negateTransitions env (subtypes, trans : t list, invariant) = let
       val _ = Util.debugSect (Settings.Outline, fn ()=>"negateTransitions:\n"
