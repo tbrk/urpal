@@ -62,7 +62,8 @@ struct
   
   infix ||; fun f || g = fn strm=> case f strm of NONE => g strm | x => x
 
-  fun debug msg strm = (TextIO.print (String.concat msg); SOME ((), strm))
+  fun debug msg strm = (Util.debugVeryDetailed (fn ()=>["plain: ", msg]);
+                        SOME ((), strm))
 
   fun scan rdr = let
       val readReal  = Real.scan rdr
@@ -94,8 +95,16 @@ struct
         in next [] end
 
       fun expect str = let
+          fun found () = () (*Util.debugVeryDetailed
+                 (fn ()=>["plain: expect found '", str, "'"])*)
+          fun notfound (c, xs) = Util.debugVeryDetailed
+                 (fn ()=>["plain: expect missed '", str, "' ('",
+                          Char.toString c, "' != '", String.implode xs, "')"])
+
           fun check []      = return ()
-            | check (x::xs) = rdr >>= (fn c=> if c=x then return xs else fail)
+            | check (x::xs) = rdr >>= (fn c=> if c=x
+                                              then (found (); return xs)
+                                              else (notfound (c, x::xs); fail))
                                   >>= check
         in check (explode str) end
 
@@ -108,6 +117,7 @@ struct
         in read (n, []) end
 
       val readNode  = expect "node"         >>= (fn _=>
+                      debug "node"          >>= (fn _=>
                       readId                >>= (fn name=>
                       readPoint             >>= (fn (x,y)=>
                       readReal              >>= (fn width=>
@@ -122,7 +132,7 @@ struct
                               width=width, height=height,
                               label=label, style=style,
                               shape=shape, color=color,
-                              fillcolor=fillcolor} )))))))))))
+                              fillcolor=fillcolor} ))))))))))))
       
       fun restOfEdge label =
                       readStyle             >>= (fn style=>
@@ -137,27 +147,30 @@ struct
       val noLabel   = restOfEdge NONE
 
       val readEdge  = expect "edge"         >>= (fn _=>
+                      debug "edge"          >>= (fn _=>
                       readId                >>= (fn head=>
                       readId                >>= (fn tail=>
                       readInt               >>=
                       readPoints            >>= (fn points=>
                       tryLabel || noLabel   >>= (fn (labelo, style, color)=>
                       return {head=head, tail=tail, points=points,
-                              label=labelo, style=style, color=color})))))
+                              label=labelo, style=style, color=color}))))))
 
       val readGraph = expect "graph"        >>= (fn _=>
+                      debug "graph"         >>= (fn _=>
                       readReal              >>= (fn scale=>
                       readReal              >>= (fn width=>
                       readReal              >>= (fn height=>
                       endofline             >>= (fn _=>
-                      return (scale, width, height) )))))
+                      return (scale, width, height) ))))))
 
       in readGraph             >>= (fn (scale, width, height)=>
          readList readNode     >>= (fn nodes=>
          readList readEdge     >>= (fn edges=>
          expect "stop"         >>= (fn _=>
+         debug "stop"          >>= (fn _=>
          return {scale=scale, width=width, height=height,
-                 nodes=nodes, edges=edges} ))))
+                 nodes=nodes, edges=edges} )))))
       end
       
     fun output (ostrm, {scale, width, height, nodes, edges} : graph) = let

@@ -9,6 +9,7 @@ functor Graphviz (
           type t
           val output : TextIO.outstream * t -> unit
           val warn   : string list -> unit
+          val statusToString : OS.Process.status -> string
 
           structure Plain : PLAIN
           structure OpSys :
@@ -69,6 +70,16 @@ struct
     val _     = Util.debugDetailed (fn ()=>["--output written."])
     val istrm = TextIO.getInstream (OpSys.textInstreamOf proc)
 
+    (*
+    fun dscan istrm = let (* for debugging: *)
+            val r = TextIO.StreamIO.input1 istrm
+            val _ = case r of
+                      NONE        => TextIO.print "[DONE]"
+                    | SOME (c, _) => TextIO.print ("·" ^ Char.toString c)
+        in r end
+    val (plain, istrm') = case Plain.scan dscan istrm of
+    *)
+
     val (plain, istrm') = case Plain.scan TextIO.StreamIO.input1 istrm of
                             NONE                 => (NONE, istrm)
                           | SOME (plain, istrm') => (SOME plain, istrm')
@@ -78,6 +89,9 @@ struct
     val _     = Util.debugDetailed (fn ()=>["--done (",
                                             if OS.Process.isSuccess st
                                             then "success" else "failure", ")"])
+    val _     = if not (OS.Process.isSuccess st)
+                then warn ["reap failed: ", statusToString st]
+                else ()
     val _     = TextIO.StreamIO.closeIn istrm
 
   in if OS.Process.isSuccess st then plain else NONE end

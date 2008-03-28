@@ -29,6 +29,9 @@ structure TextPlain = PlainFn (
                                else if c = #">" then SOME [#">", #"\\"]
                                else if c = #"|" then SOME [#"|", #"\\"]
                                else if c = #" " then SOME [#" ", #"\\"]
+                               else if c = #"\n" then SOME [#"\n"]
+                                       (* Graphviz seems to itself escape and
+                                        * wrap lines that are too long. *)
                                else NONE
                    | SOME c => SOME [c]
   in

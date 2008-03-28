@@ -5,6 +5,10 @@ structure Graphviz = Graphviz (
           val output = TypedDotIO.output
           val warn = fn msgs => TextIO.output (TextIO.stdErr,concat msgs ^"\n")
 
+          fun statusToString st = let
+              val wst = Windows.fromStatus st
+            in SysWord.toString wst end
+
           structure Plain = TextPlain
 
           structure OpSys = HackOpSys
