@@ -382,5 +382,40 @@ struct
       List.mapPartial f' (ListMergeSort.sort createdAfter (Map.listItemsi tenv))
     end
   
+  (* val filter : (env * expr -> bool) -> env -> expr -> expr list *)
+  fun filter p env e = let
+      fun f (env, e) = if p (env, e) then [e] (*{{{1*)
+                else case e
+                      of E.VarExpr _   => []
+                       | E.IntCExpr _  => [] 
+                       | E.BoolCExpr _ => []
+                       | E.Deadlock _  => []
+                       | E.CallExpr {args, ...}    => foldl (flist env) [] args
+                       | E.NegExpr {expr, ...}     => f (env, expr)
+                       | E.NotExpr {expr, ...}     => f (env, expr)
+                       | E.UnaryModExpr {expr, ...}=> f (env, expr)
+                       | E.BinIntExpr {left, right,...}  => f (env, left)
+                                                         @ f (env, right)
+                       | E.BinBoolExpr {left, right,...} => f (env, left)
+                                                         @ f (env, right)
+                       | E.RelExpr {left, right, ...}    => f (env, left)
+                                                         @ f (env, right)
+                       | E.AssignExpr {var, expr, ...}   => f (env, var)
+                                                         @ f (env, expr)
+                       | E.CondExpr {test, trueexpr, falseexpr, ...}
+                                                         => f (env, test)
+                                                         @ f (env, trueexpr)
+                                                         @ f (env, falseexpr)
+
+                       | E.ForAllExpr {id, ty, expr, ...} => let
+                             val env' = addId BoundScope ((id, ty), env)
+                           in f (env', expr) end
+
+                       | E.ExistsExpr {id, ty, expr, ...} => let
+                             val env' = addId BoundScope ((id, ty), env)
+                           in f (env', expr) end
+
+      and flist env (e, el) = f (env, e) @ el
+    in f (env, e) end (*}}}1*)
 end
 

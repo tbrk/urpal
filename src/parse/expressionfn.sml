@@ -118,29 +118,6 @@ struct
     | varPos (RecordVar (_, _, pos))    = pos
     | varPos (SubscriptVar (_, _, pos)) = pos
 
-  fun filter p e = let
-      fun f e = if p e then [e] (*{{{1*)
-                else case e
-                      of VarExpr _   => []
-                       | IntCExpr _  => [] 
-                       | BoolCExpr _ => []
-                       | Deadlock _  => []
-                       | CallExpr {args, ...}           => foldl flist [] args
-                       | NegExpr {expr, ...}            => f expr
-                       | NotExpr {expr, ...}            => f expr
-                       | UnaryModExpr {expr, ...}       => f expr
-                       | BinIntExpr {left, right, ...}  => f left @ f right
-                       | BinBoolExpr {left, right, ...} => f left @ f right
-                       | RelExpr {left, right, ...}     => f left @ f right
-                       | AssignExpr {var, expr, ...}    => f var  @ f expr
-                       | CondExpr {test, trueexpr, falseexpr, ...} => f test
-                                                                @ f trueexpr
-                                                                @ f falseexpr
-                       | ForAllExpr {expr, ...}         => f expr
-                       | ExistsExpr {expr, ...}         => f expr
-      and flist (e, el) = f e @ el
-    in f e end (*}}}1*)
-
   fun getFreeNames e = let
       (*{{{1*)
       val add = AtomSet.add

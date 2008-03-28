@@ -212,5 +212,14 @@ sig
   val mapValues       : (symbol * enventry -> 'a option) -> env -> 'a list
   val mapTypes        : (symbol * scopetag * ty -> 'a option) -> env -> 'a list
 
+  val filter          : (env * expr -> bool) -> env -> expr -> expr list
+  (* Given a predicate, an environment, and an expression, filter returns a
+   * list of the biggest subexpressions that satisfy the predicate (`biggest'
+   * means that once a subexpression satisfies the predicates, its
+   * (sub-)subexpressions * are not considered).
+   *
+   * Env is updated with bound variables as they are encountered.
+   *)
+
 end
 

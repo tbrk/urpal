@@ -140,8 +140,6 @@ sig
 
   val varPos : var -> pos
 
-  val filter : (expr -> bool) -> expr -> expr list
-
   val getFreeNames : expr -> AtomSet.set
   val renameVar  : {old : symbol, new: symbol} * expr -> expr
   val renameVars : symbol AtomMap.map -> expr -> expr

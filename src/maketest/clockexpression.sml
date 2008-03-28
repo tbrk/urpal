@@ -108,7 +108,7 @@ in struct
       | isClkVar _                  = false
 
     fun containsClocks(env, expr) =
-        not (List.null (E.filter (fn e=>isClkVar (env, e)) expr))
+        not (List.null (Env.filter (fn (env',e)=>isClkVar (env', e)) env expr))
 
     fun notClk (env, e) = if containsClocks (env, e)
                           then raise NonClockTerm
@@ -215,6 +215,7 @@ in struct
           end
       | conv (env, e as E.ExistsExpr _)         = notClk (env, e)
     (*}}}1*)
+    
   in (conv (env, expr), !forallbindings, !used) end
   end (* local *)
 

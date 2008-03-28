@@ -78,8 +78,8 @@ struct
                      | SOME n => n
         in
           Util.warn  [errMsg];
-          Util.abort ["while processing transitions on channel ",
-                      Atom.toString chanId, " from ", name]
+          Util.abort ["while processing transitions on channel '",
+                      Atom.toString chanId, "' from ", name]
         end
 
       fun doLoc (location as P.Location {id=loc as P.LocId l,
