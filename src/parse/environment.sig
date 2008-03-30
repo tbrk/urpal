@@ -212,6 +212,9 @@ sig
      same order that they were created. Both are n*logn time, n space. *)
   val mapValues       : (symbol * enventry -> 'a option) -> env -> 'a list
   val mapTypes        : (symbol * scopetag * ty -> 'a option) -> env -> 'a list
+  val mapBoth         : (symbol * enventry -> 'a option)
+                        * (symbol * scopetag * ty -> 'a option)
+                        -> env -> 'a list
 
   val filter          : (env * expr -> bool) -> env -> expr -> expr list
   (* Given a predicate, an environment, and an expression, filter returns a

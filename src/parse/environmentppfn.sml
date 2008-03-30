@@ -81,10 +81,7 @@ struct
 
   fun fromEnv env = let
       fun fType (id, s, ty) = SOME (fromType (id, ty))
-      val types = PPD.vBox (noIndent, addSeps (Env.mapTypes fType env))
-      val values = PPD.vBox (noIndent, addSeps
-                                  (Env.mapValues (SOME o fromValue) env))
-    in PPD.vBox (noIndent, [types, PPD.cut, PPD.cut, values]) end
+    in PPD.vBox (noIndent, addSeps (Env.mapBoth (SOME o fromValue, fType) env)) end
 
   fun fromEnv' (env, scope) = let
       fun fType (id, s, ty) = if s = scope
@@ -95,9 +92,7 @@ struct
         | fValue (id, v as Env.FunEntry {scope=s, ...}) =
               if s = scope then SOME (fromValue (id, v)) else NONE
 
-      val types = PPD.vBox (noIndent, addSeps (Env.mapTypes fType env))
-      val values = PPD.vBox (noIndent, addSeps (Env.mapValues fValue env))
-    in PPD.vBox (noIndent, [types, PPD.cut, PPD.cut, values]) end
+    in PPD.vBox (noIndent, addSeps (Env.mapBoth (fValue, fType) env)) end
 
   fun print strm desc = PPD.description (strm, desc)
 

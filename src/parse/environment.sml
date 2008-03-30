@@ -384,6 +384,24 @@ struct
     in
       List.mapPartial f' (ListMergeSort.sort createdAfter (Map.listItemsi tenv))
     end
+
+  local (*{{{1*)
+    datatype mixed = EntryVal of symbol * enventry
+                   | EntryTy  of symbol * scopetag * ty
+
+    fun fromVal (i, (c, d))      = (c, EntryVal (i, d))
+    fun fromTy  (i, (c, (s, d))) = (c, EntryTy  (i, s, d))
+    fun createdAfter' ((i, _), (j, _)) = i > j
+  in (*}}}1*)
+  fun mapBoth (fVal, fTy) (tenv, venv, _) = let
+      fun f' (_, EntryVal d) = fVal d
+        | f' (_, EntryTy  d) = fTy d
+    in
+      List.mapPartial f' (ListMergeSort.sort  createdAfter'
+          (List.revAppend (map fromVal (Map.listItemsi venv),
+                           map fromTy  (Map.listItemsi tenv))))
+    end
+  end (* local *)
   
   (* val filter : (env * expr -> bool) -> env -> expr -> expr list *)
   fun filter p env e = let
