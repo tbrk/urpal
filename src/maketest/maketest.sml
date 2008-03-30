@@ -228,7 +228,7 @@ struct
                                     normtrans, errorloop])))
     end
 
-  (********** Jensen extensions: ****************************************)
+  (********** Jensen, Larsen, Skou extensions: ******************************)
   (* This section was written very quickly. It would probably benefit from
    * restructuring, refactoring, and more thought... *)
 
@@ -239,7 +239,7 @@ struct
      *    /\  (v_i == map(v_i))
      *      i
      *
-     * This is the negation of the expression used in Jensen's expansion because
+     * This is the negation of the expression used in JLS's expansion because
      * we add it as an invariant before `flipping'.
      *)
       fun doPair (v, v', e) = E.orexpr (e,

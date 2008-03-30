@@ -138,6 +138,7 @@
       * Since variables/functions and type abbreviations share the same name
         space, there probably isn't a need for paired environments?
       * `ref' is a terrible name for a record label.
+      * `type env' should be `type t'
   
  }}}1*)
 

@@ -107,7 +107,7 @@ in struct
     fun isClkVar (env, E.VarExpr v) = isClk (env, v)
       | isClkVar _                  = false
 
-    fun containsClocks(env, expr) =
+    fun containsClocks (env, expr) =
         not (List.null (Env.filter (fn (env',e)=>isClkVar (env', e)) env expr))
 
     fun notClk (env, e) = if containsClocks (env, e)

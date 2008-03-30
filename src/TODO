@@ -21,3 +21,20 @@ Possible improvements
 * Shift DTD information into program so that a separate file is no longer
   required.
 
+* Tidy up the environment and expression modules. Make them more generic.
+  Much more work: Reexamine manipulation of expressions and transitions (also in
+		  maketest) (particularly bindings). Ideally, we could integrate
+		  this with Isabelle somehow to double-check the correctness.
+	     Ideas:
+	     * generate a proof script as the program runs, each
+	       manipulation occurs as a lemma (with necessary assumptions --
+	       global?), the presumed justification is listed as a proof
+	       step. This script should pass through Isabelle automatically.
+	       Easier to prove correctness of program more generally?
+	     * more advanced: allow the user to force certain manipulations
+	       (such as swapping of select/forall bindings), it would then
+	       be up to them to provide proof steps (manually) to make the
+	       script acceptable to Isabelle (if possible).
+	     * exploit the Isabelle term-rewriting engine to normalize
+	       terms and do other manipulations.
+

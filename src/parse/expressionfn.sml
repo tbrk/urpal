@@ -520,5 +520,59 @@ struct
 
   end (* local *)
 
+  local
+    exception CannotBind
+  in
+  fun shrinkScope ((id, ty, forallbinding), p) expr = let
+      fun bind e = if p e
+                   then (if forallbinding
+                         then ForAllExpr {id=id,ty=ty, expr=e,pos=nopos}
+                         else ExistsExpr {id=id,ty=ty, expr=e,pos=nopos})
+                   else raise CannotBind
+
+      (* invariant: given f e, id <- (getFreeNames e) *)
+      fun f (e as NotExpr _)     = bind e
+            (* we could flip the quanitifier, negate the inner expression, and
+             * recurse, but Expression.negate may simply introduce another
+             * NotExpr wrapper thus giving non-termination. *)
+
+        | f (e as BinBoolExpr {left=l, bop, right=r, pos}) =
+            if not (id <- getFreeNames l)
+            then BinBoolExpr {left=l, bop=bop, right=f r, pos=pos}
+            else if not (id <- getFreeNames r)
+            then BinBoolExpr {left=f l, bop=bop, right=r, pos=pos}
+            else bind e
+        
+        | f (e as ForAllExpr {id=bid, ty=bty, expr=be, pos}) =
+            if forallbinding
+            then ForAllExpr {id=bid, ty=bty, expr=f be, pos=pos}
+                 (* we can swap forall bindings, invariant => not (id=bid) *)
+            else bind e
+        
+        | f (e as ExistsExpr {id=bid, ty=bty, expr=be, pos}) =
+            if forallbinding then bind e
+            else ExistsExpr {id=bid, ty=bty, expr=f be, pos=pos}
+                 (* we can swap exists bindings, invariant => not (id=bid) *)
+      
+        (* terms: *)
+        | f (e as VarExpr _)      = bind e
+        | f (e as CallExpr _)     = bind e
+        | f (e as NegExpr _)      = bind e
+        | f (e as UnaryModExpr _) = bind e
+        | f (e as BinIntExpr _)   = bind e
+        | f (e as RelExpr _)      = bind e
+        | f (e as AssignExpr _)   = bind e
+        | f (e as CondExpr _)     = bind e
+
+        | f (IntCExpr _)  = raise Fail "shrinkScope: invariant false."
+        | f (BoolCExpr _) = raise Fail "shrinkScope: invariant false."
+        | f (Deadlock _)  = raise Fail "shrinkScope: invariant false."
+    in
+      if id <- getFreeNames expr
+      then SOME (f expr) handle CannotBind => NONE
+      else SOME expr      (* throw the unreferenced binding away *)
+    end
+    end (* local *)
+
 end
 

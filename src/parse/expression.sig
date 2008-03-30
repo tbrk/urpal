@@ -181,6 +181,7 @@ sig
      *  -Either side of a relation involving a clock.
      *)
 
+  val isNegation : expr * expr -> bool
   (* returnval => ((e1 && e2) == false)
      Simple and conservative syntactic checks, i.e. sound but not complete
      
@@ -188,7 +189,20 @@ sig
         isNegation(e, negate e) = true
         isNegation(negate, e)   = true
     *)
-  val isNegation : expr * expr -> bool
+
+  val shrinkScope     : (symbol * ty * bool) * (expr -> bool)
+                        -> expr -> expr option 
+  (* Given a binding, true:    forall (symbol : ty)
+   *                  false:   exists (symbol : ty)
+   *
+   * Find the smallest subexpression of expr that contains all occurrences
+   * of symbol, and, if the given predicate is true of the subexpression
+   * then return (SOME newexpr) such that the symbol is bound around the
+   * subexpression. Return NONE if the predicate is false.
+   *
+   * If expr does not contain symbol, then (SOME expr) is returned.
+   * (i.e. the binding is thrown away if it is unused.)
+   *)
 
 end
 

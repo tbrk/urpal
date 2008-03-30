@@ -86,7 +86,8 @@ in struct
                      (map (ATrans.fromTrans subtypes) trans)
       val otherATrans = ATrans.coverMissingChannels (subtypes, atrans,
                                                      invariant)
-      val cetrans = map (CETrans.fromATrans env) atrans
+      val atrans' = map (ATrans.reduceSelectIds env) atrans
+      val cetrans = map (CETrans.fromATrans env) atrans'
       
       val _ = Util.debugSubsect (Settings.Outline,
                         fn ()=>"cover missing channels:\n"

@@ -367,6 +367,44 @@ in struct
       val trans = map (renameSelectIds selids) trans
     in foldThrough (groupLikeActions selids) trans end
 
+
+  local
+    structure Env = Environment
+
+    fun isClk (env, v) = case Env.findVarExprType env v
+                         of SOME (E.CLOCK) => true
+                          | NONE           => true  (* assume the worst *)
+                          | _              => false
+
+    fun isClkVar (env, E.VarExpr v) = isClk (env, v)
+      | isClkVar _                  = false
+
+    fun containsClocks (env, expr) =
+        not (List.null (Env.filter (fn (env',e)=>isClkVar (env', e))
+                        env expr))
+  in
+  fun reduceSelectIds env (ActTrans {selectids, actionsubs, guard, names}) =
+    let
+      val snames = addSelectSubNames actionsubs
+
+      val senv = List.foldl (Env.addId Env.SelectScope) env selectids
+      fun clocksInExpr expr = not (containsClocks (senv, expr))
+ 
+      fun f (s as (id, ty), (sids, expr, names)) =
+          if id <- snames then (s::sids, expr, names)
+          else case E.shrinkScope ((id, ty, false), clocksInExpr) expr of
+                 NONE             => (s::sids, expr, names)
+               | SOME reboundExpr => (sids, reboundExpr, names <\ id)
+
+      val (selectids', guard', names') = foldl f ([], guard, names)
+                                                 (rev selectids)
+          (* reverse the selectids to handle masking of identical names *)
+    in
+      ActTrans {selectids=selectids', actionsubs=actionsubs,
+                guard=guard', names=names'}
+    end
+  end (* local *)
+
 end
 end
 

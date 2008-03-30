@@ -58,5 +58,28 @@ signature ACTION_TRANS = sig
 
   val toString             : t -> string
 
+  val reduceSelectIds : Environment.env -> t -> t
+  (* Assuming: update expressions are ignored
+   *
+   * Each select binding that:
+   *    1) is not used in a SelectSub
+   *    2) is not involved in a sub-expression containing clocks
+   * is turned into an exists binding.
+   *
+   * Condition (1) and the assumption mean that the scope of the binding is only
+   * important inside the guard expression.
+   *
+   * Condition (2) ensures that the new guard expression does not split clock
+   * zones.
+   *
+   * Doing this allows maketest to negate transitions that might otherwise fail
+   * with a select/forall conflict, such as:
+   *    {selectids:  (i : int[0,N - 1])
+   *     actionsubs:
+   *     guard:      get_status(i)==APPR &&
+   *                 (forall (j : int[0,N - 1])
+   *                    j!=i && get_status(j)!=AWAY imply status[j][i]<M
+   *                 )
+   *)
 end
 

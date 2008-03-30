@@ -26,6 +26,9 @@ struct
   exception CannotStaticallyEvaluate of string
   exception DuplicateDefinition of string
 
+  (* shortcuts over Atom and AtomSet *)
+  infix <+ <- ++ <\ \ =:= ; open Symbol
+
   type ty = Expression.ty
   type expr = Expression.expr
   type decl = Declaration.decl
@@ -417,5 +420,6 @@ struct
 
       and flist env (e, el) = f (env, e) @ el
     in f (env, e) end (*}}}1*)
+
 end
 
