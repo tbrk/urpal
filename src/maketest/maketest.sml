@@ -50,14 +50,15 @@ struct
          NONE   => ("unnamed state (id" ^ Int.toString l ^ ")")
        | SOME n => "'" ^ n ^ "'"
 
-  fun formInvariantTrans (errloc, locs) = let
+  fun formInvariantTrans env (errloc, locs) = let
+      fun fromTrans id {selectids, guard, actionsubs} =
+          makeTransition(id, errloc, selectids, guard, NONE)
+
       fun doLoc (loc as P.Location {id, invariant=(e, _), ...}) =
           if E.equal (e, E.trueExpr)
-          then NONE
-          else SOME (makeTransition (id, errloc, [], E.negate e, NONE))
-                (* After negation, we could consider splitting disjunct/clock
-                 * combinations over multiple transitions... *)
-    in List.mapPartial doLoc locs end
+          then []
+          else map (fromTrans id) (TF.negateInvariant env e)
+    in List.concat (List.map doLoc locs) end
 
   fun formInverseTrans (errloc, env, chans) (locs, trans) = let
 
@@ -202,7 +203,7 @@ struct
       val invMap = foldl insertInv IntBinaryMap.empty locations
 
       val _ = Util.debugVeryDetailed (fn()=>["maketest: formInvariantTrans..."])
-      val invarianttrans = formInvariantTrans (errLocId, locations)
+      val invarianttrans = formInvariantTrans declaration (errLocId, locations)
 
       val _ = Util.debugVeryDetailed (fn()=>["maketest: formInverseTrans..."])
       val fliptrans = formInverseTrans (errLocId, declaration, channelIds)

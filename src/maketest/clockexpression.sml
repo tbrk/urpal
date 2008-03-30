@@ -25,6 +25,9 @@ in struct
              | And of t * t
              | Or  of t * t
 
+  val trueExpr = Term (NonClock E.trueExpr)
+  val falseExpr = Term (NonClock E.falseExpr)
+
   (* shortcuts over Atom and AtomSet *)
   infix <+ <- ++ <\ \ =:= ; open Symbol
 

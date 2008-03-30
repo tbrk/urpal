@@ -77,6 +77,15 @@ in struct
       val (ce2, ce2fa, used) = ClkE.fromExpr (used, env, e2)
     in ClkE.toExpr (ClkE.andexpr (ce1, ce2), ce1fa @ ce2fa) end
 
+  fun negateInvariant env invExpr = let
+      val atr = ActionTrans.fromTrans []
+                  {selectids=[], actionsubs=[], guard=invExpr}
+      val ctr = (CETrans.fromATrans env) atr
+      val ctrs' = CETrans.negate ClkE.trueExpr ctr
+    in map CETrans.toTrans ctrs' end
+      handle ClkE.NonClockTerm => raise FlipFailed "bad clock terms in invariant"
+
+
   fun negateTransitions env (subtypes, trans : t list, invariant) = let
       val _ = Util.debugSect (Settings.Outline, fn ()=>"negateTransitions:\n"
                                                        ::map toString trans)

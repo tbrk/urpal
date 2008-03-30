@@ -21,6 +21,9 @@ signature CLOCK_EXPRESSION = sig
              | And  of t * t
              | Or   of t * t
 
+  val trueExpr       : t
+  val falseExpr      : t
+
   val negate         : t -> t
   val getFree        : t -> symbolset
 

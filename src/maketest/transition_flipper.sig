@@ -23,6 +23,9 @@ sig
             may need to select over action subscripts. *)
                                   (* action subscript types *)
 
+  val negateInvariant   : Environment.env -> Expression.expr -> t list
+  (* Negate the given invariant expression, returning a list of transitions. *)
+
   val andexpr  : Environment.env
                  -> Expression.expr * Expression.expr -> Expression.expr
     (* form the conjunct of both expressions, and try to simplify the result *)

@@ -383,8 +383,11 @@ in struct
         not (List.null (Env.filter (fn (env',e)=>isClkVar (env', e))
                         env expr))
   in
-  fun reduceSelectIds env (ActTrans {selectids, actionsubs, guard, names}) =
+  fun reduceSelectIds env (at as ActTrans {selectids,actionsubs,guard,names}) =
     let
+      val _ = Util.debugVeryDetailed (fn()=> ["reduceSelectIds:before=",
+                                              toString at])
+
       val snames = addSelectSubNames actionsubs
 
       val senv = List.foldl (Env.addId Env.SelectScope) env selectids
@@ -398,11 +401,14 @@ in struct
 
       val (selectids', guard', names') = foldl f ([], guard, names)
                                                  (rev selectids)
-          (* reverse the selectids to handle masking of identical names *)
-    in
-      ActTrans {selectids=selectids', actionsubs=actionsubs,
-                guard=guard', names=names'}
-    end
+          (* reverse the selectids to handle masking of identical names,
+           * folding f has the effect of reversing them back.           *)
+
+      val at' = ActTrans {selectids=selectids', actionsubs=actionsubs,
+                          guard=guard', names=names'}
+      val _ = Util.debugVeryDetailed (fn()=> ["reduceSelectIds:after =",
+                                              toString at'])
+    in at' end
   end (* local *)
 
 end
