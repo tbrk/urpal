@@ -3,6 +3,7 @@
 structure ActionTrans :> ACTION_TRANS = let
   structure E    = Expression
         and ECVT = ExpressionCvt
+        and Env  = Environment
 in struct
   type expr      = Expression.expr
    and ty        = Expression.ty
@@ -368,21 +369,6 @@ in struct
     in foldThrough (groupLikeActions selids) trans end
 
 
-  local
-    structure Env = Environment
-
-    fun isClk (env, v) = case Env.findVarExprType env v
-                         of SOME (E.CLOCK) => true
-                          | NONE           => true  (* assume the worst *)
-                          | _              => false
-
-    fun isClkVar (env, E.VarExpr v) = isClk (env, v)
-      | isClkVar _                  = false
-
-    fun containsClocks (env, expr) =
-        not (List.null (Env.filter (fn (env',e)=>isClkVar (env', e))
-                        env expr))
-  in
   fun reduceSelectIds env (at as ActTrans {selectids,actionsubs,guard,names}) =
     let
       val _ = Util.debugVeryDetailed (fn()=> ["reduceSelectIds:before=",
@@ -391,7 +377,7 @@ in struct
       val snames = addSelectSubNames actionsubs
 
       val senv = List.foldl (Env.addId Env.SelectScope) env selectids
-      fun clocksInExpr expr = not (containsClocks (senv, expr))
+      fun clocksInExpr expr = not (Env.containsClocks senv expr)
  
       fun f (s as (id, ty), (sids, expr, names)) =
           if id <- snames then (s::sids, expr, names)
@@ -409,7 +395,6 @@ in struct
       val _ = Util.debugVeryDetailed (fn()=> ["reduceSelectIds:after =",
                                               toString at'])
     in at' end
-  end (* local *)
 
 end
 end

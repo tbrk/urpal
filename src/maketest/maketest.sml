@@ -47,7 +47,7 @@ struct
 
   fun locName (P.Location {id=P.LocId l, name=(nameo, _), ...}) =
       case nameo of
-         NONE   => ("unnamed state (id" ^ Int.toString l ^ ")")
+         NONE   => ("<id=" ^ Int.toString l ^ ">")
        | SOME n => "'" ^ n ^ "'"
 
   fun formInvariantTrans env (errloc, locs) = let
@@ -82,11 +82,22 @@ struct
                       Atom.toString chanId, "' from location ", locName loc]
         )
 
+      fun chanIsUrgent chan = let
+          fun f (E.CHANNEL {urgent=true, ...}) = true
+            | f (E.ARRAY (inner, E.Type s))    = f inner
+            | f (E.NAME (_, _, SOME ty))       = f ty
+            | f _                              = false
+        in case (Env.findValType env chan) of
+             NONE    => false   (* no type found, assume the best *)
+           | SOME ty => f ty
+        end
+
       fun doLoc (location as P.Location {id=loc as P.LocId l,
                                          invariant=(inv, _), ...}) = let
 
           val _ =Util.debugIndent (Settings.Detailed,
                                 fn()=>["processing location:", Int.toString l])
+          val invHasClocks = Env.containsClocks env inv
 
           fun makeTrans (chanId, dir) {selectids, actionsubs, guard} =
               if E.equal (guard, E.falseExpr)
@@ -104,13 +115,25 @@ struct
               fun negate trs = (TF.negateTransitions env (acttys, trs, inv))
 
               val (is, os) = filterChannels chanId trans
-            in (List.mapPartial (makeTrans (chanId, E.Output))   (negate is))
-                @ (List.mapPartial (makeTrans (chanId, E.Input)) (negate os))
-               before (Util.debugOutdent (Settings.Detailed, fn()=>[]))
-            end
+
+              val flipped =
+                    (List.mapPartial (makeTrans (chanId, E.Output))(negate is))
+                  @ (List.mapPartial (makeTrans (chanId, E.Input)) (negate os))
+
+              val _ = if not (null flipped)
+                         andalso invHasClocks
+                         andalso chanIsUrgent chanId
+                      then Util.warn ["urgent channel '", Atom.toString chanId,
+                                      "' from location ", locName location,
+                                      " with an invariant containing clocks"]
+                      else ()
+
+              val _ = Util.debugOutdent (Settings.Detailed, fn()=>[])
+            in flipped end
             handle TF.FlipFailed s => flipFailed (location, chanId, s)
 
           fun startsHere (P.Transition {source=P.LocId s, ...}) = (s = l)
+                (* ...it sure does *)
           val ts = List.filter startsHere trans
         in
           List.concat (map (flipChannel ts) chans)

@@ -118,6 +118,11 @@ struct
     | varPos (RecordVar (_, _, pos))    = pos
     | varPos (SubscriptVar (_, _, pos)) = pos
 
+  fun varName (SimpleVar (nm, _))       = Atom.toString nm
+    | varName (ReturnVar {func, ...})   = Atom.toString func ^ "(...)"
+    | varName (RecordVar (v, field, _)) = varName v ^ "." ^ Atom.toString field
+    | varName (SubscriptVar (v, _, _))  = varName v ^ "[]"
+
   fun getFreeNames e = let
       (*{{{1*)
       val add = AtomSet.add

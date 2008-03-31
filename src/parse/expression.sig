@@ -138,7 +138,9 @@ sig
                    | Unresolved of symbol  (* could be a typedef or
                                               a variable (INT[0, x]) *)
 
-  val varPos : var -> pos
+  val varPos  : var -> pos
+  val varName : var -> string
+    (* return a name suitable for debugging output and error messages *)
 
   val getFreeNames : expr -> AtomSet.set
   val renameVar  : {old : symbol, new: symbol} * expr -> expr

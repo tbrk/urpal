@@ -150,6 +150,7 @@ sig
   exception UndeclaredTypeName of string
   exception CannotStaticallyEvaluate of string
   exception DuplicateDefinition of string
+  exception VariableWithoutType of string
 
   type ty = Expression.ty
   type expr = Expression.expr
@@ -201,6 +202,12 @@ sig
      * in the returned environment. A map from names to
      * duplicate versions is also returned. Scopetags of duplicates
      * are updated if a new version is given. 
+     *)
+
+  val containsClocks : env -> expr -> bool
+    (* Returns true iff the expr contains a clock variable.
+     * Throws a VariableWithoutType exception if a variable without a type in
+     * env is found.
      *)
 
   val isEmpty : env -> bool

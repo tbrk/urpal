@@ -25,6 +25,7 @@ struct
   exception UndeclaredTypeName of string
   exception CannotStaticallyEvaluate of string
   exception DuplicateDefinition of string
+  exception VariableWithoutType of string
 
   (* shortcuts over Atom and AtomSet *)
   infix <+ <- ++ <\ \ =:= ; open Symbol
@@ -439,5 +440,18 @@ struct
       and flist env (e, el) = f (env, e) @ el
     in f (env, e) end (*}}}1*)
 
+  local
+    fun isClk (env, v) = case findVarExprType env v
+                         of SOME (E.CLOCK) => true
+                          | NONE           => raise VariableWithoutType
+                                                    (E.varName v)
+                          | _              => false
+
+    fun isClkVar (env, E.VarExpr v) = isClk (env, v)
+      | isClkVar _                  = false
+  in
+    fun containsClocks env expr =
+        not (List.null (filter (fn (env',e)=>isClkVar (env', e)) env expr))
+  end
 end
 
