@@ -371,7 +371,7 @@ in struct
 
   fun reduceSelectIds env (at as ActTrans {selectids,actionsubs,guard,names}) =
     let
-      val _ = Util.debugVeryDetailed (fn()=> ["reduceSelectIds:before=",
+      val _ = Util.debugVeryDetailed (fn()=> ["* reduceSelectIds:before=\n",
                                               toString at])
 
       val snames = addSelectSubNames actionsubs
@@ -392,7 +392,7 @@ in struct
 
       val at' = ActTrans {selectids=selectids', actionsubs=actionsubs,
                           guard=guard', names=names'}
-      val _ = Util.debugVeryDetailed (fn()=> ["reduceSelectIds:after =",
+      val _ = Util.debugVeryDetailed (fn()=> ["* reduceSelectIds:after =\n",
                                               toString at'])
     in at' end
 

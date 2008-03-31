@@ -23,9 +23,6 @@ signature CLK_EXPR_TRANS = sig
    *)
 
   val unionNames        : t list -> symbolset
-  val addDisjointForalls : (symbol * Expression.ty) list -> t -> t
-    (* adds the given bindings to the forall of the given transition
-     * throws an exception if the new symbols are already in names. *)
 
   val fromATrans        : Environment.env -> ActionTrans.t -> t
     (* may raise ClockExpression.NonClockTerm *)
@@ -35,9 +32,16 @@ signature CLK_EXPR_TRANS = sig
                                 guard:      Expression.expr}
 
   val rename            : t * {old: symbol, new: symbol} -> t
-  val negate            : ClockExpression.t -> t -> t list
-    (* the given invariant expression is and-ed to the transition guard _after_
-     * negation. This is admittedly ugly. *)
+  val negate            : (symbol * Expression.ty) list * ClockExpression.t
+                          -> t -> t list
+    (* negate (inv_fall, inv) trans negated_trans
+     * (inv_fall, inv) is the location invariant. The transition guard is
+     * negated and then and-ed with inv, the inv_fall are added to the
+     * transition's forall list (an exception is thrown if they are not
+     * disjoint).
+     * TODO: * separate negation and invariant and-ing
+     *       * handle non-disjointness better?
+     *)
 
   val formPartitionReps : t list list -> t list
 

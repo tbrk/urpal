@@ -95,8 +95,11 @@ struct
       fun doLoc (location as P.Location {id=loc as P.LocId l,
                                          invariant=(inv, _), ...}) = let
 
-          val _ =Util.debugIndent (Settings.Detailed,
-                   fn()=>["=processing location:", Int.toString l, "="])
+          val _ = Util.debugIndent (Settings.Detailed,
+                   fn()=>["=processing location:", locName location, "="])
+          val _ = Util.debugDetailed (fn()=>["* invariant: ",
+                                             ECvt.Expr.toString inv])
+
           val invHasClocks = Env.containsClocks env inv
 
           fun makeTrans (chanId, dir) {selectids, actionsubs, guard} =

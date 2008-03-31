@@ -85,22 +85,6 @@ fun showPartitions showitem partitions = let
       fun f (CETrans {names, ...}, m) = m ++ names
     in foldl f emptyset cetrans end
 
-  fun addDisjointForalls newforall
-      (CETrans {actselect, gselect, forall, partition, guard, action, names}) =
-    let
-      fun addAndCheck ((n, _), s) = if n <- s
-                                    then raise Fail "addDisjointForalls"
-                                    else s <+ n
-    in
-      CETrans {actselect=actselect,
-               gselect=gselect,
-               forall=newforall@forall,
-               partition=partition,
-               guard=guard,
-               action=action,
-               names=foldl addAndCheck names newforall}
-    end
-
   fun fromATrans preenv (AT.ActTrans {selectids=sellist,
                                       actionsubs, guard, names}) =
     let
@@ -173,44 +157,64 @@ fun showPartitions showitem partitions = let
             fun withEach (y,i) = AtomSet.union (AtomSet.intersection(x,y), i)
           in pairwiseIntersect (ys, foldl withEach i ys) end
 
-    fun makeTrans (actselects, potselects, potforalls, part, act) andx = let
+    fun makeTrans cinv_fall
+                  (actselects, potselects, potforalls, part, act)
+                  andx =
+      let
         fun combineAnd (t, e) = ClkE.And (e, ClkE.Term t)
         fun makeAnd []      = ClkE.Term (ClkE.NonClock (E.falseExpr))
           | makeAnd (x::xs) = List.foldl combineAnd (ClkE.Term x) xs
 
         val e=makeAnd andx
         val exprNames=ClkE.getFree e
-        val names=exprNames ++ AT.addActionNames act
+        val names=exprNames ++ AT.addActionNames act ++ addNameTypes cinv_fall
         
         val forAlls=List.filter (fn (nm, _)=> nm<-exprNames) potforalls
-
-      in (CETrans {actselect=actselects,
+      in
+         (CETrans {actselect=actselects,
                    gselect=List.filter (fn (nm,_)=> nm<-names) potselects,
-                   forall=forAlls,
+                   forall=forAlls @ cinv_fall,
                    partition=part,
                    guard=e,
                    action=act,
-                   names=names}, addNameTypes forAlls)
+                   names=names},
+          addNameTypes (forAlls @ cinv_fall))
       end
 
   in (*}}}1*)
-  fun negate invariant (CETrans {actselect, gselect, forall,
-                                 guard, partition, action, names}) =
+  fun negate (cinv_fall, cinv)
+             (cet as CETrans {actselect, gselect, forall, guard,
+                              partition, action, names}) =
        let
          val g' = ClkE.negate guard
-         val e  = case invariant of
+         val e  = case cinv of
                     ClkE.Term (ClkE.NonClock (E.BoolCExpr true)) => g'
-                  | _ => ClkE.And (invariant, g')
+                  | _ => ClkE.And (cinv, g')
          val dnf = ClkE.toDNF e
+
+         val _ = Util.debugVeryDetailed (fn()=>["* CETrans.negate before:\n",
+                                                toString cet])
+
+         (* Check the assumption of disjointness: *)
+         fun addAndCheck ((n, _), s) = if n <- s
+                                       then raise Fail "addDisjointForalls"
+                                       else s <+ n
+         val _ = foldl addAndCheck (ClkE.getFree g') cinv_fall
        in
          if ClkE.conflictExists (addNameTypes gselect, addNameTypes forall, dnf)
          then raise SelectIdConflictsWithForAll (#1 (ListPair.unzip gselect),
                                                  #1 (ListPair.unzip forall))
          else let
            val (trans, fall)=ListPair.unzip (map
-                (makeTrans (actselect, forall, gselect, partition, action)) dnf)
+                (makeTrans cinv_fall
+                           (actselect, forall, gselect, partition, action))
+                dnf)
                 (* NB: forall and gselect are switched! (after having ensured
                  *     names are disjoint, and `non-conflicting') *)
+
+           val _ = Util.debugVeryDetailed (fn()=>
+                     "* CETrans.negate after (&& with invariant):\n"
+                     ::map toString trans)
 
            val splitFAlls=pairwiseIntersect (fall, emptyset)
          in
@@ -222,11 +226,11 @@ fun showPartitions showitem partitions = let
                          " are shared across disjuncts: likely split zones"];
                   [CETrans {actselect=actselect,
                             gselect=forall,
-                            forall=gselect,
+                            forall=gselect @ cinv_fall,
                             partition=partition,
                             guard=e,
                             action=action,
-                            names=names}])
+                            names=names ++ addNameTypes cinv_fall}])
             (* An improvement would be to split where possible,
                i.e. partition on shared foralls, transitive on overlap. *)
          end

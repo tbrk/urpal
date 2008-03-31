@@ -67,9 +67,9 @@ in struct
       val bindingList = (ListFormat.fmt {init="(", sep=", ",
                                          final=")", fmt=boundToStr})
     in
-      "{select "  ^ bindingList selectids    ^ "\n"  ^
+      "{select: "  ^ bindingList selectids    ^ "\n"  ^
       " action: " ^ showActions actionsubs   ^ "\n " ^
-                    ECVT.Expr.toString guard ^ " }"  ^ "\n"
+      " guard:  " ^ ECVT.Expr.toString guard ^ " }"  ^ "\n"
     end
 
   fun andexpr env (e1, e2) = let
@@ -81,7 +81,7 @@ in struct
       val atr = ActionTrans.fromTrans []
                   {selectids=[], actionsubs=[], guard=invExpr}
       val ctr = (CETrans.fromATrans env) atr
-      val ctrs' = CETrans.negate ClkE.trueExpr ctr
+      val ctrs' = CETrans.negate ([], ClkE.trueExpr) ctr
     in map CETrans.toTrans ctrs' end
       handle ClkE.NonClockTerm => raise FlipFailed "bad clock terms in invariant"
 
@@ -98,9 +98,10 @@ in struct
       val atrans' = map (ATrans.reduceSelectIds env) atrans
       val cetrans = map (CETrans.fromATrans env) atrans'
       
-      val _ = Util.debugSubsect (Settings.Outline,
-                        fn ()=>"cover missing channels:\n"
-                               ::map ATrans.toString otherATrans)
+      val _ = Util.debugSubsect (Settings.Outline, fn()=>
+          ["* cover missing channels:",
+           if null otherATrans then " nothing" else "\n"]
+          @ map ATrans.toString otherATrans)
 
       (* 2. Paritition remaining transitions. *)
       val partitions = Partitions.makeList cetrans
@@ -109,22 +110,21 @@ in struct
             Grouping back into a single list of transitions. *)
       val cetrans = List.concat (List.map CETrans.formPartitionReps partitions)
 
-      val _ = Util.debugSubsect (Settings.Detailed,
-                fn ()=>"with partition reps:\n"::map CETrans.toString cetrans)
+      val _ = Util.debugDetailed (fn ()=>
+          ["* with partition reps:", if null cetrans then " nothing" else "\n"]
+          @ map CETrans.toString cetrans)
 
-      (* 4. Convert the location invariant into a clock expression
-       *    (this piece was hacked in later and could be tightened up. *)
+      (* 4. Convert the location invariant into a clock expression *)
       val (cinv, cinv_fall, _) = ClkE.fromExpr (CETrans.unionNames cetrans,
                                                 env, invariant)
-      val cetrans = if null cinv_fall then cetrans
-                    else List.map (CETrans.addDisjointForalls cinv_fall)
-                                  cetrans
 
       (* 5. Negate each, concatenating results. *)
-      val ncetrans = List.concat (List.map (CETrans.negate cinv) cetrans)
+      val ncetrans = List.concat (List.map (CETrans.negate (cinv_fall, cinv))
+                                           cetrans)
 
-      val _ = Util.debugSubsect (Settings.Detailed, fn ()=>"after negation:\n"
-                                              ::map CETrans.toString ncetrans)
+      val _ = Util.debugDetailed (fn ()=>
+          ["* after negation:", if null ncetrans then " nothing" else "\n"]
+          @ map CETrans.toString ncetrans)
 
     in map ATrans.toTrans otherATrans @ map CETrans.toTrans ncetrans
        before (Util.debugOutdent (Settings.Outline, fn()=>[]))
