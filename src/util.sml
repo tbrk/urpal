@@ -28,8 +28,10 @@ struct
   val indent = ref 0
   val indentAmount = 3;
 
-  val sect    = StringCvt.padLeft #"*" 71 "\n"
-  val subsect = StringCvt.padLeft #"-" 71 "\n"
+  fun sect ()    = (StringCvt.padLeft #" " (!indent) "") ^
+                   (StringCvt.padLeft #"*" 71 "\n")
+  fun subsect () = (StringCvt.padLeft #" " (!indent) "") ^
+                   (StringCvt.padLeft #"-" 71 "\n")
 
   fun warn msg = (TIO.output (TIO.stdErr,
                               String.concat (Settings.progName::":"::msg));
@@ -40,11 +42,16 @@ struct
                   TIO.output (TIO.stdErr, "\n");
                   OS.Process.exit (OS.Process.failure))
 
+  local
+    val split = Substring.tokens (fn #"\n"=>true | _ => false)
+    fun pr ss = (TIO.output (TIO.stdErr, StringCvt.padLeft #" " (!indent) "");
+                 TIO.output (TIO.stdErr, Substring.string ss);
+                 TIO.output (TIO.stdErr, "\n"))
+  in
   fun print (indent, lazystrs) = case lazystrs ()
       of []    => ()
-       | strs  => (TIO.output (TIO.stdErr, StringCvt.padLeft #" " indent "");
-                   app (fn s=> TIO.output (TIO.stdErr, s)) strs;
-                   TIO.output (TIO.stdErr, "\n"))
+       | strs  => app pr ((split o Substring.full) (concat strs))
+  end (* local *)
 
   fun debug (priority, lazystrs) =
       if Settings.showDebug (priority)
@@ -52,13 +59,13 @@ struct
 
   fun debugSect (priority, lazystrs) =
       if Settings.showDebug (priority)
-      then (TIO.output (TIO.stdErr, sect);
+      then (TIO.output (TIO.stdErr, sect ());
             print (!indent, lazystrs))
       else ()
 
   fun debugSubsect (priority, lazystrs) =
       if Settings.showDebug (priority)
-      then (TIO.output (TIO.stdErr, subsect);
+      then (TIO.output (TIO.stdErr, subsect ());
             print (!indent, lazystrs))
       else ()
 

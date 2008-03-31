@@ -96,7 +96,7 @@ struct
                                          invariant=(inv, _), ...}) = let
 
           val _ =Util.debugIndent (Settings.Detailed,
-                                fn()=>["processing location:", Int.toString l])
+                   fn()=>["=processing location:", Int.toString l, "="])
           val invHasClocks = Env.containsClocks env inv
 
           fun makeTrans (chanId, dir) {selectids, actionsubs, guard} =
@@ -110,7 +110,7 @@ struct
 
           fun flipChannel trans chanId = let
               val _ =Util.debugIndent(Settings.Detailed,
-                                      fn()=>["chanId:",Atom.toString chanId])
+                              fn()=>["=chanId:", Atom.toString chanId, "="])
               val acttys = valOf (TF.chanToSubRanges (env, chanId))
               fun negate trs = (TF.negateTransitions env (acttys, trs, inv))
 
@@ -202,7 +202,8 @@ struct
   fun maketest (channelIds, t as P.Template {name=(nm, _), declaration,
                                              locations, transitions, ...}) =
     let
-      val _ = Util.debugVeryDetailed (fn()=>["maketest: start '", nm, "'"])
+      val _ = Util.debugIndent (Settings.VeryDetailed,
+                                fn()=>["=maketest: start '", nm, "'="])
 
       val _ = if null channelIds then raise NoChannels else ()
 
@@ -250,6 +251,7 @@ struct
                    (P.Template.updTransitions tplate'
                       (List.concat [invarianttrans, fliptrans,
                                     normtrans, errorloop])))
+      before (Util.debugOutdent(Settings.VeryDetailed,fn()=>["=maketest-end="]))
     end
 
   (********** Jensen, Larsen, Skou extensions: ******************************)

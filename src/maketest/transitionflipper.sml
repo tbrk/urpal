@@ -87,8 +87,8 @@ in struct
 
 
   fun negateTransitions env (subtypes, trans : t list, invariant) = let
-      val _ = Util.debugSect (Settings.Outline, fn ()=>"negateTransitions:\n"
-                                                       ::map toString trans)
+      val _ = Util.debugIndent (Settings.Outline,fn()=>["=negateTransitions="])
+      val _ = Util.debugDetailed (fn ()=>map toString trans)
 
       (* 1. Group like subscripts; rename subSelectIds; make others unique. *)
       val atrans = ATrans.ensureConsistency
@@ -126,7 +126,9 @@ in struct
       val _ = Util.debugSubsect (Settings.Detailed, fn ()=>"after negation:\n"
                                               ::map CETrans.toString ncetrans)
 
-    in map ATrans.toTrans otherATrans @ map CETrans.toTrans ncetrans end
+    in map ATrans.toTrans otherATrans @ map CETrans.toTrans ncetrans
+       before (Util.debugOutdent (Settings.Outline, fn()=>[]))
+    end
       handle CETrans.SelectIdConflictsWithForAll (sel, forall) => let
                 fun showSym n = ListFormat.fmt {init=n ^ "(", final=")",
                                                 sep=", ", fmt=Atom.toString}

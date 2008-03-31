@@ -103,14 +103,17 @@ struct
     | defaultEmpty (f, SOME s) = f s
 
   fun locName (NONE, T.LocId i) = "id" ^ Int.toString i
-    | locName (SOME n, _) = n
+    | locName (SOME n, _)       = n
+
+  fun locName' (NONE, T.LocId i) = "id" ^ Int.toString i
+    | locName' (SOME n, T.LocId i) = n ^ " (id" ^ Int.toString i ^ ")"
 
   fun parseLocation (env, templatename) (T.Location {id, position,
                      color, name=tname as (n, _), invariant=(invo, invPos),
                      comments, urgent, committed}) =
     let
       val _ = Util.debugIndent (Settings.Detailed, fn ()=>["=location ",
-                                                           locName (n,id),"="])
+                                                           locName' (n,id),"="])
       val name = String.concat [templatename, "-invariant(",
                                 locName (n, id), ")"]
       val inv = defaultTrue (valOf o (parseExpression name), invo)
