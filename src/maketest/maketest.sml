@@ -51,14 +51,20 @@ struct
        | SOME n => "'" ^ n ^ "'"
 
   fun formInvariantTrans env (errloc, locs) = let
+      val _ =Util.debugIndent (Settings.Detailed,fn()=>["=formInvariantTrans="])
+
       fun fromTrans id {selectids, guard, actionsubs} =
           makeTransition(id, errloc, selectids, guard, NONE)
 
       fun doLoc (loc as P.Location {id, invariant=(e, _), ...}) =
+         (Util.debugDetailed (fn()=>["* loc: ", locName loc]);
           if E.equal (e, E.trueExpr)
           then []
-          else map (fromTrans id) (TF.negateInvariant env e)
-    in List.concat (List.map doLoc locs) end
+          else map (fromTrans id) (TF.negateInvariant env e))
+    in
+      List.concat (List.map doLoc locs)
+      before (Util.debugOutdent (Settings.Detailed, fn()=>[]))
+    end
 
   fun formInverseTrans (errloc, env, chans) (locs, trans) = let
 
@@ -162,13 +168,19 @@ struct
       fun selToEnv (E.BoundId (nm,ty,_), env) = Env.addId Env.SelectScope
                                                           ((nm, ty), env)
       val inv = valOf (IntBinaryMap.find (invmap, src))
+
+      val _ = Util.debugSubsect (Settings.VeryDetailed,
+                              fn()=>["* invariant:\n", ECvt.Expr.toString inv,
+                                     "\n* select   : [",ECvt.selectToString sel,
+                                     "]\n* guard    :\n",ECvt.Expr.toString g])
+
       val g' = if E.equal (inv, E.trueExpr)
                then g
                else if E.equal (g, E.trueExpr)
                     then inv
                     else let
                            val senv = List.foldl selToEnv env sel
-                           val simplified = TF.andexpr senv (g, inv)
+                           val simplified = TF.andexpr senv (sel, g, inv)
                          in case simplified of
                               (E.BinBoolExpr{bop=E.OrOp,...})=>E.andexpr(inv,g)
                             | _ => simplified
@@ -181,6 +193,9 @@ struct
                           * ORs and clock variables, it may have to be split
                           * across multiple transitions, which we would rather
                           * avoid by using E.andexpr. *)
+
+      val _ = Util.debugVeryDetailed (fn()=>["* invariant && guard:\n",
+                                             ECvt.Expr.toString g'])
 
       val sync' = case sync of
                     NONE             => NONE
@@ -236,10 +251,11 @@ struct
       val fliptrans = formInverseTrans (errLocId, declaration, channelIds)
                                        (locations, transitions)
 
-      val _ = Util.debugVeryDetailed
-                (fn()=>["maketest: invertActionAndAddInvariant..."])
+      val _ = Util.debugIndent (Settings.VeryDetailed,
+                                fn()=>["=invertActionAndAddInvariant="])
       val normtrans = map (invertActionAndAddInvariant
                            (declaration, invMap, cMissing)) transitions
+      val _ = Util.debugOutdent (Settings.VeryDetailed,fn()=>[])
       
       (* Not quite per the Stoelinga definition. *)
       val errorloop = [P.Transition {id=NONE, source=errLocId, target=errLocId,

@@ -223,7 +223,7 @@ fun showPartitions showitem partitions = let
                              ListFormat.fmt {init="(", sep=", ", final=")",
                                              fmt=Atom.toString}
                                (AtomSet.listItems splitFAlls),
-                         " are shared across disjuncts: likely split zones"];
+                         " are shared across disjuncts: possible split zones"];
                   [CETrans {actselect=actselect,
                             gselect=forall,
                             forall=gselect @ cinv_fall,

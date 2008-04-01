@@ -1,5 +1,11 @@
 (* $Id$ *)
 
+(* TODO:
+ *    * It might be useful to define a type that carries around both a
+ *      ClockExpression and its forall bindings (i.e. prenex form), the
+ *      functions should be updated to handle this type properly.
+ *)
+
 signature CLOCK_EXPRESSION = sig
 
   exception NonClockTerm
@@ -37,6 +43,17 @@ signature CLOCK_EXPRESSION = sig
 
   val rename         : {old: symbol, new: symbol} * t -> t
   val conflictExists : symbolset * symbolset * clockterm list list -> bool 
+
+  val ensureNoBindingConflict : (symbol * Expression.ty) list * t
+                                -> (symbol * Expression.ty) list * t
+                                -> (symbol * Expression.ty) list * t
+  (* (l', e') = ensureNoBindingConflict (rl, re) (l, e)
+   * Renames bound variables (l => l') in (e => e') to ensure that combination
+   * with the reference expression will not capture names improperly.
+   * 
+   * e.g. it would then be safe to and the reference and result expressions:
+   *          (al, ae) = (rl @ l', andexpr (re, e'))
+   * *)
 
   val toDNF          : t -> clockterm list list
   val fromDNF        : clockterm list list -> t

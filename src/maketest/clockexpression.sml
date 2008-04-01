@@ -135,6 +135,46 @@ in struct
 
   in (*}}}1*)
 
+  fun rename (r, clockexpr) = let
+      fun rCVar v = let val E.VarExpr v' = E.renameVar (r, E.VarExpr v)
+                    in v' end
+
+      fun rCVal (s as Simple _) = s
+        | rCVal (Complex e)     = Complex (E.renameVar (r, e))
+
+      fun rCTerm (NonClock e)              = NonClock (E.renameVar (r, e))
+        | rCTerm (CRel (s, rel, cv))       = CRel (rCVar s, rel, rCVal cv)
+        | rCTerm (CDiff (s1, s2, rel, cv)) = CDiff (rCVar s1, rCVar s2,
+                                                    rel, rCVal cv)
+
+      fun ren (Term t)       = Term (rCTerm t)
+        | ren (And (c1, c2)) = And  (ren c1, ren c2)
+        | ren (Or  (c1, c2)) = Or   (ren c1, ren c2)
+
+    in ren clockexpr end
+
+  local
+    fun addNameTypes xs = let
+        fun add ((n, _), s) = s <+ n
+      in foldl add emptyset xs end
+  in
+  fun ensureNoBindingConflict (rb, re) (b, e) = let
+      val rbn = addNameTypes rb
+      val bn  = addNameTypes b
+
+      fun checkName ((n, ty), (bs, e, used)) =
+          if n <- rbn
+          then let val n' = getNewName (n, used)
+               in ((n', ty)::bs,
+                   rename ({old=n, new=n'}, e),
+                   used <+ n')
+               end
+          else ((n, ty)::bs, e, used)
+
+      val (b', e', _) = foldl checkName ([], e, rbn ++ bn) (rev b)
+    in (b', e') end
+  end (* local *)
+
   (* raises NonClockTerm *)
   fun fromExpr (usednames, env, expr) = let
 
@@ -258,24 +298,6 @@ in struct
     in foldl wrapForall (toE t) fas end
   end (* local *)
       
-  fun rename (r, clockexpr) = let
-      fun rCVar v = let val E.VarExpr v' = E.renameVar (r, E.VarExpr v)
-                    in v' end
-
-      fun rCVal (s as Simple _) = s
-        | rCVal (Complex e)     = Complex (E.renameVar (r, e))
-
-      fun rCTerm (NonClock e)              = NonClock (E.renameVar (r, e))
-        | rCTerm (CRel (s, rel, cv))       = CRel (rCVar s, rel, rCVal cv)
-        | rCTerm (CDiff (s1, s2, rel, cv)) = CDiff (rCVar s1, rCVar s2,
-                                                    rel, rCVal cv)
-
-      fun ren (Term t)       = Term (rCTerm t)
-        | ren (And (c1, c2)) = And  (ren c1, ren c2)
-        | ren (Or  (c1, c2)) = Or   (ren c1, ren c2)
-
-    in ren clockexpr end
-
   (* see tech. report: canswap predicate *)
   fun conflictExists (sE, sA, psi) = let
       exception ConflictingQuantifiers

@@ -28,10 +28,6 @@ in struct
   (* utility functions for processing names *)
   fun toBoundId (s, ty) = E.BoundId (s, ty, E.nopos)
 
-  val addBoundIds = let
-      fun add (E.BoundId (n, _, _), s) = s <+ n
-    in foldl add emptyset end
-
   fun fromBoundId (E.BoundId (n, ty, _)) = (n, ty)
 
   fun addNameTypes xs = let
@@ -161,7 +157,7 @@ in struct
         | addPartialConstraint (SOME c, g) = E.BinBoolExpr {pos=E.nopos,
                                                left=c, bop=E.AndOp, right=g}
 
-      val usednames =addBoundIds selectids ++ E.getFreeNames guard
+      val usednames =E.getBoundNames selectids ++ E.getFreeNames guard
                      ++ foldl (fn (e, s)=>E.getFreeNames e ++ s)
                               emptyset actionsubs
       val (gCons, asubs, newbindings) = listTripleUnzip

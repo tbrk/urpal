@@ -164,6 +164,10 @@ struct
 
     in le (AtomSet.empty, e) end (*}}}1*)
 
+  val getBoundNames = let
+      fun add (BoundId (n, _, _), s) = s <+ n
+    in foldl add emptyset end
+
   fun renameVars' (renmap : symbol AtomMap.map, oldnames, newnames) = let
       (*{{{1*)
       val bothnames = oldnames ++ newnames
@@ -578,6 +582,22 @@ struct
       else SOME expr      (* throw the unreferenced binding away *)
     end
     end (* local *)
+
+  fun ensureNoBindingConflict (rb, re) (b, e) = let
+      val rbn = getBoundNames rb
+      val bn  = getBoundNames b
+
+      fun checkName (bid as BoundId (n, ty, pos), (bs, e, used)) =
+          if n <- rbn
+          then let val n' = getNewName (n, used)
+               in (BoundId (n', ty, pos)::bs,
+                   renameVar ({old=n, new=n'}, e),
+                   used <+ n')
+               end
+          else (bid::bs, e, used)
+
+      val (b', e', _) = foldl checkName ([], e, rbn ++ bn) (rev b)
+    in (b', e') end
 
 end
 

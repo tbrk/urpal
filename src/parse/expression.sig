@@ -143,6 +143,7 @@ sig
     (* return a name suitable for debugging output and error messages *)
 
   val getFreeNames : expr -> AtomSet.set
+  val getBoundNames : boundid list -> AtomSet.set
   val renameVar  : {old : symbol, new: symbol} * expr -> expr
   val renameVars : symbol AtomMap.map -> expr -> expr
 
@@ -151,9 +152,20 @@ sig
   val trueExpr  : expr
   val falseExpr : expr
 
+  val conflictExists : AtomSet.set * AtomSet.set * expr -> bool
   (* Looks (with over-approximation) through Boolean formulae for terms that
      contain variables from both sets, returning true if one is found.      *)
-  val conflictExists : AtomSet.set * AtomSet.set * expr -> bool
+
+  val ensureNoBindingConflict : (boundid list * expr) ->
+                                (boundid list * expr) -> (boundid list * expr)
+  (* (l', e') = ensureNoBindingConflict (rl, re) (l, e)
+   * Renames bound variables (l => l') in (e => e') to ensure that combination
+   * with the reference expression will not capture names improperly.
+   * 
+   * e.g. it would then be safe to and the reference and result expressions:
+   *          (al, ae) = (rl @ l', andexpr (re, e'))
+   * *)
+
 
   val otherDirection : direction -> direction
 

@@ -72,19 +72,38 @@ in struct
       " guard:  " ^ ECVT.Expr.toString guard ^ " }"  ^ "\n"
     end
 
-  fun andexpr env (e1, e2) = let
-      val (ce1, ce1fa, used) = ClkE.fromExpr (emptyset, env, e1)
-      val (ce2, ce2fa, used) = ClkE.fromExpr (used, env, e2)
-    in ClkE.toExpr (ClkE.andexpr (ce1, ce2), ce1fa @ ce2fa) end
+  local
+    fun convBind (E.BoundId (nm, ty, _), (xs,used)) = ((nm, ty)::xs, used <+ nm)
+  in
+  fun andexpr env (ce1se, e1, e2) = let
+      val (ce1se', used) = foldl convBind ([], emptyset) ce1se
+
+      val (ce1, ce1fa, used) = ClkE.fromExpr (used, env, e1)
+      val (ce2, ce2fa, _   ) = ClkE.fromExpr (used, env, e2)
+
+      val (ce2fa', ce2') =  ClkE.ensureNoBindingConflict (ce1fa @ ce1se',ce1)
+                                                         (ce2fa,ce2)
+    in ClkE.toExpr (ClkE.andexpr (ce1, ce2'), ce1fa @ ce2fa') end
+  end (* local *)
 
   fun negateInvariant env invExpr = let
+      val _ = Util.debugIndent (Settings.Outline,fn()=>["=negateInvariant="])
+
       val atr = ActionTrans.fromTrans []
                   {selectids=[], actionsubs=[], guard=invExpr}
       val ctr = (CETrans.fromATrans env) atr
-      val ctrs' = CETrans.negate ([], ClkE.trueExpr) ctr
-    in map CETrans.toTrans ctrs' end
-      handle ClkE.NonClockTerm => raise FlipFailed "bad clock terms in invariant"
 
+      val _ = Util.debugDetailed (fn ()=>["* before:\n", CETrans.toString ctr])
+
+      val ctrs' = CETrans.negate ([], ClkE.trueExpr) ctr
+
+      val _ = Util.debugDetailed (fn ()=> "* after:\n"
+            ::map (fn c=>CETrans.toString c ^"\n") ctrs')
+    in
+      map CETrans.toTrans ctrs'
+      before (Util.debugOutdent (Settings.Outline, fn()=>[]))
+    end
+      handle ClkE.NonClockTerm => raise FlipFailed "bad clock terms in invariant"
 
   fun negateTransitions env (subtypes, trans : t list, invariant) = let
       val _ = Util.debugIndent (Settings.Outline,fn()=>["=negateTransitions="])
