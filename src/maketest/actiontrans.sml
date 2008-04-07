@@ -100,6 +100,10 @@ in struct
         | matchSelRange (nm, E.NAME (_, E.NoQual, SOME tyex1),
                              E.NAME (_, E.NoQual, SOME tyex2))
                           = matchSelRange (nm, tyex1, tyex2)
+        | matchSelRange (nm, ty1, E.NAME (_, E.NoQual, SOME tyex2))
+                          = matchSelRange (nm, ty1, tyex2)
+        | matchSelRange (nm, E.NAME (_, E.NoQual, SOME tyex1), ty2)
+                          = matchSelRange (nm, tyex1, ty2)
 
         | matchSelRange (_, E.NAME (s1, E.NoQual, _), E.NAME (s2, E.NoQual, _)) =
                         if s1 =:= s2 then SOME NONE else NONE
@@ -133,8 +137,17 @@ in struct
                                                  n'::usedsels, usednames <+ n')
                                  end
                                else case matchSelRange (n, ty, ty') of
-                                      NONE => raise ActSubWithBadType
+                                      NONE => (
+            (case ty' of
+              E.NAME (s, tyqual, SOME ety) =>
+            TextIO.output (TextIO.stdOut, "bad: " ^ ECVT.Ty.toString ety ^
+            "\n")
+             | E.NAME (s, tyqual, NONE) => TextIO.output (TextIO.stdErr, "bad: none!\n")
+             | _ => TextIO.output (TextIO.stdErr, "bad: other\n")
+             );
+                                      raise ActSubWithBadType
                                                 {expr=act, badty=ty', goodty=ty}
+                                                )
                                     | SOME gc => (gc, SelectSub n, NONE)
                                                  :: checksubs (tys, acts,
                                                                n::usedsels,

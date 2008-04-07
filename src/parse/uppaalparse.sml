@@ -14,7 +14,8 @@ struct
   structure ExpressionCvt = ExpressionCvt
 
   structure T = TextNta and P = ParsedNta
-  structure Env = Environment
+  structure E = Expression
+        and Env = Environment
         and O = Option
 
   type symbol = Atom.atom
@@ -136,7 +137,9 @@ struct
       val name = String.concat [templatename, ":", getLocName source,
                                 "->", getLocName target, " "]
 
-      (* TODO: need the types in selo' be expanded? *)
+      fun expandTys (E.BoundId (nm, ty, pos)) =
+                     E.BoundId (nm, Env.expandTyIds (env, ty), pos)
+
       val sel    = defaultEmpty (valOf o (parseSelect (name ^ "select")), selo)
       val guard  = defaultTrue (valOf o (parseExpression (name ^ "guard")),
                                 guardo)
@@ -149,7 +152,7 @@ struct
       P.Transition {id=O.map parseTransId id,
                     source=parseLocId source,
                     target=parseLocId target,
-                    select=(sel,    selPos),
+                    select=(map expandTys sel, selPos),
                     guard= (guard,  guardPos),
                     sync=  (synco', syncPos),
                     update=(update, updatePos),
