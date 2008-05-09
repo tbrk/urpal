@@ -20,9 +20,6 @@
 
 signature EXPRESSION =
 sig
-  type pos
-  val nopos : pos
-
   type symbol = Atom.atom
 
   type unique = int
@@ -74,10 +71,10 @@ sig
                       | ShlEqOp   (*  <<= *)
                       | ShrEqOp   (*  >>= *)
 
-  datatype var        = SimpleVar of symbol * pos
-                      | ReturnVar of {func: symbol, args: expr list, pos: pos}
-                      | RecordVar of var * symbol * pos
-                      | SubscriptVar of var * expr * pos
+  datatype var        = SimpleVar of symbol
+                      | ReturnVar of {func: symbol, args: expr list}
+                      | RecordVar of var * symbol
+                      | SubscriptVar of var * expr
 
   and      ty         = VOID
                       | INT of (expr * expr) option * tyqual
@@ -94,51 +91,39 @@ sig
   and      expr       = VarExpr      of var
                       | IntCExpr     of int
                       | BoolCExpr    of bool
-                      | CallExpr     of {func: symbol,
-                                         args: expr list,
-                                         pos: pos}
-                      | NegExpr      of {expr: expr, pos: pos}
-                      | NotExpr      of {expr: expr, pos: pos}
-                      | UnaryModExpr of {uop: unaryModOp,
-                                         expr: expr,
-                                         pos: pos}
+                      | CallExpr     of {func: symbol, args: expr list}
+                      | NegExpr      of expr
+                      | NotExpr      of expr
+                      | UnaryModExpr of {uop: unaryModOp, expr: expr}
                       | BinIntExpr   of {left: expr,
                                          bop: binIntOp,
-                                         right: expr,
-                                         pos: pos}
+                                         right: expr}
                       | BinBoolExpr  of {left: expr,
                                          bop: binBoolOp,
-                                         right: expr,
-                                         pos: pos}
+                                         right: expr}
                       | RelExpr      of {left: expr,
                                          rel: rel,
-                                         right: expr,
-                                         pos: pos}
+                                         right: expr}
                       | AssignExpr   of {var: expr,
                                          aop: assignOp,
-                                         expr: expr,
-                                         pos: pos}
+                                         expr: expr}
                       | CondExpr     of {test: expr,
                                          trueexpr: expr,
-                                         falseexpr: expr,
-                                         pos: pos}
+                                         falseexpr: expr}
                       | ForAllExpr   of {id: symbol,
                                          ty: ty,
-                                         expr: expr,
-                                         pos: pos}
+                                         expr: expr}
                       | ExistsExpr   of {id: symbol,
                                          ty: ty,
-                                         expr: expr,
-                                         pos: pos}
-                      | Deadlock     of pos
+                                         expr: expr}
+                      | Deadlock
                       
-  and      boundid    = BoundId of symbol * ty * pos
+  and      boundid    = BoundId of symbol * ty
 
   and unresolvedty = Type of ty
                    | Unresolved of symbol  (* could be a typedef or
                                               a variable (INT[0, x]) *)
 
-  val varPos  : var -> pos
   val varName : var -> string
     (* return a name suitable for debugging output and error messages *)
 
@@ -169,8 +154,7 @@ sig
 
   val otherDirection : direction -> direction
 
-  (* Ignores pos values.
-     Strictly syntactic equality (e.g. ignores commutativity).
+  (* Strictly syntactic equality (e.g. ignores commutativity).
      Assumes functions return the same result given the same input arguments.
       (i.e. referentially transparent and side-effect free)
      Cost proportional to expression size *)
@@ -181,8 +165,7 @@ sig
   val inc      : expr -> expr (* add one to an expression *)
   val dec      : expr -> expr (* substract one from an expression *)
 
-  (* Assumes the expression is of type BOOL, returns the logical negation.
-     May alter the top-level pos value. *)
+  (* Assumes the expression is of type BOOL, returns the logical negation. *)
   val negate : expr -> expr
 
   val andexpr : expr * expr -> expr

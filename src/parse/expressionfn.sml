@@ -11,20 +11,14 @@
 
 (* TODO:
  *  * Conditionals on LHS of assignments
- *  * Tidy up handling of pos, possibly either:
- *      - abstract over exact details more
- *      - reduce pos accounting (just line number
- *        of declaration or statement?)
  *)
 
-functor ExpressionFn (structure FilePos : FILE_POS) : EXPRESSION =
+functor ExpressionFn () : EXPRESSION =
 struct
   
   (* shortcuts over Atom and AtomSet *)
   infix <+ <- ++ <\ \ =:= ; open Symbol
 
-  type pos = FilePos.pos
-  val nopos = FilePos.zero
   type symbol = Atom.atom
 
   type unique = int
@@ -52,10 +46,10 @@ struct
                       | DivideEqOp | ModEqOp | BOrEqOp | BAndEqOp
                       | BXorEqOp | ShlEqOp | ShrEqOp
 
-  datatype var        = SimpleVar    of symbol * pos
-                      | ReturnVar of {func: symbol, args: expr list, pos: pos}
-                      | RecordVar    of var * symbol * pos
-                      | SubscriptVar of var * expr * pos
+  datatype var        = SimpleVar    of symbol
+                      | ReturnVar of {func: symbol, args: expr list}
+                      | RecordVar    of var * symbol
+                      | SubscriptVar of var * expr
 
   and      ty         = VOID
   (*{{{1*)            | INT of (expr * expr) option * tyqual
@@ -71,52 +65,38 @@ struct
   (*{{{1*)            | IntCExpr     of int
                       | BoolCExpr    of bool
                       | CallExpr     of {func: symbol,
-                                         args: expr list,
-                                         pos: pos}
-                      | NegExpr      of {expr: expr, pos: pos}
-                      | NotExpr      of {expr: expr, pos: pos}
+                                         args: expr list}
+                      | NegExpr      of expr
+                      | NotExpr      of expr
                       | UnaryModExpr of {uop: unaryModOp,
-                                         expr: expr,
-                                         pos: pos}
+                                         expr: expr}
                       | BinIntExpr   of {left: expr,
                                          bop: binIntOp,
-                                         right: expr,
-                                         pos: pos}
+                                         right: expr}
                       | BinBoolExpr  of {left: expr,
                                          bop: binBoolOp,
-                                         right: expr,
-                                         pos: pos}
+                                         right: expr}
                       | RelExpr      of {left: expr,
                                          rel: rel,
-                                         right: expr,
-                                         pos: pos}
+                                         right: expr}
                       | AssignExpr   of {var: expr,   (* Can be ?: *)
                                          aop: assignOp,
-                                         expr: expr,
-                                         pos: pos}
+                                         expr: expr}
                       | CondExpr     of {test: expr,
                                          trueexpr: expr,
-                                         falseexpr: expr,
-                                         pos: pos}
+                                         falseexpr: expr}
                       | ForAllExpr   of {id: symbol,
                                          ty: ty,
-                                         expr: expr,
-                                         pos: pos}
+                                         expr: expr}
                       | ExistsExpr   of {id: symbol,
                                          ty: ty,
-                                         expr: expr,
-                                         pos: pos}
-  (*}}}1*)            | Deadlock     of pos
+                                         expr: expr}
+  (*}}}1*)            | Deadlock
 
-  and      boundid    = BoundId of symbol * ty * pos
+  and      boundid    = BoundId of symbol * ty
 
   and    unresolvedty = Unresolved of symbol
                       | Type of ty
-
-  fun varPos (SimpleVar (_, pos))       = pos
-    | varPos (ReturnVar {pos, ...})     = pos
-    | varPos (RecordVar (_, _, pos))    = pos
-    | varPos (SubscriptVar (_, _, pos)) = pos
 
   fun varName (SimpleVar (nm, _))       = Atom.toString nm
     | varName (ReturnVar {func, ...})   = Atom.toString func ^ "(...)"
@@ -175,35 +155,36 @@ struct
       fun re (VarExpr v)                  = VarExpr (rv v)
         | re (e as IntCExpr _)            = e
         | re (e as BoolCExpr _)           = e
-        | re (CallExpr {func, args, pos}) = CallExpr
-                                    {func=func, pos=pos, args=map re args}
+        | re (CallExpr {func, args}) = CallExpr
+                                    {func=func, args=map re args}
 
-        | re (NegExpr {expr, pos})        = NegExpr {expr=re expr, pos=pos}
-        | re (NotExpr {expr, pos})        = NotExpr {expr=re expr, pos=pos}
+        | re (NegExpr expr)          = NegExpr (re expr)
+        | re (NotExpr expr)          = NotExpr (re expr)
 
-        | re (UnaryModExpr {uop, expr, pos}) = UnaryModExpr
-                                    {uop=uop, expr=re expr, pos=pos}
+        | re (UnaryModExpr {uop, expr}) = UnaryModExpr
+                                    {uop=uop, expr=re expr}
 
-        | re (BinIntExpr {left, bop, right, pos}) = BinIntExpr
-                          {left=re left, bop=bop, right=re right, pos=pos}
+        | re (BinIntExpr {left, bop, right}) = BinIntExpr
+                          {left=re left, bop=bop, right=re right}
 
-        | re (BinBoolExpr {left, bop, right, pos}) = BinBoolExpr
-                          {left=re left, bop=bop, right=re right, pos=pos}
+        | re (BinBoolExpr {left, bop, right}) = BinBoolExpr
+                          {left=re left, bop=bop, right=re right}
 
-        | re (RelExpr {left, rel, right, pos}) = RelExpr
-                          {left=re left, rel=rel, right=re right, pos=pos}
+        | re (RelExpr {left, rel, right}) = RelExpr
+                          {left=re left, rel=rel, right=re right}
 
-        | re (AssignExpr {var, aop, expr, pos}) = AssignExpr
-                          {var=re var, aop=aop, expr=re expr, pos=pos}
+        | re (AssignExpr {var, aop, expr}) = AssignExpr
+                          {var=re var, aop=aop, expr=re expr}
 
-        | re (CondExpr {test, trueexpr, falseexpr, pos}) = CondExpr
-                          {test=re test, pos=pos,
-                           trueexpr=re trueexpr, falseexpr=re falseexpr}
+        | re (CondExpr {test, trueexpr, falseexpr}) = CondExpr
+                          {test=re test, 
+                           trueexpr=re trueexpr,
+                           falseexpr=re falseexpr}
 
-        | re (e as ForAllExpr {id, ty, expr, pos}) =
+        | re (e as ForAllExpr {id, ty, expr}) =
             if id <- oldnames
             then (* bound, so don't rename within scope *)
-                 ForAllExpr {id=id, ty=ty, pos=pos,
+                 ForAllExpr {id=id, ty=ty,
                              expr=renameVars' (
                                #1 (AtomMap.remove (renmap, id)),
                                AtomSet.delete (oldnames, id),
@@ -214,18 +195,18 @@ struct
                         val fresh = getNewName (id, getFreeNames expr
                                                     ++ bothnames)
                       in
-                        ForAllExpr {id=fresh, ty=ty, pos=pos,
+                        ForAllExpr {id=fresh, ty=ty,
                                     expr=renameVars' (
                                       AtomMap.insert (renmap, id, fresh),
                                       oldnames <+ id,
                                       newnames <+ fresh) expr}
                       end
-            else ForAllExpr {id=id, ty=ty, expr=re expr, pos=pos}
+            else ForAllExpr {id=id, ty=ty, expr=re expr}
 
-        | re (e as ExistsExpr {id, ty, expr, pos}) =
+        | re (e as ExistsExpr {id, ty, expr}) =
             if id <- oldnames
             then (* bound, so don't rename within scope *)
-                 ExistsExpr {id=id, ty=ty, pos=pos,
+                 ExistsExpr {id=id, ty=ty,
                              expr=renameVars' (
                                #1 (AtomMap.remove (renmap, id)),
                                AtomSet.delete (oldnames, id),
@@ -236,23 +217,23 @@ struct
                         val fresh = getNewName (id, getFreeNames expr
                                                     ++ bothnames)
                       in
-                        ExistsExpr {id=fresh, ty=ty, pos=pos,
+                        ExistsExpr {id=fresh, ty=ty,
                                     expr=renameVars' (
                                       AtomMap.insert (renmap, id, fresh),
                                       oldnames <+ id,
                                       newnames <+ fresh) expr}
                       end
-            else ExistsExpr {id=id, ty=ty, expr=re expr, pos=pos}
+            else ExistsExpr {id=id, ty=ty, expr=re expr}
 
         | re (e as Deadlock _)  = e
 
       and rv (v as SimpleVar (s, p)) = (case AtomMap.find (renmap, s) of
                                           NONE    => v
                                         | SOME s' => SimpleVar (s', p))
-        | rv (ReturnVar {func, args, pos}) = ReturnVar {func=func, pos=pos,
+        | rv (ReturnVar {func, args}) = ReturnVar {func=func,
                                               args=map re args}
-        | rv (RecordVar (v, field, pos))   = RecordVar (rv v, field, pos)
-        | rv (SubscriptVar (v, sub, pos))  = SubscriptVar (rv v, re sub, pos)
+        | rv (RecordVar (v, field))   = RecordVar (rv v, field)
+        | rv (SubscriptVar (v, sub))  = SubscriptVar (rv v, re sub)
 
     in re end
     (*}}}1*)
@@ -274,20 +255,20 @@ struct
     in strip (ty, []) end
 
   fun inc (IntCExpr c) = IntCExpr (c+1)
-    | inc (BinIntExpr {left, bop=MinusOp, right=IntCExpr 1, pos}) = left
-    | inc (BinIntExpr {left, bop=MinusOp, right=IntCExpr c, pos}) =
-           BinIntExpr {left=left, bop=MinusOp, right=IntCExpr (c - 1), pos=pos}
-    | inc (BinIntExpr {left, bop=PlusOp, right=IntCExpr c, pos}) =
-           BinIntExpr {left=left, bop=PlusOp, right=IntCExpr (c + 1), pos=pos}
-    | inc v = BinIntExpr {left=v, bop=PlusOp, right=IntCExpr 1, pos=nopos}
+    | inc (BinIntExpr {left, bop=MinusOp, right=IntCExpr 1}) = left
+    | inc (BinIntExpr {left, bop=MinusOp, right=IntCExpr c}) =
+           BinIntExpr {left=left, bop=MinusOp, right=IntCExpr (c - 1)}
+    | inc (BinIntExpr {left, bop=PlusOp, right=IntCExpr c}) =
+           BinIntExpr {left=left, bop=PlusOp, right=IntCExpr (c + 1)}
+    | inc v = BinIntExpr {left=v, bop=PlusOp, right=IntCExpr 1}
 
   fun dec (IntCExpr c) = IntCExpr (c-1)
-    | dec (BinIntExpr {left, bop=PlusOp, right=IntCExpr 1, pos}) = left
-    | dec (BinIntExpr {left, bop=PlusOp, right=IntCExpr c, pos}) =
-           BinIntExpr {left=left, bop=PlusOp, right=IntCExpr (c - 1), pos=pos}
-    | dec (BinIntExpr {left, bop=MinusOp, right=IntCExpr c, pos}) =
-           BinIntExpr {left=left, bop=MinusOp, right=IntCExpr (c - 1), pos=pos}
-    | dec v = BinIntExpr {left=v, bop=MinusOp, right=IntCExpr 1, pos=nopos}
+    | dec (BinIntExpr {left, bop=PlusOp, right=IntCExpr 1}) = left
+    | dec (BinIntExpr {left, bop=PlusOp, right=IntCExpr c}) =
+           BinIntExpr {left=left, bop=PlusOp, right=IntCExpr (c - 1)}
+    | dec (BinIntExpr {left, bop=MinusOp, right=IntCExpr c}) =
+           BinIntExpr {left=left, bop=MinusOp, right=IntCExpr (c - 1)}
+    | dec v = BinIntExpr {left=v, bop=MinusOp, right=IntCExpr 1}
 
   val trueExpr  = BoolCExpr true
   val falseExpr = BoolCExpr false
@@ -299,13 +280,13 @@ struct
     | andexpr (e1 as (BoolCExpr false), e2)                      = e1
     | andexpr (e1,                      BoolCExpr true)          = e1
     | andexpr (e1,                      e2 as (BoolCExpr false)) = e2
-    | andexpr (e1, e2) = BinBoolExpr {left=e1, bop=AndOp, right=e2, pos=nopos}
+    | andexpr (e1, e2) = BinBoolExpr {left=e1, bop=AndOp, right=e2}
 
   fun orexpr (BoolCExpr false,         e2)                      = e2
     | orexpr (e1 as (BoolCExpr true),  e2)                      = e1
     | orexpr (e1,                      BoolCExpr false)         = e1
     | orexpr (e1,                      e2 as (BoolCExpr true))  = e2
-    | orexpr (e1, e2) = BinBoolExpr {left=e1, bop=OrOp, right=e2, pos=nopos}
+    | orexpr (e1, e2) = BinBoolExpr {left=e1, bop=OrOp, right=e2}
 
 
   fun checkVar (p, VarExpr (SimpleVar (nm, _)))      = p nm
@@ -317,7 +298,7 @@ struct
     | mulExpr (_, IntCExpr 0) = IntCExpr 0
     | mulExpr (IntCExpr 1, e) = e
     | mulExpr (e, IntCExpr 1) = e
-    | mulExpr (l, r) = BinIntExpr {left=l, bop=TimesOp, right=r, pos=nopos}
+    | mulExpr (l, r) = BinIntExpr {left=l, bop=TimesOp, right=r}
 
   (* Given a relation expression with a clock variable on one side, we
    * multiply the other side, as clocks can only be reset or compared in
@@ -325,27 +306,27 @@ struct
    * Care must be taken though, to recurse through quantifiers and boolean
    * connectives. *)
   fun mulClocks (m, isClk) e = let
-      fun mul (NotExpr {expr, pos}) = NotExpr {expr=mul expr, pos=pos}
-        | mul (BinBoolExpr {left, bop, right, pos}) =
-               BinBoolExpr {left=mul left, bop=bop, right=mul right, pos=pos}
+      fun mul (NotExpr expr) = NotExpr (mul expr)
+        | mul (BinBoolExpr {left, bop, right}) =
+               BinBoolExpr {left=mul left, bop=bop, right=mul right}
 
-        | mul (RelExpr {left=l, rel=c, right=r, pos=p}) =
-            if checkVar (isClk, l)      then RelExpr {left=l, rel=c, pos=p,
+        | mul (RelExpr {left=l, rel=c, right=r}) =
+            if checkVar (isClk, l)      then RelExpr {left=l, rel=c,
                                                       right=mulExpr (r, m)}
-            else if checkVar (isClk, r) then RelExpr {right=r, rel=c, pos=p,
+            else if checkVar (isClk, r) then RelExpr {right=r, rel=c,
                                                       left=mulExpr (l, m)}
-            else RelExpr {left=mul l, rel=c, right=mul r, pos=p}
+            else RelExpr {left=mul l, rel=c, right=mul r}
                
-        | mul (ForAllExpr {id, ty, expr, pos}) = let
+        | mul (ForAllExpr {id, ty, expr}) = let
               fun isClk' s = not (s =:= id) andalso (isClk s)
             in
-              ForAllExpr {id=id, ty=ty, pos=pos,
+              ForAllExpr {id=id, ty=ty,
                           expr=mulClocks (m, isClk') expr}
             end
-        | mul (ExistsExpr {id, ty, expr, pos}) = let
+        | mul (ExistsExpr {id, ty, expr}) = let
               fun isClk' s = not (s =:= id) andalso (isClk s)
             in
-              ExistsExpr {id=id, ty=ty, pos=pos,
+              ExistsExpr {id=id, ty=ty,
                           expr=mulClocks (m, isClk') expr}
             end
 
@@ -507,25 +488,22 @@ struct
                      andalso equal (l1, l2) andalso equal (r1, r2)
     | isNegation (_, _) = false
 
-  fun negate (NotExpr {expr=e, pos}) = e
-    | negate (BoolCExpr b)           = BoolCExpr (not b)
-    | negate (RelExpr {left, rel, right, pos})
-          = RelExpr {left=left, rel=inverseRel rel, right=right, pos=pos}
-    | negate (BinBoolExpr {left, bop=AndOp, right, pos})
-          = BinBoolExpr {left=negate left, bop=OrOp,
-                         right=negate right, pos=pos}
-    | negate (BinBoolExpr {left, bop=OrOp, right, pos})
-          = BinBoolExpr {left=negate left, bop=AndOp,
-                         right=negate right, pos=pos}
-    | negate (BinBoolExpr {left, bop=ImplyOp, right, pos})
-          = BinBoolExpr {left=left, bop=AndOp,
-                         right=negate right, pos=pos}
-    | negate (ForAllExpr {id, ty, expr, pos})
-          = ExistsExpr {id=id, ty=ty, expr=negate expr, pos=pos}
-    | negate (ExistsExpr {id, ty, expr, pos})
-          = ForAllExpr {id=id, ty=ty, expr=negate expr, pos=pos}
+  fun negate (NotExpr e)           = e
+    | negate (BoolCExpr b)         = BoolCExpr (not b)
+    | negate (RelExpr {left, rel, right})
+          = RelExpr {left=left, rel=inverseRel rel, right=right}
+    | negate (BinBoolExpr {left, bop=AndOp, right})
+          = BinBoolExpr {left=negate left, bop=OrOp, right=negate right}
+    | negate (BinBoolExpr {left, bop=OrOp, right})
+          = BinBoolExpr {left=negate left, bop=AndOp, right=negate right}
+    | negate (BinBoolExpr {left, bop=ImplyOp, right})
+          = BinBoolExpr {left=left, bop=AndOp, right=negate right}
+    | negate (ForAllExpr {id, ty, expr})
+          = ExistsExpr {id=id, ty=ty, expr=negate expr}
+    | negate (ExistsExpr {id, ty, expr})
+          = ForAllExpr {id=id, ty=ty, expr=negate expr}
             
-    | negate e                       = NotExpr {expr=e, pos=nopos}
+    | negate e                       = NotExpr e
 
   end (* local *)
 
@@ -535,8 +513,8 @@ struct
   fun shrinkScope ((id, ty, forallbinding), p) expr = let
       fun bind e = if p e
                    then (if forallbinding
-                         then ForAllExpr {id=id,ty=ty, expr=e,pos=nopos}
-                         else ExistsExpr {id=id,ty=ty, expr=e,pos=nopos})
+                         then ForAllExpr {id=id,ty=ty, expr=e}
+                         else ExistsExpr {id=id,ty=ty, expr=e})
                    else raise CannotBind
 
       (* invariant: given f e, id <- (getFreeNames e) *)
@@ -545,22 +523,22 @@ struct
              * recurse, but Expression.negate may simply introduce another
              * NotExpr wrapper thus giving non-termination. *)
 
-        | f (e as BinBoolExpr {left=l, bop, right=r, pos}) =
+        | f (e as BinBoolExpr {left=l, bop, right=r}) =
             if not (id <- getFreeNames l)
-            then BinBoolExpr {left=l, bop=bop, right=f r, pos=pos}
+            then BinBoolExpr {left=l, bop=bop, right=f r}
             else if not (id <- getFreeNames r)
-            then BinBoolExpr {left=f l, bop=bop, right=r, pos=pos}
+            then BinBoolExpr {left=f l, bop=bop, right=r}
             else bind e
         
-        | f (e as ForAllExpr {id=bid, ty=bty, expr=be, pos}) =
+        | f (e as ForAllExpr {id=bid, ty=bty, expr=be}) =
             if forallbinding
-            then ForAllExpr {id=bid, ty=bty, expr=f be, pos=pos}
+            then ForAllExpr {id=bid, ty=bty, expr=f be}
                  (* we can swap forall bindings, invariant => not (id=bid) *)
             else bind e
         
-        | f (e as ExistsExpr {id=bid, ty=bty, expr=be, pos}) =
+        | f (e as ExistsExpr {id=bid, ty=bty, expr=be}) =
             if forallbinding then bind e
-            else ExistsExpr {id=bid, ty=bty, expr=f be, pos=pos}
+            else ExistsExpr {id=bid, ty=bty, expr=f be}
                  (* we can swap exists bindings, invariant => not (id=bid) *)
       
         (* terms: *)
@@ -587,10 +565,10 @@ struct
       val rbn = getBoundNames rb
       val bn  = getBoundNames b
 
-      fun checkName (bid as BoundId (n, ty, pos), (bs, e, used)) =
+      fun checkName (bid as BoundId (n, ty), (bs, e, used)) =
           if n <- rbn
           then let val n' = getNewName (n, used)
-               in (BoundId (n', ty, pos)::bs,
+               in (BoundId (n', ty)::bs,
                    renameVar ({old=n, new=n'}, e),
                    used <+ n')
                end
