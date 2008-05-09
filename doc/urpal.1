@@ -178,13 +178,16 @@ to the given path in the specified format (Postscript, Graphviz dot, or
 Scalable Vector Graphics format).
 .It Sy quit
 End an interactive terminal session.
+.It Ar expr
+Displays the result of evaluating the expression. Does not alter
+the environment.
 .El
 .Pp
 All expressions have one of these types
 .Bl -tag -compact
 .It Sy template
 Templates are read from, and written back into, Uppaal model files.
-.It Sy name set
+.It Sy nameset
 Names of locations or channels which are written between braces and
 separated by commas, e.g. 
 .Li { a, b, c} .
@@ -195,12 +198,12 @@ and
 .Sy channels
 over approximate by returning the array name whenever a single element is
 referenced.
-.It Sy action set
+.It Sy actionset
 When naming channels, a limiting input or output direction may be
 specified after a name if the set is enclosed in bar-braces, e.g.
 .Li {| a!, b, c? |} .
 Name sets are automatically coerced into action sets as required.
-.It Sy name map
+.It Sy namemap
 Specify functions from names to other names, e.g.
 .Li { a -> b, c -> a, b <-> d } .
 Any name not given is mapped to itself.
@@ -218,8 +221,11 @@ Several operators are available for constructing expressions
 .Bl -tag -compact
 .It Fn acceptall actionset
 Create an automaton that is always ready to synchronise on the given actions.
+.It Fn actions template
+Gives an actionset of all actions occurring in the template.
 .It Fn channels template
-Gives a nameset of all actions performed by the template.
+Gives a nameset of all channels used within the template (regardless of
+direction).
 .It Fn conflate template namemap
 For each
 .Li n -> n'
@@ -239,9 +245,12 @@ Defaults to the
 and
 .Li globals
 variables, respectively.
-.It Fn names template
-Gives a nameset of all channels synchronized on by the template regardless
-of direction.
+.It Fn multisecttime template factor
+Multiply clock comparison expressions in
+.Ar template
+by
+.Ar factor ,
+which may be either an integer literal or a variable name.
 .It Fn parameters template
 Returns a nameset of non-const parameter names.
 .It Fn renamelocs template namemap
@@ -364,7 +373,7 @@ channel and make the result larger:
 .%A Arcot Sowmya
 .%T Tool support for verifying trace inclusion with Uppaal
 .%R Technical Report
-.%I NICTA/CSE UNSW
+.%I UNSW-CSE-TR-0723
 .%D November 2007
 .Re
 .Rs
