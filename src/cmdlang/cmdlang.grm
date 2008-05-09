@@ -386,8 +386,7 @@ expr: ACCEPTALL expr RPAR             (fn e=>doAcceptAll (e, expr e))
                                                Expression.IntCExpr INTEGER))
     | MULTISECTTIME expr COMMA ID RPAR    (fn e=>multisectTime (expr e,
                                                Expression.VarExpr (
-                                                 Expression.SimpleVar
-                                                   (ID, Expression.nopos))))
+                                                 Expression.SimpleVar ID)))
     | PARAMETERS expr RPAR            (fn e=>doParameters (expr e))
     | RENAMELOCS expr COMMA expr RPAR (fn e=>doRenameLocs (expr1 e, expr2 e))
     | RENAMETRANS expr COMMA expr RPAR(fn e=>doRenameTrans (expr1 e,

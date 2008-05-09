@@ -19,20 +19,20 @@ structure MakeTimed = struct
   val nmBITS       = `"BITS"
   val nmR          = Vector.tabulate (8, (fn i=> `("R"^Int.toString i)))
 
-  val cycleConst = E.VarExpr (E.SimpleVar (nmCycleConst, E.nopos))
-  val cycleClk   = E.VarExpr (E.SimpleVar (nmCycleClk, E.nopos))
+  val cycleConst = E.VarExpr (E.SimpleVar nmCycleConst)
+  val cycleClk   = E.VarExpr (E.SimpleVar nmCycleClk)
 
   val one  = E.IntCExpr 1
   val zero = E.IntCExpr 0
   val maxbyte = E.IntCExpr 255
   
   local
-    fun makeVar s       = E.VarExpr (E.SimpleVar (Atom.atom s, E.nopos))
-    val accum = E.VarExpr (E.SimpleVar (nmAccum, E.nopos))
-    val carry = E.VarExpr (E.SimpleVar (nmCarry, E.nopos))
-    val iram  = E.SimpleVar (nmIRAM, E.nopos)
-    val eram  = E.SimpleVar (nmERAM, E.nopos)
-    val bits  = E.SimpleVar (nmBITS, E.nopos)
+    fun makeVar s       = E.VarExpr (E.SimpleVar (Atom.atom s))
+    val accum = E.VarExpr (E.SimpleVar nmAccum)
+    val carry = E.VarExpr (E.SimpleVar nmCarry)
+    val iram  = E.SimpleVar nmIRAM
+    val eram  = E.SimpleVar nmERAM
+    val bits  = E.SimpleVar nmBITS
 
     fun regToAtom ASM.R0 = Vector.sub (nmR, 0)
       | regToAtom ASM.R1 = Vector.sub (nmR, 1)
@@ -43,14 +43,14 @@ structure MakeTimed = struct
       | regToAtom ASM.R6 = Vector.sub (nmR, 6)
       | regToAtom ASM.R7 = Vector.sub (nmR, 7)
 
-    fun regToVar r      = E.VarExpr (E.SimpleVar (regToAtom r, E.nopos))
-    fun subscriptVar (v,idxex) = E.VarExpr (E.SubscriptVar(v, idxex, E.nopos))
+    fun regToVar r      = E.VarExpr (E.SimpleVar (regToAtom r))
+    fun subscriptVar (v,idxex) = E.VarExpr (E.SubscriptVar (v, idxex))
     fun directToVar d   = subscriptVar (iram, makeVar (ASM.directToString d))
     fun indirectToVar r = subscriptVar (iram, makeVar (ASM.indToString r))
     fun immToVar r      = makeVar (ASM.dataToString r)
     fun bitToVar b      = subscriptVar (bits, makeVar (ASM.bitToString b))
 
-    fun assign (s,v,a) = [E.AssignExpr{var=s,aop=a,expr=v,pos=E.nopos}]
+    fun assign (s,v,a) = [E.AssignExpr {var=s, aop=a, expr=v}]
   in
   fun addReset act = act @ assign (cycleClk, zero, E.AssignOp)
 
@@ -220,7 +220,7 @@ structure MakeTimed = struct
     | jumpsTo _                 = NONE
 
   fun guardCmp (l, cmp, r, dst) = let
-      val g = E.RelExpr {left=l, rel=cmp, right=r, pos=E.nopos}
+      val g = E.RelExpr {left=l, rel=cmp, right=r}
     in SOME (g, ASM.relToString dst) end
 
   (* For jump expressions: returns a guard and label pair, the former
@@ -243,9 +243,9 @@ structure MakeTimed = struct
     | jumpGuard _ = NONE
 
   fun seqGuard (ASM.DJNZ_reg (r,rel)) =SOME (E.RelExpr {left=regToVar r,
-                                         rel=E.EqOp, right=one, pos=E.nopos})
+                                                        rel=E.EqOp, right=one})
     | seqGuard (ASM.DJNZ_dir (d,rel)) =SOME (E.RelExpr {left=directToVar d,
-                                         rel=E.EqOp, right=one, pos=E.nopos})
+                                                        rel=E.EqOp, right=one})
     | seqGuard act = Option.map (fn (jg,_)=>E.negate jg) (jumpGuard act)
 
   local
@@ -253,26 +253,24 @@ structure MakeTimed = struct
     fun mkArray (n, ty) = E.ARRAY (ty,E.Type (E.INT
                                         (SOME (zero, E.IntCExpr (n - 1)),
                                         E.NoQual)))
-    fun mkReg (r, rs) = (r, D.VarDecl {id=r, ty=byte,
-                                       initial=SOME (D.SimpleInit zero),
-                                       pos=E.nopos}) :: rs
+    fun mkReg (r, rs) = (r, D.VarDecl {id=r, ty=byte, pos=D.nopos,
+                                       initial=SOME (D.SimpleInit zero)}) :: rs
 
     val varMap = foldl AtomMap.insert' AtomMap.empty (
       (nmCycleConst,D.VarDecl {id=nmCycleConst, ty=E.INT (NONE, E.Const),
-                               initial=NONE, pos=E.nopos})::
-      (nmCycleClk,  D.VarDecl {id=nmCycleClk, ty=E.CLOCK,
-                               initial=NONE, pos=E.nopos})::
-      (nmAccum,     D.VarDecl {id=nmAccum, ty=byte,
-                               initial=SOME (D.SimpleInit zero), pos=E.nopos})::
-      (nmCarry,     D.VarDecl {id=nmAccum, ty=E.BOOL E.NoQual,
-                               initial=SOME (D.SimpleInit E.falseExpr),
-                               pos=E.nopos})::
+                               initial=NONE, pos=D.nopos})::
+      (nmCycleClk,  D.VarDecl {id=nmCycleClk, ty=E.CLOCK, initial=NONE,
+                               pos=D.nopos})::
+      (nmAccum,     D.VarDecl {id=nmAccum, ty=byte, pos=D.nopos,
+                               initial=SOME (D.SimpleInit zero)})::
+      (nmCarry,     D.VarDecl {id=nmAccum, ty=E.BOOL E.NoQual, pos=D.nopos,
+                               initial=SOME (D.SimpleInit E.falseExpr)})::
       (nmIRAM,      D.VarDecl {id=nmIRAM, ty=mkArray (128, byte),
-                               initial=NONE, pos=E.nopos})::
-      (nmERAM,      D.VarDecl {id=nmERAM, ty=mkArray (10, byte),
-                               initial=NONE, pos=E.nopos})::
+                               initial=NONE, pos=D.nopos})::
+      (nmERAM,      D.VarDecl {id=nmERAM, ty=mkArray (10,byte), initial=NONE,
+                               pos=D.nopos})::
       (nmBITS,      D.VarDecl {id=nmBITS, ty=mkArray (128, E.BOOL E.NoQual),
-                               initial=NONE, pos=E.nopos})::
+                               initial=NONE, pos=D.nopos})::
       Vector.foldl mkReg [] nmR)
   in
   fun varToDecl nm = AtomMap.find (varMap, nm)
@@ -294,8 +292,8 @@ structure MakeTimed = struct
       val nc = ASM.numCycles a
       val t  = if nc = 1 then cycleConst
                else E.BinIntExpr {left=E.IntCExpr nc, bop=E.TimesOp,
-                                  right=cycleConst, pos=E.nopos}
-    in E.RelExpr {left=cycleClk, rel=rel, right=t, pos=E.nopos} end
+                                  right=cycleConst}
+    in E.RelExpr {left=cycleClk, rel=rel, right=t} end
 
   fun makeTimed ([], _) = P.Template.new ("", NONE)
     | makeTimed (instrs, {showinstrs, position, maxrows}) = let

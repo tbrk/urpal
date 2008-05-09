@@ -58,7 +58,7 @@ struct (*{{{1*)
     | precExpr (E.IntCExpr _)              = (NoAssoc, precHighest)
     | precExpr (E.BoolCExpr _)             = (NoAssoc, precHighest)
     | precExpr (E.CallExpr _)              = (NoAssoc, precHighest)
-    | precExpr (E.Deadlock _)              = (NoAssoc, precHighest)
+    | precExpr (E.Deadlock)                = (NoAssoc, precHighest)
     | precExpr (E.NegExpr _)               = (NoAssoc, 18)
     | precExpr (E.NotExpr _)               = (NoAssoc, 18)
     | precExpr (E.UnaryModExpr {uop, ...}) = (RightAssoc, 18)
@@ -192,12 +192,12 @@ struct (*{{{1*)
      | (E.IntCExpr i)      => PPD.string (Int.toString i)
      | (E.BoolCExpr true)  => cTrue
      | (E.BoolCExpr false) => cFalse
-     | (E.Deadlock _)      => cDeadlock
+     | (E.Deadlock)        => cDeadlock
 
-     | (E.NegExpr {expr, ...}) => hovBox (normIndent, [PPD.string "-",
+     | (E.NegExpr expr)    => hovBox (normIndent, [PPD.string "-",
                                             bracket (false, pri, expr)])
 
-     | (E.NotExpr {expr, ...}) => hovBox (normIndent, [PPD.string "!",
+     | (E.NotExpr expr)    => hovBox (normIndent, [PPD.string "!",
                                             bracket (false, pri, expr)])
 
      | (E.UnaryModExpr {uop, expr, ...})       => hovBox (normIndent,
@@ -337,11 +337,10 @@ struct (*{{{1*)
     end (*}}}1*)
 
   and fromVar v = let                                           (*{{{1*)
-      fun fvar (E.SimpleVar (s, _))            = [descSymbol s]
+      fun fvar (E.SimpleVar s)                 = [descSymbol s]
         | fvar (E.ReturnVar {func, args, ...}) = [makeFuncCall (func, args)]
-        | fvar (E.RecordVar (v, s, _))         = descSymbol s :: cDot
-                                                  :: fvar v
-        | fvar (E.SubscriptVar (var, expr, _)) = let
+        | fvar (E.RecordVar (v, s))            = descSymbol s :: cDot :: fvar v
+        | fvar (E.SubscriptVar (var, expr))    = let
               val t = hovBox (noIndent, [cOSquare, fromExpr expr,
                                                PPD.cut, cCSquare])
             in t :: fvar var end
@@ -350,7 +349,7 @@ struct (*{{{1*)
     end (*}}}1*)
 
   fun fromSelects syncs = let (*{{{1*)
-      fun makeBound (E.BoundId (id, ty, _)) = hovBox (normIndent,
+      fun makeBound (E.BoundId (id, ty)) = hovBox (normIndent,
                 [descSymbol id, space, cColon, space, fromType ty])
 
       fun doList []      = []

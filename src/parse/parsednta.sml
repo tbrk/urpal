@@ -88,7 +88,7 @@ structure ParsedNta : PARSED_NTA = struct
       fun syncSubs NONE = [] | syncSubs (SOME (_, _, subs)) = subs
       val exprListNames = foldl (fn (e, s)=> s ++ (E.getFreeNames e)) emptyset
 
-      val boundnms = foldl (fn (E.BoundId (nm, _, _), s)=> s <+ nm) emptyset sel
+      val boundnms = foldl (fn (E.BoundId (nm, _), s)=> s <+ nm) emptyset sel
       val updatenms = exprListNames upd
       val syncnms = exprListNames (syncSubs sync)
     in (updatenms ++ syncnms ++ E.getFreeNames g) \ boundnms end

@@ -13,7 +13,7 @@
  *  * Conditionals on LHS of assignments
  *)
 
-functor ExpressionFn () : EXPRESSION =
+structure Expression : EXPRESSION =
 struct
   
   (* shortcuts over Atom and AtomSet *)
@@ -98,10 +98,10 @@ struct
   and    unresolvedty = Unresolved of symbol
                       | Type of ty
 
-  fun varName (SimpleVar (nm, _))       = Atom.toString nm
-    | varName (ReturnVar {func, ...})   = Atom.toString func ^ "(...)"
-    | varName (RecordVar (v, field, _)) = varName v ^ "." ^ Atom.toString field
-    | varName (SubscriptVar (v, _, _))  = varName v ^ "[]"
+  fun varName (SimpleVar nm)          = Atom.toString nm
+    | varName (ReturnVar {func, ...}) = Atom.toString func ^ "(...)"
+    | varName (RecordVar (v, field))  = varName v ^ "." ^ Atom.toString field
+    | varName (SubscriptVar (v, _))   = varName v ^ "[]"
 
   fun getFreeNames e = let
       (*{{{1*)
@@ -109,17 +109,17 @@ struct
       val mem = AtomSet.member
       val without = AtomSet.delete
 
-      fun lv (s, SimpleVar (v, _))              = add (s, v)
-        | lv (s, ReturnVar {args, ...})         = lelist (s, args)
-        | lv (s, RecordVar (v, _, _))           = lv (s, v)
-        | lv (s, SubscriptVar (v, sub, _))      = le (lv (s, v), sub)
+      fun lv (s, SimpleVar v)            = add (s, v)
+        | lv (s, ReturnVar {args, ...}) = lelist (s, args)
+        | lv (s, RecordVar (v, _))      = lv (s, v)
+        | lv (s, SubscriptVar (v, sub)) = le (lv (s, v), sub)
 
       and le (s, VarExpr v)                     = lv (s, v)
         | le (s, IntCExpr _)                    = s
         | le (s, BoolCExpr _)                   = s
         | le (s, CallExpr {args, ...})          = lelist (s, args)
-        | le (s, NegExpr {expr, ...})           = le (s, expr)
-        | le (s, NotExpr {expr, ...})           = le (s, expr)
+        | le (s, NegExpr expr)                  = le (s, expr)
+        | le (s, NotExpr expr)                  = le (s, expr)
         | le (s, UnaryModExpr {expr, ...})      = le (s, expr)
         | le (s, BinIntExpr {left, right, ...}) = lele (s, left, right)
         | le (s, BinBoolExpr {left, right, ...})= lele (s, left, right)
@@ -137,7 +137,7 @@ struct
                                   if mem (s, id) orelse not (mem (s', id))
                                   then s else without (s', id)
                                 end
-        | le (s, Deadlock _)                    = s
+        | le (s, Deadlock)                    = s
 
       and lele (s, a, b) = le (le (s, a), b)
       and lelist (s, l) = List.foldl (fn (e, s)=> le (s, e)) s l
@@ -145,7 +145,7 @@ struct
     in le (AtomSet.empty, e) end (*}}}1*)
 
   val getBoundNames = let
-      fun add (BoundId (n, _, _), s) = s <+ n
+      fun add (BoundId (n, _), s) = s <+ n
     in foldl add emptyset end
 
   fun renameVars' (renmap : symbol AtomMap.map, oldnames, newnames) = let
@@ -225,11 +225,11 @@ struct
                       end
             else ExistsExpr {id=id, ty=ty, expr=re expr}
 
-        | re (e as Deadlock _)  = e
+        | re (e as Deadlock)  = e
 
-      and rv (v as SimpleVar (s, p)) = (case AtomMap.find (renmap, s) of
-                                          NONE    => v
-                                        | SOME s' => SimpleVar (s', p))
+      and rv (v as SimpleVar s)       = (case AtomMap.find (renmap, s) of
+                                           NONE    => v
+                                         | SOME s' => SimpleVar s')
         | rv (ReturnVar {func, args}) = ReturnVar {func=func,
                                               args=map re args}
         | rv (RecordVar (v, field))   = RecordVar (rv v, field)
@@ -289,8 +289,8 @@ struct
     | orexpr (e1, e2) = BinBoolExpr {left=e1, bop=OrOp, right=e2}
 
 
-  fun checkVar (p, VarExpr (SimpleVar (nm, _)))      = p nm
-    | checkVar (p, VarExpr (SubscriptVar (v, _, _))) = checkVar (p, VarExpr v)
+  fun checkVar (p, VarExpr (SimpleVar nm))        = p nm
+    | checkVar (p, VarExpr (SubscriptVar (v, _))) = checkVar (p, VarExpr v)
     | checkVar (_, _) = false
 
   fun mulExpr (IntCExpr l, IntCExpr r) = IntCExpr (l * r)
@@ -341,7 +341,7 @@ struct
 
       fun hideThenCheck (s, e) = conflictExists (cs1 <\ s, cs2 <\ s, e)
 
-      fun conflict (NotExpr {expr, ...})            = conflict expr
+      fun conflict (NotExpr expr)                   = conflict expr
         | conflict (BinBoolExpr {left, right, ...}) = conflict left
                                                       orelse conflict right
         
@@ -350,7 +350,7 @@ struct
 
         | conflict (IntCExpr _)                     = false
         | conflict (BoolCExpr _)                    = false
-        | conflict (Deadlock _)                     = false
+        | conflict Deadlock                         = false
 
         | conflict e = let val s = getFreeNames e
                        in s <^> cs1 andalso s <^> cs2 end
@@ -365,10 +365,8 @@ struct
              CallExpr {func=f2, args=a2, ...})
             = f1 =:= f2 andalso lequal (a1,a2)
 
-    | equal (NegExpr {expr=e1, ...},
-             NegExpr {expr=e2, ...}) = equal (e1, e2)
-    | equal (NotExpr {expr=e1, ...},
-             NotExpr {expr=e2, ...}) = equal (e1, e2)
+    | equal (NegExpr e1, NegExpr e2) = equal (e1, e2)
+    | equal (NotExpr e1, NotExpr e2) = equal (e1, e2)
 
     | equal (UnaryModExpr {uop=op1, expr=e1, ...},
              UnaryModExpr {uop=op2, expr=e2, ...})
@@ -402,26 +400,23 @@ struct
              ExistsExpr {id=id2, ty=t2, expr=e2, ...})
             = id1 =:= id2 andalso tyequal (t1, t2) andalso equal (e1, e2)
 
-    | equal (Deadlock _, Deadlock _) = true
+    | equal (Deadlock, Deadlock) = true
     | equal (_, _) = false
 
   and lequal ([], [])          = true
     | lequal (x1::xs1,x2::xs2) = equal (x1, x2) andalso lequal (xs1,xs2)
     | lequal (_, _)            = false
 
-  and varequal (SimpleVar (s1, _),
-                SimpleVar (s2, _)) = s1 =:= s2
+  and varequal (SimpleVar s1, SimpleVar s2) = s1 =:= s2
 
     | varequal (ReturnVar {func=f1, args=a1, ...},
                 ReturnVar {func=f2, args=a2, ...})
                 = f1 =:= f2 andalso lequal (a1, a2)
 
-    | varequal (RecordVar (v1, s1, _),
-                RecordVar (v2, s2, _))
+    | varequal (RecordVar (v1, s1), RecordVar (v2, s2))
                 = s1 =:= s2 andalso varequal (v1, v2)
 
-    | varequal (SubscriptVar (v2, e1, _),
-                SubscriptVar (v1, e2, _))
+    | varequal (SubscriptVar (v2, e1), SubscriptVar (v1, e2))
                 = varequal (v1, v2) andalso equal (e1, e2)
 
     | varequal (_, _) = false
@@ -479,11 +474,11 @@ struct
       | inverseRel EqOp = NeOp | inverseRel NeOp = EqOp
       | inverseRel GeOp = LtOp | inverseRel GtOp = LeOp
   in
-  fun isNegation (e1, NotExpr {expr=e2, ...}) = equal (e1, e2)
-    | isNegation (NotExpr {expr=e1, ...}, e2) = equal (e1, e2)
+  fun isNegation (e1, NotExpr e2)             = equal (e1, e2)
+    | isNegation (NotExpr e1, e2)             = equal (e1, e2)
     | isNegation (BoolCExpr b1, BoolCExpr b2) = b1 <> b2
-    | isNegation (RelExpr {left=l1, rel=rel1, right=r1, ...},
-                  RelExpr {left=l2, rel=rel2, right=r2, ...})
+    | isNegation (RelExpr {left=l1, rel=rel1, right=r1},
+                  RelExpr {left=l2, rel=rel2, right=r2})
                  = isInverseRel (rel1, rel2) 
                      andalso equal (l1, l2) andalso equal (r1, r2)
     | isNegation (_, _) = false
@@ -553,7 +548,7 @@ struct
 
         | f (IntCExpr _)  = raise Fail "shrinkScope: invariant false."
         | f (BoolCExpr _) = raise Fail "shrinkScope: invariant false."
-        | f (Deadlock _)  = raise Fail "shrinkScope: invariant false."
+        | f Deadlock      = raise Fail "shrinkScope: invariant false."
     in
       if id <- getFreeNames expr
       then SOME (f expr) handle CannotBind => NONE

@@ -21,6 +21,7 @@ is
     uppaalparse.sml
 
     declaration.sig
+    declarationfn.sml
     declaration.sml
 
     declarationppfn.sml
@@ -36,7 +37,6 @@ is
 
     expression.sig
     expression.sml
-    expressionfn.sml
 
     expression_cvt.sig
     expressioncvt.sml

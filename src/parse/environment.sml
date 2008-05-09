@@ -127,7 +127,7 @@ struct
               val sty = case Map.find (tenv, s)
                         of SOME (_, (_, ety)) => ety
                          | NONE          => let
-                             val u = E.VarExpr (E.SimpleVar (s, E.nopos))
+                             val u = E.VarExpr (E.SimpleVar s)
                                     (* int[l, u] bounds are inclusive *)
                              val umo = E.dec u
                            in E.INT (SOME (E.IntCExpr 0, umo), E.NoQual) end
@@ -269,10 +269,10 @@ struct
               end
         | findField _ _ = NONE
       
-      fun fve (E.SimpleVar (s, _))      = (varToType <*< Map.find) (venv, s)
+      fun fve (E.SimpleVar s)           = (varToType <*< Map.find) (venv, s)
         | fve (E.ReturnVar {func, ...}) = (funToType <*< Map.find) (venv, func)
-        | fve (E.SubscriptVar (v, _, _))  = (stripArray <*< fve) v
-        | fve (E.RecordVar (v, field, _)) = ((findField field) <*< fve) v
+        | fve (E.SubscriptVar (v, _))   = (stripArray <*< fve) v
+        | fve (E.RecordVar (v, field))  = ((findField field) <*< fve) v
     in fve end
 
   fun findVal (_, venv, _) s = (Option.compose (fn (_, v)=>v, Map.find)) (venv, s)
@@ -411,10 +411,10 @@ struct
                       of E.VarExpr _   => []
                        | E.IntCExpr _  => [] 
                        | E.BoolCExpr _ => []
-                       | E.Deadlock _  => []
+                       | E.Deadlock    => []
                        | E.CallExpr {args, ...}    => foldl (flist env) [] args
-                       | E.NegExpr {expr, ...}     => f (env, expr)
-                       | E.NotExpr {expr, ...}     => f (env, expr)
+                       | E.NegExpr expr            => f (env, expr)
+                       | E.NotExpr expr            => f (env, expr)
                        | E.UnaryModExpr {expr, ...}=> f (env, expr)
                        | E.BinIntExpr {left, right,...}  => f (env, left)
                                                          @ f (env, right)

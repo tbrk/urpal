@@ -137,8 +137,8 @@ struct
       val name = String.concat [templatename, ":", getLocName source,
                                 "->", getLocName target, " "]
 
-      fun expandTys (E.BoundId (nm, ty, pos)) =
-                     E.BoundId (nm, Env.expandTyIds (env, ty), pos)
+      fun expandTys (E.BoundId (nm, ty)) =
+                     E.BoundId (nm, Env.expandTyIds (env, ty))
 
       val sel    = defaultEmpty (valOf o (parseSelect (name ^ "select")), selo)
       val guard  = defaultTrue (valOf o (parseExpression (name ^ "guard")),
@@ -224,7 +224,7 @@ struct
              update=(upd,updP), comments, position, color, nails}) =
       let
         fun listFree (e, s) = AtomSet.union (Expression.getFreeNames e, s)
-        fun isUsed s (Expression.BoundId (nm, _, _)) = AtomSet.member (s, nm)
+        fun isUsed s (Expression.BoundId (nm, _)) = AtomSet.member (s, nm)
 
         val free = foldl listFree AtomSet.empty
                         ((g::upd) @ (case syn of NONE => []

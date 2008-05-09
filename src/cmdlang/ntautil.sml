@@ -236,11 +236,10 @@ struct
       if IntBinarySet.isEmpty urgentLocs then t
       else let
         val uclk     = Env.newId (Atom.atom "c_u", decls)
-        val uclkvar  = E.VarExpr (E.SimpleVar (uclk, E.nopos))
-        val uclkcons = E.RelExpr {left=uclkvar, rel=E.LeOp,
-                                  right=E.IntCExpr 0, pos=E.nopos}
+        val uclkvar  = E.VarExpr (E.SimpleVar uclk)
+        val uclkcons = E.RelExpr {left=uclkvar, rel=E.LeOp, right=E.IntCExpr 0}
         val uclkrst  = E.AssignExpr {var=uclkvar, aop=E.AssignOp,
-                                     expr=E.IntCExpr 0, pos=E.nopos}
+                                     expr=E.IntCExpr 0}
 
         val decls'   = Env.addId Env.TemplateScope ((uclk, E.CLOCK), decls)
 
@@ -286,9 +285,9 @@ struct
             SOME (E.CHANNEL _, tys) => let
                 val ids = List.tabulate (length tys,
                                          fn i=>Atom.atom ("s"^Int.toString i))
-                val sels = ListPair.map (fn (nm,t)=>E.BoundId (nm,t,E.nopos))
+                val sels = ListPair.map (fn (nm, t)=>E.BoundId (nm, t))
                                         (ids, tys)
-                val eids = map (fn i=>E.VarExpr (E.SimpleVar (i,E.nopos))) ids
+                val eids = map (fn i=>E.VarExpr (E.SimpleVar i)) ids
               in
                 SOME (newTrans (nm, sels, eids, tys, dir))
               end
@@ -337,7 +336,7 @@ struct
                              guard=(g, gP), sync, update=(upd, updP),
                              comments, position, color, nails}) =
         let
-          val bound = foldl (fn (E.BoundId (nm,_,_), s)=> s <+ nm) emptyset sel
+          val bound = foldl (fn (E.BoundId (nm,_), s)=> s <+ nm) emptyset sel
           val mul = E.mulClocks (sc, fn s=> not (s <- bound) andalso isClock s)
         in
           P.Transition {id=id, source=source, target=target, select=select,

@@ -5,9 +5,9 @@
  *           general, lib, xml
  *)
 use "parse/expression.sig";
-use "parse/expressionfn.sml";
 use "parse/expression.sml";
 use "parse/declaration.sig";
+use "parse/declarationfn.sml";
 use "parse/declaration.sml";
 use "parse/ppdevstring.sml";
 use "parse/expression_pp.sig";

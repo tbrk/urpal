@@ -26,9 +26,9 @@ in struct
                             names:      symbolset}
 
   (* utility functions for processing names *)
-  fun toBoundId (s, ty) = E.BoundId (s, ty, E.nopos)
+  fun toBoundId (s, ty) = E.BoundId (s, ty)
 
-  fun fromBoundId (E.BoundId (n, ty, _)) = (n, ty)
+  fun fromBoundId (E.BoundId (n, ty)) = (n, ty)
 
   fun addNameTypes xs = let
       fun add ((n, _), s) = s <+ n
@@ -49,7 +49,7 @@ in struct
         | add (FreeExprSub e, s) = s ++ E.getFreeNames e
     in foldl add emptyset act end
 
-  fun actionsubToExpr (SelectSub n)   = E.VarExpr (E.SimpleVar (n, E.nopos))
+  fun actionsubToExpr (SelectSub n)   = E.VarExpr (E.SimpleVar n)
     | actionsubToExpr (FreeExprSub e) = e
 
   local (*{{{1*)
@@ -79,11 +79,11 @@ in struct
   fun fromTrans subtypes {selectids, actionsubs, guard} =
     let
       (*{{{1*)
-      fun addBound (E.BoundId (n, ty, _), m) = AtomMap.insert (m, n, ty)
+      fun addBound (E.BoundId (n, ty), m) = AtomMap.insert (m, n, ty)
       val sids = foldl addBound AtomMap.empty selectids
       
-      fun limit (nm, rel, limit) = E.RelExpr {pos=E.nopos,
-             left=E.VarExpr (E.SimpleVar (nm, E.nopos)), rel=rel, right=limit}
+      fun limit (nm, rel, limit) = E.RelExpr {left=E.VarExpr (E.SimpleVar nm),
+                                              rel=rel, right=limit}
 
       (* matchSelRange (actualRange, selectedRange) *)
       fun matchSelRange (_, E.INT(NONE, E.NoQual),
@@ -94,7 +94,7 @@ in struct
                   (true, true)   => NONE
                 | (true, false)  => SOME (limit (nm, E.LeOp, uSel))
                 | (false, true)  => SOME (limit (nm, E.GeOp, lSel))
-                | (false, false) => SOME (E.BinBoolExpr{pos=E.nopos,bop=E.AndOp,
+                | (false, false) => SOME (E.BinBoolExpr{bop=E.AndOp,
                      left=limit (nm,E.GeOp,lSel),right=limit (nm,E.LeOp,uSel)}))
 
         | matchSelRange (nm, E.NAME (_, E.NoQual, SOME tyex1),
@@ -117,7 +117,7 @@ in struct
 
       fun checksubs ([], [], _, _) = []
 
-        | checksubs (ty::tys, (act as E.VarExpr (E.SimpleVar (n, _)))::acts,
+        | checksubs (ty::tys, (act as E.VarExpr (E.SimpleVar n))::acts,
                      usedsels, usednames) =
             let fun already nq = n =:= nq
             in
@@ -128,9 +128,8 @@ in struct
                                then let (* select id used twice *)
                                    val n' = getNewName (n, usednames)
                                    val gc = E.RelExpr {left=E.VarExpr
-                                                  (E.SimpleVar (n', E.nopos)),
-                                                  rel=E.EqOp,
-                                                  right=act, pos=E.nopos}
+                                                  (E.SimpleVar n'),
+                                                  rel=E.EqOp, right=act}
                                  in
                                    (SOME gc, SelectSub n', SOME (n', ty))
                                    :: checksubs (tys, acts,
@@ -167,8 +166,9 @@ in struct
         | checksubs _ = raise BadSubscriptCount
 
       fun addPartialConstraint (NONE, g)   = g
-        | addPartialConstraint (SOME c, g) = E.BinBoolExpr {pos=E.nopos,
-                                               left=c, bop=E.AndOp, right=g}
+        | addPartialConstraint (SOME c, g) = E.BinBoolExpr {left=c,
+                                                            bop=E.AndOp,
+                                                            right=g}
 
       val usednames =E.getBoundNames selectids ++ E.getFreeNames guard
                      ++ foldl (fn (e, s)=>E.getFreeNames e ++ s)
@@ -233,7 +233,7 @@ in struct
     in
       ActTrans {selectids=sids',
                 actionsubs=act1,
-                guard=E.BinBoolExpr {left=g1,bop=E.OrOp,right=g2',pos=E.nopos},
+                guard=E.BinBoolExpr {left=g1, bop=E.OrOp, right=g2'},
                 names=names}
     end
 
@@ -286,13 +286,13 @@ in struct
       fun isSelectSub (SelectSub _) = true
         | isSelectSub _             = false
 
-      fun toVar s = E.VarExpr (E.SimpleVar (s, E.nopos))
+      fun toVar s = E.VarExpr (E.SimpleVar s)
 
       fun getActionSubs (ActTrans {actionsubs, ...}) = actionsubs
 
       fun distinguish (_,    SelectSub _,    e) = e
         | distinguish (svar, FreeExprSub fv, e) = let
-              val ne = E.RelExpr {left=svar, rel=E.NeOp, right=fv, pos=E.nopos}
+              val ne = E.RelExpr {left=svar, rel=E.NeOp, right=fv}
             in E.orexpr (e, ne) end
 
       fun distinguishTrans (selectids : (symbol * E.ty) list, ats) = let

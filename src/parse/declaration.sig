@@ -11,7 +11,8 @@ sig
 
   sharing type expr = E.expr
   sharing type ty = E.ty
-  sharing type pos = E.pos
+
+  val nopos : pos
 
   datatype param    = ValParam of {id: symbol, ty: ty}
                     | RefParam of {id: symbol, ty: ty}

@@ -114,14 +114,13 @@ fun showPartitions showitem partitions = let
 
 
   local (**)
-    fun toBoundId (s, ty) = E.BoundId (s, ty, E.nopos)
+    fun toBoundId (s, ty) = E.BoundId (s, ty)
   in (**)
   fun toTrans (CETrans {actselect, gselect, forall,
                         partition, guard, action, ...}) = let
       val preguard = ClkE.toExpr (guard, forall)
       val guard = if E.equal (partition, E.trueExpr) then preguard
-                  else E.BinBoolExpr {left=partition, bop=E.AndOp,
-                                      right=preguard, pos=E.nopos}
+                  else E.BinBoolExpr {left=partition,bop=E.AndOp,right=preguard}
     in
       {selectids=map toBoundId (actselect @ gselect),
        actionsubs=map AT.actionsubToExpr action,
@@ -243,11 +242,9 @@ fun showPartitions showitem partitions = let
           if E.equal (e1, e2)
           then equateActions (ss1, ss2, e)
           else let
-                 val eq = E.RelExpr {left=e1, rel=E.EqOp, right=e2,
-                                     pos=E.nopos}
+                 val eq = E.RelExpr {left=e1, rel=E.EqOp, right=e2}
                  val e' = if E.equal (e, E.trueExpr) then eq
-                          else E.BinBoolExpr {left=e, bop=E.AndOp, right=eq,
-                                              pos=E.nopos}
+                          else E.BinBoolExpr {left=e, bop=E.AndOp, right=eq}
                in equateActions (ss1, ss2, e') end
 
       | equateActions ((AT.SelectSub _)::ss1, (AT.SelectSub _)::ss2, e) =
@@ -259,7 +256,7 @@ fun showPartitions showitem partitions = let
         val ne = E.negate (equateActions (ss1, ss2, E.trueExpr))
       in
         if E.equal (e, E.trueExpr) then ne
-        else E.BinBoolExpr {left=e, bop=E.AndOp, right=ne, pos=E.nopos}
+        else E.BinBoolExpr {left=e, bop=E.AndOp, right=ne}
       end
           
     fun equateClass (x::xs, e) = let

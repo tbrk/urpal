@@ -27,6 +27,16 @@ withmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
 	$(MLTON) $(MLTONOPT) -mlb-path-map unix-path-map -verbose 1  urpal.mlb
 	$(STRIP) urpal
 
+mingw32: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
+	 parse/uppaal.grm.sml parse/uppaal.lex.sml \
+	 mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \
+	 config/config.lex.sml version.sml
+	$(MLTON) -target mingw32 -cc mingw32-gcc \
+		 $(MLTONOPT) -mlb-path-map unix-path-map -verbose 1 \
+		 urpal.mlb
+	mv urpal urpal.exe
+	mingw32-strip urpal.exe
+
 winmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
 	  parse/uppaal.grm.sml parse/uppaal.lex.sml \
 	  mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \

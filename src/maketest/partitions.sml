@@ -3,6 +3,10 @@
    Generate all partitions for a set of given size.
    The size of the result grows very quickly as n increases (Bell's Number).
 
+   TODO: * consider a lazy version (return partitions one-by-one)
+         * make a functor that can allows the partition predictates
+           for transitions to be created with the partitions.
+
  *)
 
 structure Partitions =

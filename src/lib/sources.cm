@@ -9,7 +9,7 @@ is
     symbol.sig
     symbol.sml
 
-    filepos.sig
+    file_pos.sig
     filepos.sml
 
     $/basis.cm

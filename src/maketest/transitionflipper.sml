@@ -9,8 +9,8 @@
           | f ((x as (s, _))::xs) = x :: f (List.filter (p s) xs)
       in rev (f (rev l)) end
 
-    fun unusedId used (E.BoundId (s, ty, _)) = if s <- used
-                                               then SOME (s, ty) else NONE
+    fun unusedId used (E.BoundId (s, ty)) = if s <- used
+                                            then SOME (s, ty) else NONE
 
     val sellist = removeEarlierDuplicates
                     (List.mapPartial (unusedId (!usednames)) presellist)
@@ -62,7 +62,7 @@ in struct
       fun showActions []      = ""
         | showActions (e::es) = "[" ^ ECVT.Expr.toString e ^"]"^ showActions es
 
-      fun boundToStr (E.BoundId (s, ty, _)) = Atom.toString s ^
+      fun boundToStr (E.BoundId (s, ty)) = Atom.toString s ^
                                               " : " ^ ECVT.Ty.toString ty
       val bindingList = (ListFormat.fmt {init="(", sep=", ",
                                          final=")", fmt=boundToStr})
@@ -73,7 +73,7 @@ in struct
     end
 
   local
-    fun convBind (E.BoundId (nm, ty, _), (xs,used)) = ((nm, ty)::xs, used <+ nm)
+    fun convBind (E.BoundId (nm, ty), (xs,used)) = ((nm, ty)::xs, used <+ nm)
   in
   fun andexpr env (ce1se, e1, e2) = let
       val (ce1se', used) = foldl convBind ([], emptyset) ce1se

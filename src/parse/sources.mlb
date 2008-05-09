@@ -11,10 +11,10 @@ local
     ../xml/sources.mlb
 
     expression.sig
-    expressionfn.sml
     expression.sml
 
     declaration.sig
+    declarationfn.sml
     declaration.sml
 
     ppdevstring.sml

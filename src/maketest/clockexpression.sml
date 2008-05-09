@@ -230,7 +230,7 @@ in struct
 
       (* Guard must be side-effect free *)
       | conv (env, E.UnaryModExpr _)    = raise NonClockTerm
-      | conv (env, E.Deadlock _)        = raise NonClockTerm
+      | conv (env, E.Deadlock)          = raise NonClockTerm
 
       | conv (env, e as E.IntCExpr _)           = Term (NonClock e)
       | conv (env, e as E.BoolCExpr _)          = Term (NonClock e)
@@ -274,26 +274,23 @@ in struct
     fun fromClkT (NonClock e) = e
       | fromClkT (CRel (v, rel, cv)) = E.RelExpr {left=E.VarExpr v,
                                                   rel=fromCRel rel,
-                                                  right=fromCVal cv,
-                                                  pos=E.nopos}
+                                                  right=fromCVal cv}
       | fromClkT (CDiff (v1, v2, rel, cv)) = let
             val d = E.BinIntExpr {left=E.VarExpr v1,
                                   bop=E.MinusOp,
-                                  right=E.VarExpr v2,
-                                  pos=E.nopos}
+                                  right=E.VarExpr v2}
           in
-            E.RelExpr {left=d, rel=fromCRel rel,
-                       right=fromCVal cv, pos=E.nopos}
+            E.RelExpr {left=d, rel=fromCRel rel, right=fromCVal cv}
           end
     (*}}}1*)
   in
   fun toExpr (t, fas) = let
       fun toE (Term ct)        = fromClkT ct
         | toE (And (ce1, ce2)) = E.BinBoolExpr {left=toE ce1, bop=E.AndOp,
-                                                right=toE ce2, pos=E.nopos}
+                                                right=toE ce2}
         | toE (Or (ce1, ce2))  = E.BinBoolExpr {left=toE ce1, bop=E.OrOp,
-                                                right=toE ce2, pos=E.nopos}
-      fun wrapForall ((s, ty), e)=E.ForAllExpr {id=s,ty=ty,expr=e,pos=E.nopos}
+                                                right=toE ce2}
+      fun wrapForall ((s, ty), e)=E.ForAllExpr {id=s,ty=ty,expr=e}
 
     in foldl wrapForall (toE t) fas end
   end (* local *)

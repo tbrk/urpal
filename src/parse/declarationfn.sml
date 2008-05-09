@@ -9,14 +9,18 @@
  *
  *)
 
-structure Declaration : DECLARATION where type pos  = Expression.pos
-                                      and type ty   = Expression.ty
-                                      and type expr = Expression.expr
+functor DeclarationFn (structure Pos : FILE_POS)
+ : DECLARATION
+   where type pos  = Pos.pos
+     and type ty   = Expression.ty
+     and type expr = Expression.expr
 =
 struct
   structure E = Expression
 
-  type pos = Expression.pos
+  type pos = Pos.pos
+  val nopos = Pos.zero
+
   type symbol = Atom.atom
   type ty = E.ty
   type expr = E.expr

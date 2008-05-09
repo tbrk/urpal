@@ -44,8 +44,7 @@ struct
   fun parseTrans env tstr = let
 
       fun notNewline c = (c <> #"\n")
-      fun expandTypes (E.BoundId (s, ty, p)) = E.BoundId (s,
-                                                 Env.expandTyIds (env, ty), p)
+      fun expandTypes (E.BoundId (s,ty)) = E.BoundId(s,Env.expandTyIds (env,ty))
 
       val (selstr, rest)     = SS.splitl notNewline (SS.full tstr)
       val (actstr, guardstr) = SS.splitl notNewline (SS.triml 1 rest)

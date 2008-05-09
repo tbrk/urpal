@@ -165,7 +165,7 @@ struct
                      select=select as (sel, _), update,
                      comments, position, color, nails}) =
     let
-      fun selToEnv (E.BoundId (nm,ty,_), env) = Env.addId Env.SelectScope
+      fun selToEnv (E.BoundId (nm, ty), env) = Env.addId Env.SelectScope
                                                           ((nm, ty), env)
       val inv = valOf (IntBinaryMap.find (invmap, src))
 
@@ -288,10 +288,8 @@ struct
      * we add it as an invariant before `flipping'.
      *)
       fun doPair (v, v', e) = E.orexpr (e,
-          E.RelExpr {left= E.VarExpr (E.SimpleVar (v, E.nopos)),
-                     rel=E.NeOp,
-                     right=E.VarExpr (E.SimpleVar (v', E.nopos)),
-                     pos=E.nopos})
+          E.RelExpr {left= E.VarExpr (E.SimpleVar v), rel=E.NeOp,
+                     right=E.VarExpr (E.SimpleVar v')})
 
     in AtomMap.foldli doPair E.falseExpr map end
 
@@ -300,8 +298,8 @@ struct
                        guard=(g, gP), sync=(syn, synP), update=(upd, updP),
                        comments, position, color, nails}) =
     let
-      fun drop (E.BoundId (nm, _, _), m) = #1 (AtomMap.remove (m, nm))
-                                           handle LibBase.NotFound => m
+      fun drop (E.BoundId (nm, _), m) = #1 (AtomMap.remove (m, nm))
+         handle LibBase.NotFound => m
       val doSubst = E.renameVars (foldl drop subst sels)
       fun doSync (nm, dir, subs) = (nm, dir, map doSubst subs)
     in
@@ -445,7 +443,7 @@ struct
                 val loc = newLoc (locId, Atom.toString locNm, NONE)
                 
                 val sync=(nm, dir,
-                          map (fn v=>E.VarExpr(E.SimpleVar (v,E.nopos))) subs)
+                          map (fn v=>E.VarExpr (E.SimpleVar v)) subs)
                 val to_lu = P.Transition {id=NONE,
                                           source=locId,
                                           target=luId,
@@ -488,8 +486,8 @@ struct
       in f ([], [], AtomMap.empty, nextid, locnames, urgchans) end
 
     fun makeAssign (var, expr) = E.AssignExpr {
-                                    var=E.VarExpr (E.SimpleVar (var, E.nopos)),
-                                    aop=E.AssignOp, expr=expr, pos=E.nopos}
+                                    var=E.VarExpr (E.SimpleVar var),
+                                    aop=E.AssignOp, expr=expr}
 
     fun remapDestination locMap (t as P.Transition {target=P.LocId dst, id,
                                           source, select, guard, sync, update,
@@ -621,7 +619,7 @@ struct
         in (hasDir E.Input) @ (hasDir E.Output) end
 
       fun addSelIds (tr, s) = let
-          fun add (E.BoundId (nm, _, _), u) = u <+ nm
+          fun add (E.BoundId (nm, _), u) = u <+ nm
         in foldl add s (P.Transition.selSelect tr) end
 
       val urgchans = List.mapPartial chanTypeToSubs channels
@@ -650,13 +648,10 @@ struct
                     end
             | c::_ => (c, decls)
 
-        val clkNotZero = E.RelExpr {
-                            left=E.VarExpr (E.SimpleVar (urgclock, E.nopos)),
-                            rel=E.GtOp,
-                            right=E.IntCExpr 0, pos=E.nopos}
-        val clkReset = E.AssignExpr {
-                          var=E.VarExpr (E.SimpleVar (urgclock, E.nopos)),
-                          aop=E.AssignOp, expr=E.IntCExpr 0, pos=E.nopos}
+        val clkNotZero = E.RelExpr {left=E.VarExpr (E.SimpleVar urgclock),
+                                    rel=E.GtOp, right=E.IntCExpr 0}
+        val clkReset = E.AssignExpr {var=E.VarExpr (E.SimpleVar urgclock),
+                                     aop=E.AssignOp, expr=E.IntCExpr 0}
 
         val (ulocs, utrans, urgmap, nextid, locNames) = addUrgentLocs (errId,
                       l_u_id, clkNotZero, nextid, locNames <+ l_u_nm, urgchans)

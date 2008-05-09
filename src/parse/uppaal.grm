@@ -30,15 +30,14 @@ fun expandIdDecls (baseType : E.ty,
 fun dbg xs = Util.debugVeryDetailed (fn ()=>xs)
 
                                             (* could be type abbr. *)
-fun checkUnresolved (E.VarExpr (E.SimpleVar (s, _))) = E.Unresolved s
+fun checkUnresolved (E.VarExpr (E.SimpleVar s)) = E.Unresolved s
             (* subtract one because int[l, u] bounds are inclusive *) 
   | checkUnresolved (E.IntCExpr n) = E.Type (E.INT (SOME (E.IntCExpr 0,
                                                           E.IntCExpr (n - 1)),
                                                     E.NoQual))
   | checkUnresolved e = E.Type (E.INT (SOME (E.IntCExpr 0,
                              E.BinIntExpr {left=e, bop=E.MinusOp,
-                                           right=E.IntCExpr 1,
-                                           pos=E.nopos}), E.NoQual))
+                                           right=E.IntCExpr 1}), E.NoQual))
 
 %%
 %name Uppaal
@@ -52,9 +51,8 @@ fun checkUnresolved (E.VarExpr (E.SimpleVar (s, _))) = E.Unresolved s
                        (structure Token      : TOKEN
                         structure FilePos    : FILE_POS
                         structure Expression : EXPRESSION
-                          sharing type Expression.pos = FilePos.pos
                         structure Declaration : DECLARATION
-                          sharing type Declaration.pos  = Expression.pos
+                          sharing type Declaration.pos  = FilePos.pos
                           sharing type Declaration.ty   = Expression.ty
                           sharing type Declaration.expr = Expression.expr
                         structure Result : RESULT
@@ -116,7 +114,7 @@ fun checkUnresolved (E.VarExpr (E.SimpleVar (s, _))) = E.Unresolved s
        | expr          of E.expr
        | exprs         of E.expr list
        | varExpr       of E.var
-       | assignOp      of E.assignOp * pos
+       | assignOp      of E.assignOp
        | argList       of E.expr list
        | args          of E.expr list
        | typeExpr      of E.ty
@@ -163,115 +161,80 @@ start: PARSEEXPR expr         (Result.Expr expr)
      | PARSEEXPRLIST exprs    (Result.ExprList exprs)
      | PARSEPARAMS params     (Result.Params params)
 
-expr: varExpr                 (E.VarExpr varExpr)
-    | INTEGER                 (E.IntCExpr INTEGER)
-    | TRUE                    (E.BoolCExpr true)
-    | FALSE                   (E.BoolCExpr false)
-    | ID LPAR args RPAR       (E.CallExpr {func=ID, args=args, pos=IDleft})
-                              (* see also: varExpr *)
-    | LPAR expr RPAR          (expr)
-    | expr PLUSPLUS           (E.UnaryModExpr {uop=E.PostIncOp, expr=expr,
-                                               pos=PLUSPLUSleft})
-    | PLUSPLUS expr           (E.UnaryModExpr {uop=E.PreIncOp, expr=expr,
-                                               pos= PLUSPLUSleft})
-    | expr MINUSMINUS         (E.UnaryModExpr {uop=E.PostDecOp, expr=expr,
-                                               pos=MINUSMINUSleft})
-    | MINUSMINUS expr         (E.UnaryModExpr {uop=E.PreDecOp, expr=expr,
-                                               pos=MINUSMINUSleft})
+expr: varExpr             (E.VarExpr varExpr)
+    | INTEGER             (E.IntCExpr INTEGER)
+    | TRUE                (E.BoolCExpr true)
+    | FALSE               (E.BoolCExpr false)
+    | ID LPAR args RPAR   (E.CallExpr {func=ID, args=args})
+                          (* see also: varExpr *)
+    | LPAR expr RPAR      (expr)
+    | expr PLUSPLUS       (E.UnaryModExpr {uop=E.PostIncOp, expr=expr})
+    | PLUSPLUS expr       (E.UnaryModExpr {uop=E.PreIncOp, expr=expr})
+    | expr MINUSMINUS     (E.UnaryModExpr {uop=E.PostDecOp, expr=expr})
+    | MINUSMINUS expr     (E.UnaryModExpr {uop=E.PreDecOp, expr=expr})
 
-    | MINUS expr %prec UMINUS (E.NegExpr {expr=expr, pos=MINUSleft})
-    | EXCLAM expr             (E.NotExpr {expr=expr, pos=EXCLAMleft})
-    | NOT expr                (E.NotExpr {expr=expr, pos=NOTleft})
+    | MINUS expr %prec UMINUS (E.NegExpr expr)
+    | EXCLAM expr         (E.NotExpr expr)
+    | NOT expr            (E.NotExpr expr)
 
-    | expr LT expr            (E.RelExpr {left=expr1 , rel=E.LtOp,
-                                          right=expr2, pos=LTleft})
-    | expr LE expr            (E.RelExpr {left=expr1 , rel=E.LeOp,
-                                          right=expr2, pos=LEleft})
-    | expr EQ expr            (E.RelExpr {left=expr1 , rel=E.EqOp,
-                                          right=expr2, pos=EQleft})
-    | expr NEQ expr           (E.RelExpr {left=expr1 , rel=E.NeOp,
-                                          right=expr2, pos=NEQleft})
-    | expr GE expr            (E.RelExpr {left=expr1 , rel=E.GeOp,
-                                          right=expr2, pos=GEleft})
-    | expr GT expr            (E.RelExpr {left=expr1 , rel=E.GtOp,
-                                          right=expr2, pos=GTleft})
+    | expr LT expr        (E.RelExpr {left=expr1, rel=E.LtOp, right=expr2})
+    | expr LE expr        (E.RelExpr {left=expr1, rel=E.LeOp, right=expr2})
+    | expr EQ expr        (E.RelExpr {left=expr1, rel=E.EqOp, right=expr2})
+    | expr NEQ expr       (E.RelExpr {left=expr1, rel=E.NeOp, right=expr2})
+    | expr GE expr        (E.RelExpr {left=expr1, rel=E.GeOp, right=expr2})
+    | expr GT expr        (E.RelExpr {left=expr1, rel=E.GtOp, right=expr2})
 
-    | expr PLUS expr          (E.BinIntExpr {left=expr1 , bop=E.PlusOp,
-                                             right=expr2, pos=PLUSleft})
-    | expr MINUS expr         (E.BinIntExpr {left=expr1 , bop=E.MinusOp,
-                                             right=expr2, pos=MINUSleft})
-    | expr TIMES expr         (E.BinIntExpr {left=expr1 , bop=E.TimesOp,
-                                             right=expr2, pos=TIMESleft})
-    | expr DIVIDE expr        (E.BinIntExpr {left=expr1 , bop=E.DivideOp,
-                                             right=expr2, pos=DIVIDEleft})
-    | expr MOD expr           (E.BinIntExpr {left=expr1 , bop=E.ModOp,
-                                             right=expr2, pos=MODleft})
-    | expr AMPERSAND expr     (E.BinIntExpr {left=expr1 , bop=E.BAndOp,
-                                             right=expr2, pos=AMPERSANDleft})
-    | expr BITOR expr         (E.BinIntExpr {left=expr1 , bop=E.BOrOp,
-                                             right=expr2, pos=BITORleft})
-    | expr BITXOR expr        (E.BinIntExpr {left=expr1 , bop=E.BXorOp,
-                                             right=expr2, pos=BITXORleft})
-    | expr SHLEFT expr        (E.BinIntExpr {left=expr1 , bop=E.ShlOp,
-                                             right=expr2, pos=SHLEFTleft})
-    | expr SHRIGHT expr       (E.BinIntExpr {left=expr1 , bop=E.ShrOp,
-                                             right=expr2, pos=SHRIGHTleft})
-    | expr MIN expr           (E.BinIntExpr {left=expr1 , bop=E.MinOp,
-                                             right=expr2, pos=MINleft})
-    | expr MAX expr           (E.BinIntExpr {left=expr1 , bop=E.MaxOp,
-                                             right=expr2, pos=MAXleft})
+    | expr PLUS expr      (E.BinIntExpr {left=expr1,bop=E.PlusOp, right=expr2})
+    | expr MINUS expr     (E.BinIntExpr {left=expr1,bop=E.MinusOp, right=expr2})
+    | expr TIMES expr     (E.BinIntExpr {left=expr1,bop=E.TimesOp, right=expr2})
+    | expr DIVIDE expr    (E.BinIntExpr {left=expr1,bop=E.DivideOp,right=expr2})
+    | expr MOD expr       (E.BinIntExpr {left=expr1,bop=E.ModOp, right=expr2})
+    | expr AMPERSAND expr (E.BinIntExpr {left=expr1,bop=E.BAndOp, right=expr2})
+    | expr BITOR expr     (E.BinIntExpr {left=expr1,bop=E.BOrOp, right=expr2})
+    | expr BITXOR expr    (E.BinIntExpr {left=expr1,bop=E.BXorOp, right=expr2})
+    | expr SHLEFT expr    (E.BinIntExpr {left=expr1,bop=E.ShlOp, right=expr2})
+    | expr SHRIGHT expr   (E.BinIntExpr {left=expr1,bop=E.ShrOp, right=expr2})
+    | expr MIN expr       (E.BinIntExpr {left=expr1,bop=E.MinOp, right=expr2})
+    | expr MAX expr       (E.BinIntExpr {left=expr1,bop=E.MaxOp, right=expr2})
 
-    | expr DBLAMPERSAND expr  (E.BinBoolExpr {left=expr1 , bop=E.AndOp,
-                                              right=expr2,
-                                              pos=DBLAMPERSANDleft})
-    | expr AND expr           (E.BinBoolExpr {left=expr1 , bop=E.AndOp,
-                                              right=expr2, pos=ANDleft})
-    | expr DBLPIPE expr       (E.BinBoolExpr {left=expr1 , bop=E.OrOp,
-                                              right=expr2, pos=DBLPIPEleft})
-    | expr OR expr            (E.BinBoolExpr {left=expr1 , bop=E.OrOp,
-                                              right=expr2, pos=ORleft})
-    | expr IMPLY expr         (E.BinBoolExpr {left=expr1 , bop=E.ImplyOp,
-                                              right=expr2, pos=IMPLYleft})
+    | expr DBLAMPERSAND expr (E.BinBoolExpr{left=expr1,bop=E.AndOp,right=expr2})
+    | expr AND expr       (E.BinBoolExpr {left=expr1,bop=E.AndOp, right=expr2})
+    | expr DBLPIPE expr   (E.BinBoolExpr {left=expr1,bop=E.OrOp, right=expr2})
+    | expr OR expr        (E.BinBoolExpr {left=expr1,bop=E.OrOp, right=expr2})
+    | expr IMPLY expr     (E.BinBoolExpr {left=expr1,bop=E.ImplyOp,right=expr2})
 
     | expr QUESTION expr COLON expr
-                              (E.CondExpr {test=expr1     , trueexpr=expr2,
-                                           falseexpr=expr3, pos=QUESTIONleft})
+                        (E.CondExpr {test=expr1,trueexpr=expr2,falseexpr=expr3})
 
     | expr assignOp expr   %prec ASSIGNMENT
-                              (E.AssignExpr  {var=expr1, aop=(#1 assignOp),
-                                              expr=expr2, pos=(#2 assignOp)})
+                        (E.AssignExpr {var=expr1,aop=assignOp,expr=expr2})
 
     | FORALL LPAR ID COLON typeExpr RPAR expr %prec FORALL
-                              (E.ForAllExpr  {id=ID, ty=typeExpr,
-                                              expr=expr, pos=FORALLleft})
+                              (E.ForAllExpr  {id=ID, ty=typeExpr, expr=expr})
     | EXISTS LPAR ID COLON typeExpr RPAR expr %prec EXISTS
-                              (E.ExistsExpr  {id=ID, ty=typeExpr,
-                                              expr=expr, pos=EXISTSleft})
-    | DEADLOCK                (E.Deadlock DEADLOCKleft)
+                              (E.ExistsExpr  {id=ID, ty=typeExpr, expr=expr})
+    | DEADLOCK                (E.Deadlock)
 
 exprs: expr                   ([expr])
      | expr COMMA exprs       (expr::exprs)
 
-varExpr: ID                       (E.SimpleVar (ID, IDleft))
-       | ID LPAR args RPAR DOT ID (E.RecordVar (
-                                      E.ReturnVar {func=ID1, args=args,
-                                                   pos=ID1left},
-                                      ID, ID2left))
-       | varExpr LSQPAR expr RSQPAR
-                            (E.SubscriptVar (varExpr, expr, E.varPos varExpr))
-       | varExpr DOT ID     (E.RecordVar (varExpr, ID, E.varPos varExpr))
+varExpr: ID                         (E.SimpleVar ID)
+       | ID LPAR args RPAR DOT ID   (E.RecordVar (
+                                      E.ReturnVar {func=ID1, args=args}, ID))
+       | varExpr LSQPAR expr RSQPAR (E.SubscriptVar (varExpr, expr))
+       | varExpr DOT ID             (E.RecordVar (varExpr, ID))
 
-assignOp: ASSIGNMENT             ((E.AssignOp,  ASSIGNMENTleft))
-        | PLUSASSIGN             ((E.PlusEqOp,  PLUSASSIGNleft))
-        | MINUSASSIGN            ((E.MinusEqOp, MINUSASSIGNleft))
-        | TIMESASSIGN            ((E.TimesEqOp,  TIMESASSIGNleft))
-        | DIVIDEASSIGN           ((E.DivideEqOp,DIVIDEASSIGNleft))
-        | MODASSIGN              ((E.ModEqOp,   MODASSIGNleft))
-        | BITORASSIGN            ((E.BOrEqOp,   BITORASSIGNleft))
-        | BITANDASSIGN           ((E.BAndEqOp,  BITANDASSIGNleft))
-        | BITXORASSIGN           ((E.BXorEqOp,  BITXORASSIGNleft))
-        | SHLEFTASSIGN           ((E.ShlEqOp,   SHLEFTASSIGNleft))
-        | SHRIGHTASSIGN          ((E.ShrEqOp,   SHRIGHTASSIGNleft))
+assignOp: ASSIGNMENT      (E.AssignOp)
+        | PLUSASSIGN      (E.PlusEqOp)
+        | MINUSASSIGN     (E.MinusEqOp)
+        | TIMESASSIGN     (E.TimesEqOp)
+        | DIVIDEASSIGN    (E.DivideEqOp)
+        | MODASSIGN       (E.ModEqOp)
+        | BITORASSIGN     (E.BOrEqOp)
+        | BITANDASSIGN    (E.BAndEqOp)
+        | BITXORASSIGN    (E.BXorEqOp)
+        | SHLEFTASSIGN    (E.ShlEqOp)
+        | SHRIGHTASSIGN   (E.ShrEqOp)
 
 args: (* empty *)               ([])
     | argList                   (argList)
@@ -421,9 +384,9 @@ chanSame: chanExpr                      ([chanExpr])
 chanExpr: ID                            (D.ChanSingle ID)
         | chanExpr LSQPAR expr RSQPAR   (D.ChanArray (chanExpr, expr))
 
-selectList : ID COLON typeExpr          ([E.BoundId (ID, typeExpr, IDleft)])
+selectList : ID COLON typeExpr          ([E.BoundId (ID, typeExpr)])
            | ID COLON typeExpr COMMA selectList
-                            (E.BoundId (ID, typeExpr, IDleft) :: selectList)
+                            (E.BoundId (ID, typeExpr) :: selectList)
 
 syncLabel : ID subscripts QUESTION        (ID, E.Input, subscripts)
           | ID subscripts EXCLAM          (ID, E.Output, subscripts)
