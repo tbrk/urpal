@@ -23,7 +23,7 @@ is
     ../uppaal/sources.cm
     ../graphviz/sources.cm
     ../maketest/sources.cm
-    ../xml/sources.cm
+    ../uppaalxml/sources.cm
     ../mcs51/sources.cm
     ../layout/sources.cm
     ../general.cm

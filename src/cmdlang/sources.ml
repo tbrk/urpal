@@ -2,7 +2,7 @@
  *
  * Requires: smlnj-lib
  *	     mlyacc-lib
- *	     lib, uppaal, graphviz, maketest, xml, general
+ *	     lib, uppaal, graphviz, maketest, uppaalxml, general
  *)
 use "cmdlang/cmd_env.sig";
 use "cmdlang/cmdenv.sml";

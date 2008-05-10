@@ -13,7 +13,7 @@ STRIP=strip
 SKIPCM=-type d -name '.cm' -prune -type f -o
 SRC!=find . $(SKIPCM) -name '*sml' -o -name '*sig'
 SRCDIRS=. ./cmdlang ./config ./graphviz ./graphviz ./lib \
-	./maketest ./uppaal ./xml ./mcs51 ./layout
+	./maketest ./uppaal ./uppaalxml ./mcs51 ./layout
 
 urpal: $(SRC) version.sml
 	ml-build sources.cm Urpal.main urpal

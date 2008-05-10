@@ -7,7 +7,7 @@ is
     commands.sml
 
     general.cm
-    xml/sources.cm
+    uppaalxml/sources.cm
     uppaal/sources.cm
     maketest/sources.cm
     graphviz/sources.cm

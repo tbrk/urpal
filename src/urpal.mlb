@@ -5,7 +5,7 @@ local
     $(SML_FXP)/fxlib.mlb
 
     general.mlb
-    xml/sources.mlb
+    uppaalxml/sources.mlb
     uppaal/sources.mlb
     maketest/sources.mlb
     graphviz/sources.mlb

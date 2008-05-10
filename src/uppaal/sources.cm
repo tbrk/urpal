@@ -57,7 +57,7 @@ is
     actionset.sml
 
     ../general.cm
-    ../xml/sources.cm
+    ../uppaalxml/sources.cm
     ../lib/sources.cm
 
     $/pp-lib.cm

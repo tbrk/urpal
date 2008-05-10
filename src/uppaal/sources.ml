@@ -2,7 +2,7 @@
  * requires: smlnj-lib
  *           mlyacc-lib
  *
- *           general, lib, xml
+ *           general, lib, uppaalxml
  *)
 use "parse/expression.sig";
 use "parse/expression.sml";

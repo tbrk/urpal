@@ -10,7 +10,7 @@ use "config/sources.ml";
 use "graphviz/sources.ml";
 use "layout/sources.ml";
 use "general.ml";
-use "xml/sources.ml";
+use "uppaalxml/sources.ml";
 use "uppaal/sources.ml";
 use "maketest/sources.ml";
 use "mcs51/sources.ml";

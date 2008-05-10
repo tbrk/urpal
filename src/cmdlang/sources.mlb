@@ -4,7 +4,7 @@ local
     ../uppaal/sources.mlb
     ../graphviz/sources.mlb
     ../maketest/sources.mlb
-    ../xml/sources.mlb
+    ../uppaalxml/sources.mlb
     ../layout/sources.mlb
     ../mcs51/sources.mlb
     ../general.mlb

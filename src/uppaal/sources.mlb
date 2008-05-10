@@ -8,7 +8,7 @@ local
 
     ../general.mlb
     ../lib/sources.mlb
-    ../xml/sources.mlb
+    ../uppaalxml/sources.mlb
 
     expression.sig
     expression.sml
