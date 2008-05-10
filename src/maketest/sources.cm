@@ -26,7 +26,7 @@ is
     maketest.sml
 
     testtransflip.sml
-    ../parse/sources.cm
+    ../uppaal/sources.cm
     ../general.cm
     ../lib/sources.cm
     

@@ -1,6 +1,6 @@
 (* $Id$
  * requires: smlnj-lib
- *	     parse, general, lib
+ *	     uppaal, general, lib
  *)
 use "maketest/action_trans.sig";
 use "maketest/actiontrans.sml";

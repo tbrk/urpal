@@ -11,7 +11,7 @@ use "graphviz/sources.ml";
 use "layout/sources.ml";
 use "general.ml";
 use "xml/sources.ml";
-use "parse/sources.ml";
+use "uppaal/sources.ml";
 use "maketest/sources.ml";
 use "mcs51/sources.ml";
 use "cmdlang/sources.ml";

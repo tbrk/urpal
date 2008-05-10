@@ -8,7 +8,7 @@ is
 
     general.cm
     xml/sources.cm
-    parse/sources.cm
+    uppaal/sources.cm
     maketest/sources.cm
     graphviz/sources.cm
     cmdlang/sources.cm

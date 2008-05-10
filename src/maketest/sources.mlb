@@ -4,7 +4,7 @@ local
     $(SML_LIB)/basis/sml-nj.mlb
     $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
 
-    ../parse/sources.mlb
+    ../uppaal/sources.mlb
     ../general.mlb
     ../lib/sources.mlb
 

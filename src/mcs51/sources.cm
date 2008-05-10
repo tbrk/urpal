@@ -16,7 +16,7 @@ is
     maketimed.sml
 
     ../lib/sources.cm
-    ../parse/sources.cm
+    ../uppaal/sources.cm
     ../general.cm
     ../layout/sources.cm
     $/basis.cm

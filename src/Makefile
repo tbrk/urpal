@@ -13,7 +13,7 @@ STRIP=strip
 SKIPCM=-type d -name '.cm' -prune -type f -o
 SRC!=find . $(SKIPCM) -name '*sml' -o -name '*sig'
 SRCDIRS=. ./cmdlang ./config ./graphviz ./graphviz ./lib \
-	./maketest ./parse ./xml ./mcs51 ./layout
+	./maketest ./uppaal ./xml ./mcs51 ./layout
 
 urpal: $(SRC) version.sml
 	ml-build sources.cm Urpal.main urpal
@@ -21,14 +21,14 @@ urpal: $(SRC) version.sml
 	@rm urpal.$(HEAP_SUFFIX)
 
 withmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
-	   parse/uppaal.grm.sml parse/uppaal.lex.sml \
+	   uppaal/uppaal.grm.sml uppaal/uppaal.lex.sml \
 	   mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \
 	   config/config.lex.sml version.sml
 	$(MLTON) $(MLTONOPT) -mlb-path-map unix-path-map -verbose 1  urpal.mlb
 	$(STRIP) urpal
 
 mingw32: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
-	 parse/uppaal.grm.sml parse/uppaal.lex.sml \
+	 uppaal/uppaal.grm.sml uppaal/uppaal.lex.sml \
 	 mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \
 	 config/config.lex.sml version.sml
 	$(MLTON) -target mingw32 -cc mingw32-gcc \
@@ -38,7 +38,7 @@ mingw32: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
 	mingw32-strip urpal.exe
 
 winmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
-	  parse/uppaal.grm.sml parse/uppaal.lex.sml \
+	  uppaal/uppaal.grm.sml uppaal/uppaal.lex.sml \
 	  mcs51/mcs51.grm.sml mcs51/mcs51.lex.sml \
 	  config/config.lex.sml version.sml
 	$(MLTON) -mlb-path-map win-path-map -verbose 1 urpal.mlb
@@ -53,11 +53,11 @@ cmdlang/cmdlang.lex.sml: cmdlang/cmdlang.lex
 config/config.lex.sml: config/config.lex
 	$(MLLEX)  config/config.lex
 
-parse/uppaal.grm.sml: parse/uppaal.grm
-	$(MLYACC) parse/uppaal.grm
+uppaal/uppaal.grm.sml: uppaal/uppaal.grm
+	$(MLYACC) uppaal/uppaal.grm
 
-parse/uppaal.lex.sml: parse/uppaal.lex
-	$(MLLEX)  parse/uppaal.lex
+uppaal/uppaal.lex.sml: uppaal/uppaal.lex
+	$(MLLEX)  uppaal/uppaal.lex
 
 mcs51/mcs51.grm.sml: mcs51/mcs51.grm
 	$(MLYACC) mcs51/mcs51.grm

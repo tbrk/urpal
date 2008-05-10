@@ -5,7 +5,7 @@ local
 
     ../lib/sources.mlb
     ../graphviz/sources.mlb
-    ../parse/sources.mlb
+    ../uppaal/sources.mlb
     ../general.mlb
 
     layout.sig

@@ -5,7 +5,7 @@ local
     $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
 
     ../lib/sources.mlb
-    ../parse/sources.mlb
+    ../uppaal/sources.mlb
     ../general.mlb
     ../layout/sources.mlb
 

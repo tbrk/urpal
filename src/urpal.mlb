@@ -6,7 +6,7 @@ local
 
     general.mlb
     xml/sources.mlb
-    parse/sources.mlb
+    uppaal/sources.mlb
     maketest/sources.mlb
     graphviz/sources.mlb
     layout/sources.mlb

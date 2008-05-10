@@ -20,7 +20,7 @@ is
     ntautil.sml
 
     ../lib/sources.cm
-    ../parse/sources.cm
+    ../uppaal/sources.cm
     ../graphviz/sources.cm
     ../maketest/sources.cm
     ../xml/sources.cm

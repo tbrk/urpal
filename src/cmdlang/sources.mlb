@@ -1,7 +1,7 @@
 (* $Id$ *)
 local
     ../lib/sources.mlb
-    ../parse/sources.mlb
+    ../uppaal/sources.mlb
     ../graphviz/sources.mlb
     ../maketest/sources.mlb
     ../xml/sources.mlb
