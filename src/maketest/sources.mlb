@@ -11,6 +11,8 @@ local
     ann "nonexhaustiveMatch ignore" in
         action_trans.sig
         actiontrans.sml
+        sel_trans.sig
+        sel_trans.sml
         clock_expression.sig
         clockexpression.sml
         clk_expr_trans.sig

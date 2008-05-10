@@ -185,6 +185,7 @@ sig
 
   val findVarExprType : env -> Expression.var -> ty option
   val findValType     : env -> symbol -> ty option
+  val findValScope    : env -> symbol -> scopetag option
 
   val findVal         : env -> symbol -> enventry option
 

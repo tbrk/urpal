@@ -13,6 +13,10 @@ is
 
     action_trans.sig
     actiontrans.sml
+
+    sel_trans.sig
+    seltrans.sml
+
     clock_expression.sig
     clockexpression.sml
     clk_expr_trans.sig

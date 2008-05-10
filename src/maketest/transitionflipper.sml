@@ -46,6 +46,7 @@ structure TransitionFlipper :> TRANSITION_FLIPPER = let
         and Env     = Environment
         and ECVT    = ExpressionCvt
         and ATrans  = ActionTrans
+        and STrans  = SelTrans
         and ClkE    = ClockExpression
         and CETrans = ClkExprTrans
 in struct
@@ -105,8 +106,10 @@ in struct
     end
       handle ClkE.NonClockTerm => raise FlipFailed "bad clock terms in invariant"
 
-  fun negateTransitions env (subtypes, trans : t list, invariant) = let
-      val _ = Util.debugIndent (Settings.Outline,fn()=>["=negateTransitions="])
+  (* XXX: partitioning technique *)
+  fun negatePartitionedTransitions env (subtypes, trans : t list, invariant) =
+    let
+      val _ = Util.debugIndent (Settings.Outline,fn()=>["=negatePartitioned="])
       val _ = Util.debugDetailed (fn ()=>map toString trans)
 
       (* 1. Group like subscripts; rename subSelectIds; make others unique. *)
@@ -176,6 +179,55 @@ in struct
                 ("non-consistent channel subscript dimensions (" ^
                  ExpressionCvt.Expr.toString e1 ^ ", " ^
                  ExpressionCvt.Expr.toString e2 ^ ")")
+
+  fun negateTransitions env (subtypes, trans : t list, invariant) = let
+      val _ = Util.debugIndent (Settings.Outline,fn()=>["=negateTransitions="])
+      val _ = Util.debugDetailed (fn ()=>map toString trans)
+
+      (* 1. Group like subscripts; rename subSelectIds; make others unique. *)
+
+      val subIdx = ListPair.zip
+                     (STrans.makeIndexNames (length subtypes) trans, subtypes)
+      val strans = map (STrans.fromTrans subIdx) trans
+      val cetran = CETrans.fromSTrans env subIdx (STrans.mergeTrans strans)
+
+      (* 2. Convert the location invariant into a clock expression *)
+      val (cinv, cinv_fall, _) = ClkE.fromExpr (CETrans.unionNames [cetran],
+                                                env, invariant)
+
+      (* 3. Negate the transition. *)
+      val ncetrans = CETrans.negate (cinv_fall, cinv) cetran
+
+      val _ = Util.debugDetailed (fn ()=>
+          ["* after negation:", if null ncetrans then " nothing" else "\n"]
+           @ map CETrans.toString ncetrans)
+
+    in map CETrans.toTrans ncetrans
+       before (Util.debugOutdent (Settings.Outline, fn()=>[]))
+    end
+      handle CETrans.SelectIdConflictsWithForAll (sel, forall) => let
+                fun showSym n = ListFormat.fmt {init=n ^ "(", final=")",
+                                                sep=", ", fmt=Atom.toString}
+              in
+               raise FlipFailed ("select/forall conflict, " ^
+                                 showSym "select" sel       ^
+                                 showSym "forall" forall    )
+              end
+
+           | ClkE.NonClockTerm => raise FlipFailed "bad clock terms in guard"
+
+           | STrans.NonSimpleSelectIndex e      => raise FlipFailed (
+                  "channel subscript contains non-simple bound variable (" ^
+                  ExpressionCvt.Expr.toString e ^ ")")
+
+           | STrans.BadChannelIndex {id, badty, goodty} => raise FlipFailed
+                ("channel subscript select variable " ^
+                  Atom.toString id ^ " has type " ^
+                   ExpressionCvt.Ty.toString badty ^ ", not "     ^
+                   ExpressionCvt.Ty.toString goodty)
+                  
+           | STrans.BadSubscriptCount                =>
+                raise FlipFailed ("wrong number of channel subscripts")
 
   fun chanToSubRanges (env, s) = let
       fun arrToList (E.CHANNEL _, r)              = SOME r

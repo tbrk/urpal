@@ -10,6 +10,7 @@ structure ClkExprTrans :> CLK_EXPR_TRANS = let
   structure E    = Expression
         and ClkE = ClockExpression
         and AT   = ActionTrans
+        and ST   = SelTrans
         and Env  = Environment
         and ECVT = ExpressionCvt
 in struct
@@ -112,6 +113,23 @@ fun showPartitions showitem partitions = let
                 names=used}
     end
 
+  fun fromSTrans preenv actsels (ST.SelTrans {selectids, guard, names}) =
+    let
+      val senv = List.foldl (Env.addId Env.SelectScope) preenv selectids
+      val (guard, forall, used) = ClkE.fromExpr (names, senv, guard)
+        (* Note: ClkE.fromExpr ensures:
+         *         intersection(selectids, forall) = emptyset
+         *       as names includes selectids.
+         *)
+    in
+       CETrans {actselect=actsels,
+                gselect=selectids,
+                forall=forall,
+                partition=E.trueExpr,
+                guard=guard,
+                action=map (fn (nm, _)=>AT.SelectSub nm) actsels,
+                names=used}
+    end
 
   local (**)
     fun toBoundId (s, ty) = E.BoundId (s, ty)

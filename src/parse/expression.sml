@@ -244,8 +244,9 @@ struct
     in renameVars' (map, oldnames, newnames) end
 
   fun renameVar ({old, new}, expr) =
-          renameVars' (AtomMap.insert (AtomMap.empty, old, new),
-                       AtomSet.singleton old, AtomSet.singleton new) expr
+      if old =:= new then expr
+      else renameVars' (AtomMap.insert (AtomMap.empty, old, new),
+                        AtomSet.singleton old, AtomSet.singleton new) expr
 
   fun stripArray ty = let
       fun strip (ARRAY (ty, Unresolved tynm), subs) = strip (ty, NAME (tynm,

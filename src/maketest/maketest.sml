@@ -5,6 +5,24 @@
  *    Shift generic functions into xml/nta parse/parsed-nta.
  *)
 
+(* Regarding channel arrays:
+ * Currently the original partitioning technique is still avaiable.
+ * If the updated sweep binding technique proves to be better in all cases then
+ * the original could be removed, to simplify the code, by removing:
+ *    * TF.negatePartitionedTrans
+ *    * ClkTrans.t no longer needs actselect, as the action field provides
+ *                 the same information.
+ *                 the partition field can also be removed.
+ *    * ClkTrans.t change the action field to a list of symbols and types
+ *                 (removing the dependency on ActionTrans).
+ *                 and thus simplify the rest of the module.
+ *                 (take all the SelectSub cases).
+ *    * remove ClkTrans.fromATrans
+ *    * partitions.sml
+ *    * action_trans.sig, actiontrans.sml
+ *      (replaced by sel_trans.sig, seltrans.sml)
+ *)
+
 local structure P    = ParsedNta
             and E    = UppaalParse.Expression
             and ECvt = UppaalParse.ExpressionCvt

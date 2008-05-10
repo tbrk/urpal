@@ -10,12 +10,6 @@
  *   * Structs are not named.
  *   * The `urgent' qualifier must precede `broadcast' (behaviour of Uppaal).
  *   * The conditional expression (?:) may appear on the LHS of an assignment.
- *
- * Questions:
- *   * Are expressions statically evaluated when given as:
- *      -scalar size?
- *      -integer bounds?
- *      -array size?
  *)
 
 signature EXPRESSION =
@@ -131,6 +125,7 @@ sig
   val getBoundNames : boundid list -> AtomSet.set
   val renameVar  : {old : symbol, new: symbol} * expr -> expr
   val renameVars : symbol AtomMap.map -> expr -> expr
+  (* simultaneous renaming *)
 
   val stripArray : ty -> (ty * ty list)
 

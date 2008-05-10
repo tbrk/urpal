@@ -4,6 +4,8 @@
  *)
 use "maketest/action_trans.sig";
 use "maketest/actiontrans.sml";
+use "maketest/sel_trans.sig";
+use "maketest/sel_trans.sml";
 use "maketest/clock_expression.sig";
 use "maketest/clockexpression.sml";
 use "maketest/clk_expr_trans.sig";

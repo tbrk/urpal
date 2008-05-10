@@ -257,6 +257,9 @@ struct
     fun varToType (_, VarEntry {ty, ...}) =  SOME (baseType ty)
       | varToType (_, FunEntry _)         =  NONE
 
+    fun varToScope (_, VarEntry {scope, ...}) = SOME scope
+      | varToScope (_, FunEntry _)            = NONE
+
     fun stripArray (E.ARRAY (ty, _)) = SOME ty
       | stripArray _                 = NONE
   in
@@ -276,8 +279,8 @@ struct
     in fve end
 
   fun findVal (_, venv, _) s = (Option.compose (fn (_, v)=>v, Map.find)) (venv, s)
-
   fun findValType (_, venv, _) s = (varToType <*< Map.find) (venv, s)
+  fun findValScope (_, venv, _) s = (varToScope <*< Map.find) (venv, s)
 
   fun channels (tenv, venv, _) = let
       fun elemTy (E.ARRAY (ty, _)) = elemTy ty

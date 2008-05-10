@@ -27,6 +27,12 @@ signature CLK_EXPR_TRANS = sig
   val fromATrans        : Environment.env -> ActionTrans.t -> t
     (* may raise ClockExpression.NonClockTerm *)
 
+  val fromSTrans        : Environment.env
+                          -> (symbol * Expression.ty) list
+                          -> SelTrans.t
+                          -> t
+    (* may raise ClockExpression.NonClockTerm *)
+
   val toTrans           : t -> {selectids: Expression.boundid list,
                                 actionsubs: Expression.expr list,
                                 guard:      Expression.expr}
