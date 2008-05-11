@@ -1,6 +1,6 @@
 # $Id$
 #
-URPAL_VERSION=0.9.0
+URPAL_VERSION=0.9.1
 HEAP_SUFFIX=x86-bsd
 MLTONOPT=-loop-passes 1
 
