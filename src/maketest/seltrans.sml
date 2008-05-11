@@ -70,7 +70,7 @@ in struct
       val potNames = List.take (foldl (transpose isSel)
                                       defaults
                                       (map selActionSubs ts), n)
-    in #1 (foldl selNames ([], gNms) potNames) end
+    in List.rev (#1 (foldl selNames ([], gNms) potNames)) end
   end (* local *)
 
   local (*{{{1*)
@@ -101,7 +101,7 @@ in struct
     fun limit (nm, rel, limit) = E.RelExpr {left=E.VarExpr (E.SimpleVar nm),
                                             rel=rel, right=limit}
 
-    (* matchSelRange (selid, actualRange, selectedRange) *)
+    (* matchSelRange (selid, newRange, originalRange) *)
     fun matchSelRange (_, E.INT(NONE, E.NoQual),
                           E.INT(NONE, E.NoQual)) = SOME NONE
       | matchSelRange (nm, E.INT (SOME (lRan, uRan), E.NoQual),
@@ -127,7 +127,7 @@ in struct
       | matchSelRange (_, ty1, ty2) = if E.tyequal (ty1, ty2)
                                       then SOME NONE else NONE
 
-    (* addLimitClause (selid, actualRange, selectedRange, guard) *)
+    (* addLimitClause (selid, newRange, originalRange, guard) *)
     fun addLimitClause (n, ty, ty', g) =
         case matchSelRange (n, ty, ty') of
           SOME NONE     => g
@@ -178,7 +178,8 @@ in struct
                | SOME BoundScope => false)
             | varIsSel _ = false
 
-          fun containsSel e = null (Env.filter varIsSel Env.base_env e)
+          (*fun containsSel e = null (Env.filter varIsSel Env.base_env e)*)
+          fun containsSel e = not (null (Env.filter varIsSel Env.base_env e))
         in
           case isSel e of
           (* for a selectid i
@@ -188,9 +189,8 @@ in struct
            *    -if doesn't match the current name then rename (s_i/i)
            *    -remove i from the list of selectids *)
             SOME s => let
-                val g'  = addLimitClause (newidx,
-                             Option.valOf (AtomMap.find (sidTypes, s)),
-                             newty, g)
+                val g'  = addLimitClause (newidx, newty,
+                             Option.valOf (AtomMap.find (sidTypes, s)), g)
                 val g'' = case AtomMap.find (prevUse, s) of
                             NONE    => g'
                           | SOME s' => let

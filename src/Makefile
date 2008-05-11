@@ -15,7 +15,7 @@ SRC!=find . $(SKIPCM) -name '*sml' -o -name '*sig'
 SRCDIRS=. ./cmdlang ./config ./graphviz ./graphviz ./lib \
 	./maketest ./uppaal ./uppaalxml ./mcs51 ./layout
 
-urpal: $(SRC) version.sml
+urpal: $(SRC) version.sml tags
 	ml-build sources.cm Urpal.main urpal
 	$(HEAP2EXEC) urpal.$(HEAP_SUFFIX) urpal
 	@rm urpal.$(HEAP_SUFFIX)

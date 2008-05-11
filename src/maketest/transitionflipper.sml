@@ -189,7 +189,12 @@ in struct
       val subIdx = ListPair.zip
                      (STrans.makeIndexNames (length subtypes) trans, subtypes)
       val strans = map (STrans.fromTrans subIdx) trans
-      val cetran = CETrans.fromSTrans env subIdx (STrans.mergeTrans strans)
+
+      val mstrans = STrans.mergeTrans strans
+      val _ = Util.debugVeryDetailed (fn()=>["* after merging:\n",
+                                             STrans.toString subIdx mstrans])
+
+      val cetran = CETrans.fromSTrans env subIdx mstrans
 
       (* 2. Convert the location invariant into a clock expression *)
       val (cinv, cinv_fall, _) = ClkE.fromExpr (CETrans.unionNames [cetran],

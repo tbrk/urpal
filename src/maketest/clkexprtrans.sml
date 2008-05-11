@@ -115,8 +115,9 @@ fun showPartitions showitem partitions = let
 
   fun fromSTrans preenv actsels (ST.SelTrans {selectids, guard, names}) =
     let
-      val senv = List.foldl (Env.addId Env.SelectScope) preenv selectids
-      val (guard, forall, used) = ClkE.fromExpr (names, senv, guard)
+      val senv  = List.foldl (Env.addId Env.SelectScope) preenv actsels
+      val senv' = List.foldl (Env.addId Env.SelectScope) senv selectids
+      val (guard, forall, used) = ClkE.fromExpr (names, senv', guard)
         (* Note: ClkE.fromExpr ensures:
          *         intersection(selectids, forall) = emptyset
          *       as names includes selectids.
