@@ -28,6 +28,9 @@ in struct
   val trueExpr = Term (NonClock E.trueExpr)
   val falseExpr = Term (NonClock E.falseExpr)
 
+  fun isConstant (Term (NonClock (E.BoolCExpr x))) = SOME x
+    | isConstant _                                 = NONE
+  
   (* shortcuts over Atom and AtomSet *)
   infix <+ <- ++ <\ \ =:= ; open Symbol
 

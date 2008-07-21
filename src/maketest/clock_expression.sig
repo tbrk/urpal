@@ -30,6 +30,8 @@ signature CLOCK_EXPRESSION = sig
   val trueExpr       : t
   val falseExpr      : t
 
+  val isConstant     : t -> bool option
+
   val negate         : t -> t
   val getFree        : t -> symbolset
 

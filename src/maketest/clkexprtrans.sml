@@ -65,23 +65,6 @@ in struct
     end
   end (* local *)
 
-(*
-(*TODO: DEBUG ONLY! *)
-fun showPartitions showitem partitions = let
-    fun showClass c = let in
-        TextIO.print "    class[\n";
-        map showitem c;
-        TextIO.print "    class]\n"
-      end
-
-    fun showPart p = let in
-        TextIO.print "partition[\n";
-        map showClass p;
-        TextIO.print "partition]\n"
-      end
-  in app showPart partitions end
-*)
-
   fun unionNames cetrans = let
       fun f (CETrans {names, ...}, m) = m ++ names
     in foldl f emptyset cetrans end
@@ -205,9 +188,12 @@ fun showPartitions showitem partitions = let
                               partition, action, names}) =
        let
          val g' = ClkE.negate guard
-         val e  = case cinv of
-                    ClkE.Term (ClkE.NonClock (E.BoolCExpr true)) => g'
-                  | _ => ClkE.And (cinv, g')
+         val (e, tnone) = case (ClkE.isConstant g', ClkE.isConstant cinv) of
+                            (SOME true, SOME true) => (ClkE.trueExpr, false)
+                          | (SOME true, _)         => (cinv, false)
+                          | (_, SOME true)         => (g', false)
+                          | (NONE, NONE)           => (ClkE.And (cinv,g'),false)
+                          | _                      => (ClkE.falseExpr, true)
          val dnf = ClkE.toDNF e
 
          val _ = Util.debugVeryDetailed (fn()=>["* CETrans.negate before:\n",
@@ -219,6 +205,7 @@ fun showPartitions showitem partitions = let
                                        else s <+ n
          val _ = foldl addAndCheck (ClkE.getFree g') cinv_fall
        in
+         if tnone then [] else (* guard was false *)
          if ClkE.conflictExists (addNameTypes gselect, addNameTypes forall, dnf)
          then raise SelectIdConflictsWithForAll (#1 (ListPair.unzip gselect),
                                                  #1 (ListPair.unzip forall))
@@ -242,6 +229,9 @@ fun showPartitions showitem partitions = let
                                              fmt=Atom.toString}
                                (AtomSet.listItems splitFAlls),
                          " are shared across disjuncts: possible split zones"];
+                         (* TODO: increase the accuracy of this detection
+                          *       and implement the construction from
+                          *       thesis chapter to handle them. *)
                   [CETrans {actselect=actselect,
                             gselect=forall,
                             forall=gselect @ cinv_fall,
