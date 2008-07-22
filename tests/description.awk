@@ -25,6 +25,8 @@ BEGIN	      { currfield = ""
 		field["error"] = 0
 		field["stderr"] = ""
 		field["system"] = "system Template, Test;"
+		field["uppaalerror"] = 0
+		field["testname"] = "Test"
 		field["layout"] = "fdp"
 		field["scale"] = "1.0"
 		field["tabulate"] = "no"
@@ -41,7 +43,7 @@ BEGIN	      { currfield = ""
 			src = sprintf("scale(Template,%s)", field["scale"])
 		    if (field["tabulate"] == "yes")
 			src = sprintf("tabulate(%s,{Err})", src)
-		    printf("--eval=Test=maketest(%s)\n", src)
+		    printf("--eval=%s=maketest(%s)\n", field["testname"], src)
 		} else if (mode == "setlayout") {
 		    printf("--set=graphviz{engine=%s}\n", field["layout"])
 		} else {
@@ -51,7 +53,7 @@ BEGIN	      { currfield = ""
 		exit
 	      }
 
-/^[ \t]*(description|error|stderr|layout|scale|tabulate|author|created):/ {
+/^[ \t]*(description|error|stderr|testname|system|uppaalerror|layout|scale|tabulate|author|created):/ {
 		currfield = $1
 		sub(":$", "", currfield)
 

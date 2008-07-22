@@ -2,6 +2,8 @@
 #
 # $Id$
 
+#set -v
+
 XSLTPROC="xsltproc --novalid "
 GETDESC="$XSLTPROC description.xsl"
 
@@ -14,6 +16,8 @@ RMTMP=1
 VERIFY=1
 
 # ##
+
+trap "echo 'Terminated Early'; exit 2" 2
 
 while getopts vhkn o
 do case "$o" in
@@ -44,6 +48,7 @@ EVAL_OPTION=`$GETDESC $TESTSRC | $AWK -v mode=eval -f description.awk`
 TESTPRE=`expr "$TESTSRC" : '\(.*\)\.xml'`
 
 TESTOUT="$TESTPRE.log"
+UPPOUT="$TESTPRE-uppaal.log"
 DIFFOUT="$TESTPRE.diff"
 TESTOUT_EXPECTED="$TESTPRE-expected.log"
 ERROR_EXPECTED=`$GETDESC $TESTSRC | $AWK -v mode=error -f description.awk`
@@ -72,17 +77,29 @@ elif [ $DIFFRESULT -ne 0 ]; then
     echo "| FAILED (difference on stderr expected< >actual)"
     cat $DIFFOUT | grep '^[><-]'
 else
-    VER_RESULT=0
     if [ $VERIFY -eq 1 ]; then
-	$VERIFYTA -s -q -f $TESTPRE $TESTPRE-flip.xml test.q
+	VER_EXPECTED=`$GETDESC $TESTSRC | $AWK -v mode=uppaalerror -f description.awk`
+	$VERIFYTA -s -q -f $TESTPRE $TESTPRE-flip.xml test.q 2>&1 > $UPPOUT
 	VER_RESULT=$?
+
+	if grep -q 'Property is satisfied.' $UPPOUT; then
+	    if [ $VER_RESULT -eq $VER_EXPECTED ]; then
+		if [ $VER_EXPECTED -ne 0 ]; then
+		    echo "| PASSED (verification failure expected)"
+		else
+		    echo "| PASSED"
+		fi
+		if [ $RMTMP -eq 1 ]; then rm $UPPOUT; fi
+	    else
+		echo "| FAILED (verification in Uppaal)"
+	    fi
+	else
+	    echo "| FAILED (Err is reachable)"
+	fi
+    else
+	echo "| PASSED"
     fi
 
-    if [ $VER_RESULT -eq 0 ]; then
-	echo "| PASSED"
-    else
-	echo "| FAILED (verification in Uppaal)"
-    fi
     if [ `stat -f %z $TESTOUT` -eq 0 ]; then rm $TESTOUT; fi
 fi
 

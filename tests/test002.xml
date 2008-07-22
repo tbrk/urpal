@@ -2,6 +2,11 @@
    description: Elementary channels. Selection bindings but no quantifiers.
                 (Figure 3, Bourke &amp; Sowmya, EMSOFT'08)
 
+   testname:	TestTemplate
+   system:	T=Template(5);
+		Test=TestTemplate(5);
+		system T, Test;
+
    layout:	neato
    tabulate:	yes
 

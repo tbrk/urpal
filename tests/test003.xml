@@ -4,6 +4,8 @@
 		Also tests for typedefed scalar selection bindings.
    stderr: urpal:forall bindings (s) are shared across disjuncts: possible split zones
 
+   uppaalerror:	1
+
    layout:	neato
 
    author: T. Bourke

@@ -8,10 +8,14 @@ begin with a comment of the form:
 /*
     description: <free form description, may cover multiple lines.>
 
-    error:       <a non-zero error code if the test is expected to fail>
+    error:       <a non-zero error code if urpal is expected to fail>
     stderr:      <expected messages on stderr>
 
+    testname:	 <an alternative name for the test template (useful
+		  for instantiating it with constants.)>
     system:	 <an optional replacement system declaration>
+
+    uppaalerror: <a non-zero error code if uppaal is expected to fail>
 
     layout:      <a value for the graphviz/engine setting>
     scale:       <a floating point scaling factor>
