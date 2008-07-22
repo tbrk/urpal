@@ -24,6 +24,7 @@ BEGIN	      { currfield = ""
 		field["description"] = ""
 		field["error"] = 0
 		field["stderr"] = ""
+		field["system"] = "system Template, Test;"
 		field["layout"] = "fdp"
 		field["scale"] = "1.0"
 		field["tabulate"] = "no"

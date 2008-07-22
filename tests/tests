@@ -11,6 +11,8 @@ begin with a comment of the form:
     error:       <a non-zero error code if the test is expected to fail>
     stderr:      <expected messages on stderr>
 
+    system:	 <an optional replacement system declaration>
+
     layout:      <a value for the graphviz/engine setting>
     scale:       <a floating point scaling factor>
     tabulate:    <yes|no>
