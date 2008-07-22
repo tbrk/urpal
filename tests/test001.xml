@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+   description: Elementary channels. No selection bindings or quantifiers.
+                (Figure 2, Bourke &amp; Sowmya, EMSOFT'08)
+
+   layout:	fdp
+   tabulate:	yes
+
+   author: T. Bourke
+   created: 20071023
+*/
+
+chan c, d;
+</declaration><template><name x="5" y="5">Template</name><declaration>// Place local declarations here.
+
+clock x;
+</declaration><location id="id0" x="-608" y="-240"><name x="-600" y="-232">s3</name></location><location id="id1" x="-416" y="-520"><name x="-426" y="-550">s2</name><label kind="invariant" x="-392" y="-544">x&lt;4</label></location><location id="id2" x="-808" y="-520"><name x="-818" y="-550">s1</name></location><init ref="id2"/><transition><source ref="id1"/><target ref="id0"/><label kind="guard" x="-408" y="-480">x&gt;1
+  &amp;&amp; x &lt; 3</label><label kind="synchronisation" x="-408" y="-496">d?</label><nail x="-416" y="-240"/></transition><transition><source ref="id2"/><target ref="id0"/><label kind="synchronisation" x="-840" y="-488">d!</label><nail x="-808" y="-240"/></transition><transition><source ref="id2"/><target ref="id1"/><label kind="synchronisation" x="-768" y="-544">c?</label></transition></template><system>// Place template instantiations here.
+Process = Template();
+
+// List one or more processes to be composed into a system.
+system Process;</system></nta>

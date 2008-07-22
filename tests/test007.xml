@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+   description: Validating an array of urgent channels
+                (Figure 9, Bourke &amp; Sowmya, EMSOFT'08)
+
+   layout:	neato
+   tabulate:	yes
+
+   author: T. Bourke
+   created: 20071023
+*/
+
+urgent chan u[5][10];
+</declaration><template><name x="5" y="5">Template</name><declaration>int w;
+</declaration><location id="id0" x="-768" y="-176"><name x="-792" y="-200">s2</name></location><location id="id1" x="-296" y="-648"><name x="-320" y="-672">s1</name></location><location id="id2" x="-768" y="-648"><name x="-792" y="-672">s0</name></location><init ref="id2"/><transition><source ref="id2"/><target ref="id0"/><label kind="select" x="-840" y="-384">j : int[0,4]</label><label kind="guard" x="-816" y="-368">w &lt; 2</label><label kind="synchronisation" x="-840" y="-352">u[j][w+1]?</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="select" x="-736" y="-672">i : int[0,4]</label><label kind="guard" x="-656" y="-672">w&gt;4</label><label kind="synchronisation" x="-616" y="-672">u[i][w-1]?</label></transition></template><system>// Place template instantiations here.
+Process = Template();
+
+// List one or more processes to be composed into a system.
+system Process;</system></nta>

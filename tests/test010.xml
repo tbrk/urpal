@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+   description: Doubled and tripled selection bindings as channel array indices.
+
+   layout:	fdp
+   scale:	2.0
+   tabulate:	yes
+
+   author: T. Bourke
+   created: 20071023
+*/
+
+chan c[10][10][10];
+</declaration><template><name x="5" y="5">Template</name><declaration>// Place local declarations here.
+
+clock x;
+</declaration><location id="id0" x="16" y="416"><name x="-8" y="384">s1</name></location><location id="id1" x="576" y="-40"><name x="566" y="-70">s2</name></location><location id="id2" x="16" y="-40"><name x="6" y="-70">s0</name></location><init ref="id2"/><transition><source ref="id2"/><target ref="id0"/><label kind="select" x="-136" y="32">i : int[0,9], j : int[0,9]</label><label kind="guard" x="-88" y="48">7&lt;x &amp;&amp; x&lt;10</label><label kind="synchronisation" x="-48" y="64">c[j][i][j]?</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="select" x="56" y="-64">i : int[0,9]</label><label kind="guard" x="152" y="-64">1&lt;x &amp;&amp; x&lt;5</label><label kind="synchronisation" x="256" y="-64">c[i][i][i]?</label></transition></template><system>// Place template instantiations here.
+Process = Template();
+
+// List one or more processes to be composed into a system.
+system Process;</system></nta>

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+   description: Channel selections with differing ranges
+                (Figure 8, Bourke &amp; Sowmya, EMSOFT'08)
+
+   layout:	neato
+   scale:	2.0
+   tabulate:	yes
+
+   author: T. Bourke
+   created: 20071023
+*/
+
+const int N = 8;
+chan C[10];
+</declaration><template><name x="5" y="5">Template</name><declaration>// Place local declarations here.
+
+clock x;
+</declaration><location id="id0" x="288" y="48"><name x="264" y="56">s1</name></location><location id="id1" x="-104" y="48"><name x="-128" y="56">s0</name></location><init ref="id1"/><transition><source ref="id1"/><target ref="id0"/><label kind="select" x="-80" y="184">i : int[2,N]</label><label kind="guard" x="8" y="184">x&lt;8 &amp;&amp; i != 4</label><label kind="synchronisation" x="128" y="184">C[i]?</label><nail x="-104" y="184"/><nail x="288" y="184"/></transition><transition><source ref="id1"/><target ref="id0"/><label kind="select" x="-80" y="-104">i : int[0,9]</label><label kind="guard" x="8" y="-104">x&gt;1 &amp;&amp; i != 3</label><label kind="synchronisation" x="120" y="-104">C[i]?</label><nail x="-104" y="-88"/><nail x="288" y="-88"/></transition></template><system>// Place template instantiations here.
+Process = Template();
+
+// List one or more processes to be composed into a system.
+system Process;</system></nta>

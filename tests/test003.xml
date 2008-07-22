@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+   description: Elementary channels. Selection bindings/negated guard clash.
+                (Figure 4, Bourke &amp; Sowmya, EMSOFT'08)
+		Also tests for typedefed scalar selection bindings.
+   stderr: urpal:forall bindings (s) are shared across disjuncts: possible split zones
+
+   layout:	neato
+
+   author: T. Bourke
+   created: 20071023
+*/
+
+const int N=5;
+typedef scalar[N] IDXT;
+chan c;
+</declaration><template><name x="5" y="5">Template</name><declaration>// Place local declarations here.
+
+clock x, y;
+
+int a[IDXT], b[IDXT];
+</declaration><location id="id0" x="200" y="-32"></location><location id="id1" x="-40" y="-32"></location><init ref="id1"/><transition><source ref="id1"/><target ref="id0"/><label kind="select" x="-48" y="-128">s:IDXT</label><label kind="guard" x="24" y="-128">x&lt;a[s] &amp;&amp; y&gt;b[s]</label><label kind="synchronisation" x="168" y="-128">c?</label><nail x="-40" y="-104"/><nail x="200" y="-104"/></transition></template><system>// Place template instantiations here.
+Process = Template();
+
+// List one or more processes to be composed into a system.
+system Process;</system></nta>

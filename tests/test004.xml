@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+   description: Channel arrays with state variables only
+                (Figure 6, Bourke &amp; Sowmya, EMSOFT'08)
+
+   layout:	fdp
+   tabulate:	yes
+
+   author: T. Bourke
+   created: 20071023
+*/
+
+const int N1=3, N2=2;
+
+chan c[N1][N2];
+</declaration><template><name x="5" y="5">Template</name><declaration>// Place local declarations here.
+
+clock x;
+int[0,N1-1] head = 0, tail = 0;
+int[0,N2-1] i = 0, j = 1;
+</declaration><location id="id0" x="16" y="-40"><name x="24" y="-32">s0</name></location><init ref="id0"/><transition><source ref="id0"/><target ref="id0"/><label kind="guard" x="-328" y="-16">x&lt;=3 &amp;&amp; (head&lt;tail || head==N1-1)</label><label kind="synchronisation" x="-272" y="0">c[head][j]!</label><label kind="assignment" x="-304" y="16">head = (head+1) % N1</label><nail x="-168" y="56"/><nail x="-136" y="88"/></transition><transition><source ref="id0"/><target ref="id0"/><label kind="guard" x="88" y="-224">x&gt;=5</label><label kind="synchronisation" x="88" y="-208">c[tail][i]!</label><label kind="assignment" x="160" y="-208">tail = (tail+1) % N1, x=0</label><nail x="184" y="-192"/><nail x="216" y="-160"/></transition></template><template><name>Ready</name><location id="id1" x="-368" y="-168"></location><init ref="id1"/><transition><source ref="id1"/><target ref="id1"/><label kind="select" x="-176" y="-240">i:int[0,N1-1], j:int[0,N2-1]</label><label kind="synchronisation" x="-176" y="-224">c[i][j]?</label><nail x="-184" y="-168"/><nail x="-184" y="-256"/></transition></template><system>// Place template instantiations here.
+Process = Template();
+
+// List one or more processes to be composed into a system.
+system Process, Ready;</system></nta>

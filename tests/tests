@@ -1,0 +1,34 @@
+$Id$
+
+Test format
+-----------
+Each test file is an Uppaal model containing a single template named
+`Template' (the default for a new model). The global declarations should
+begin with a comment of the form:
+/*
+    description: <free form description, may cover multiple lines.>
+
+    error:       <a non-zero error code if the test is expected to fail>
+    stderr:      <expected messages on stderr>
+
+    layout:      <a value for the graphviz/engine setting>
+    scale:       <a floating point scaling factor>
+    tabulate:    <yes|no>
+
+    author:      <author name>
+    created:     <creation date: yyyymmdd>
+ */
+
+All fields are optional. Blank lines are ignored.
+Fields may cover multiple lines but should not contain any of the field
+tags, i.e. the names above including colons.
+The closing comment brace `*/` must appear on a line by itself.
+
+Testing Procedure
+-----------------
+1. The test file is processed by urpal to create a new template: `Test'.
+   The layout fields are respected.
+2. The return code and stderr text are compared with the values given.
+3. The system string is set to: system Template, Test;
+4. Uppaal attempts to verify the model against: A[] (not Test.Err)
+

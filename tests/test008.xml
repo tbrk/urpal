@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+   description: Variable bindings that can be swapped (canswap is true)
+
+   layout:	fdp
+
+   author: T. Bourke
+   created: 20071023
+*/
+
+const int N = 10;
+chan c;
+</declaration><template><name x="5" y="5">Template</name><declaration>// Place local declarations here.
+
+clock k[N];
+int b[N];
+clock d;
+</declaration><location id="id0" x="632" y="248"></location><location id="id1" x="248" y="248"></location><init ref="id1"/><transition><source ref="id1"/><target ref="id0"/><label kind="guard" x="408" y="392">d&gt;=2</label><label kind="synchronisation" x="504" y="392">c!</label><nail x="248" y="392"/><nail x="632" y="392"/></transition><transition><source ref="id1"/><target ref="id0"/><label kind="select" x="216" y="88">i : int[0,N-1]</label><label kind="guard" x="320" y="88">forall (j : int[0,N-1]) k[i]&lt;10 &amp;&amp; k[j]&gt;5</label><label kind="synchronisation" x="600" y="88">c!</label><nail x="248" y="112"/><nail x="632" y="112"/></transition></template><system>// Place template instantiations here.
+Process = Template();
+
+// List one or more processes to be composed into a system.
+system Process;</system></nta>
