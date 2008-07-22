@@ -79,22 +79,22 @@ elif [ $DIFFRESULT -ne 0 ]; then
 else
     if [ $VERIFY -eq 1 ]; then
 	VER_EXPECTED=`$GETDESC $TESTSRC | $AWK -v mode=uppaalerror -f description.awk`
-	$VERIFYTA -s -q -f $TESTPRE $TESTPRE-flip.xml test.q 2>&1 > $UPPOUT
+	$VERIFYTA -s -q -f $TESTPRE $TESTPRE-flip.xml test.q >$UPPOUT 2>&1
 	VER_RESULT=$?
 
-	if grep -q 'Property is satisfied.' $UPPOUT; then
-	    if [ $VER_RESULT -eq $VER_EXPECTED ]; then
-		if [ $VER_EXPECTED -ne 0 ]; then
-		    echo "| PASSED (verification failure expected)"
-		else
-		    echo "| PASSED"
-		fi
-		if [ $RMTMP -eq 1 ]; then rm $UPPOUT; fi
-	    else
-		echo "| FAILED (verification in Uppaal)"
-	    fi
+	if [ $VER_RESULT -ne $VER_EXPECTED ]; then
+	    echo "| FAILED (unexpected uppaal failure: $VER_RESULT)"
 	else
-	    echo "| FAILED (Err is reachable)"
+	    if [ $VER_EXPECTED -eq 0 ]; then
+		if grep -q 'Property is satisfied.' $UPPOUT; then
+		    echo "| PASSED"
+		    if [ $RMTMP -eq 1 ]; then rm $UPPOUT; fi
+		else
+		    echo "| FAILED (Err is reachable)"
+		fi
+	    else
+		echo "| PASSED (uppaal failure expected)"
+	    fi
 	fi
     else
 	echo "| PASSED"
