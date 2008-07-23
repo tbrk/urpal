@@ -19,7 +19,7 @@ chan c;
 </declaration><template><name x="5" y="5">Template</name><parameter>const int n</parameter><declaration>// Place local declarations here.
 
 clock x[n];
-</declaration><location id="id0" x="-296" y="-304"><name x="-306" y="-334">s0</name></location><init ref="id0"/><transition><source ref="id0"/><target ref="id0"/><label kind="select" x="-136" y="-392">i : int[0,n-1]</label><label kind="guard" x="-104" y="-368">x[i]&lt;=i</label><label kind="synchronisation" x="-104" y="-344">c!</label><label kind="assignment" x="-104" y="-320">x[i] = 0</label><nail x="-152" y="-304"/><nail x="-152" y="-384"/></transition></template><template><name>Ready</name><location id="id1" x="-336" y="-240"></location><init ref="id1"/><transition><source ref="id1"/><target ref="id1"/><label kind="synchronisation" x="-192" y="-280">c?</label><nail x="-208" y="-240"/><nail x="-208" y="-336"/></transition></template><system>// Place template instantiations here.
+</declaration><location id="id0" x="-296" y="-304"><name x="-306" y="-334">s0</name></location><init ref="id0"/><transition><source ref="id0"/><target ref="id0"/><label kind="select" x="-136" y="-392">i : int[0,n-1]</label><label kind="guard" x="-104" y="-368">x[i]&lt;=i</label><label kind="synchronisation" x="-104" y="-344">c!</label><nail x="-152" y="-304"/><nail x="-152" y="-384"/></transition></template><template><name>Ready</name><location id="id1" x="-336" y="-240"></location><init ref="id1"/><transition><source ref="id1"/><target ref="id1"/><label kind="synchronisation" x="-192" y="-280">c?</label><nail x="-208" y="-240"/><nail x="-208" y="-336"/></transition></template><system>// Place template instantiations here.
 Process = Template(5);
 
 // List one or more processes to be composed into a system.

@@ -15,6 +15,18 @@ DEBUG=0
 RMTMP=1
 VERIFY=1
 
+filesize () {
+    if uname | grep -q BSD; then
+	# BSD
+	FILESIZE=`stat -f %z $1`
+    else
+	# GNU
+	FILESIZE=`stat -c %s $1`
+    fi
+
+    return $R
+}
+
 # ##
 
 trap "echo 'Terminated Early'; exit 2" 2
@@ -64,44 +76,49 @@ CMD="$URPAL "$LAYOUT_OPTION" "$EVAL_OPTION" --input=$TESTSRC --output=$TESTPRE-i
 if [ $DEBUG -eq 1 ]; then echo $CMD; fi
 $CMD >$TESTPRE-flip.xml 2>$TESTOUT
 ERROR=$?
-$XSLTPROC --stringparam system "$SYSTEM" \
-    --output $TESTPRE-flip.xml change_system.xsl $TESTPRE-iflip.xml
-rm $TESTPRE-iflip.xml
 
-diff -b $TESTOUT_EXPECTED $TESTOUT > $DIFFOUT
-DIFFRESULT=$?
+DIFFRESULT=0
+if [ $ERROR -eq 0 ]; then
+    $XSLTPROC --stringparam system "$SYSTEM" \
+	--output $TESTPRE-flip.xml change_system.xsl $TESTPRE-iflip.xml
+    rm $TESTPRE-iflip.xml
+
+    diff -b $TESTOUT_EXPECTED $TESTOUT > $DIFFOUT
+    DIFFRESULT=$?
+fi
 
 if [ $ERROR -ne $ERROR_EXPECTED ]; then
     echo "| FAILED (expected $ERROR_EXPECTED, got $ERROR)"
 elif [ $DIFFRESULT -ne 0 ]; then
     echo "| FAILED (difference on stderr expected< >actual)"
     cat $DIFFOUT | grep '^[><-]'
-else
-    if [ $VERIFY -eq 1 ]; then
-	VER_EXPECTED=`$GETDESC $TESTSRC | $AWK -v mode=uppaalerror -f description.awk`
-	$VERIFYTA -s -q -f $TESTPRE $TESTPRE-flip.xml test.q >$UPPOUT 2>&1
-	VER_RESULT=$?
+elif [ $VERIFY -eq 1 -a $ERROR -eq 0 ]; then
+    VER_EXPECTED=`$GETDESC $TESTSRC | $AWK -v mode=uppaalerror -f description.awk`
+    $VERIFYTA -s -q -f $TESTPRE $TESTPRE-flip.xml test.q >$UPPOUT 2>&1
+    VER_RESULT=$?
 
-	if [ $VER_RESULT -ne $VER_EXPECTED ]; then
-	    echo "| FAILED (unexpected uppaal failure: $VER_RESULT)"
+    if [ $VER_RESULT -ne $VER_EXPECTED ]; then
+	if grep -q '^Out of memory.' $UPPOUT; then
+	    echo "| UNCERTAIN (not enough memory to complete verification)"
 	else
-	    if [ $VER_EXPECTED -eq 0 ]; then
-		if grep -q 'Property is satisfied.' $UPPOUT; then
-		    echo "| PASSED"
-		    if [ $RMTMP -eq 1 ]; then rm $UPPOUT; fi
-		else
-		    echo "| FAILED (Err is reachable)"
-		fi
-	    else
-		echo "| PASSED (uppaal failure expected)"
-	    fi
+	    echo "| FAILED (unexpected uppaal failure: $VER_RESULT)"
+	fi
+    elif [ $VER_EXPECTED -eq 0 ]; then
+	if grep -q 'Property is satisfied.' $UPPOUT; then
+	    echo "| PASSED"
+	    if [ $RMTMP -eq 1 ]; then rm $UPPOUT; fi
+	else
+	    echo "| FAILED (Err is reachable)"
 	fi
     else
-	echo "| PASSED"
+	echo "| PASSED (uppaal failure expected)"
     fi
-
-    if [ `stat -f %z $TESTOUT` -eq 0 ]; then rm $TESTOUT; fi
+else
+    echo "| PASSED"
 fi
 
-if [ $RMTMP -eq 1 ]; then rm $TESTOUT_EXPECTED $DIFFOUT; fi
+filesize $TESTOUT
+if [ $FILESIZE -eq 0 ]; then rm $TESTOUT; fi
+
+if [ $RMTMP -eq 1 ]; then rm $TESTOUT_EXPECTED $DIFFOUT 2> /dev/null || true; fi
 
