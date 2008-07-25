@@ -2,6 +2,7 @@
    description: Elementary broadcast channel.
 
    stderr: urpal:broadcast outputs on d to Err will be omitted; candidate models must not input on d.
+   uppaalerror: 1
 
    layout:	fdp
    tabulate:	yes

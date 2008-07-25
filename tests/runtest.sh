@@ -72,11 +72,11 @@ echo +---------------------------------------------------------------------
 echo "| $TESTSRC"
 $GETDESC $TESTSRC | $AWK -v mode=description -f description.awk | sed 's/^/| /'
 
-CMD="$URPAL --set 'exit_on_fail=true' \
+CMD="$URPAL --set=exit_on_fail=true \
 	    "$LAYOUT_OPTION" "$EVAL_OPTION" \
 	    --input=$TESTSRC --output=$TESTPRE-iflip.xml"
 if [ $DEBUG -eq 1 ]; then echo $CMD; fi
-$CMD >$TESTPRE-flip.xml 2>$TESTOUT
+$CMD 2>$TESTOUT
 ERROR=$?
 
 DIFFRESULT=0
@@ -95,7 +95,7 @@ elif [ $DIFFRESULT -ne 0 ]; then
     echo "| FAILED (difference on stderr expected< >actual)"
     cat $DIFFOUT | grep '^[><-]'
 elif [ $ERROR -ne 0 ]; then
-    echo "| PASSED (an urpal failure was expected)"
+    echo "| PASSED (urpal failure expected)"
 elif [ $VERIFY -eq 1 ]; then
     VER_EXPECTED=`$GETDESC $TESTSRC | $AWK -v mode=uppaalerror -f description.awk`
     $VERIFYTA -s -q -f $TESTPRE $TESTPRE-flip.xml test.q >$UPPOUT 2>&1
