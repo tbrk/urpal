@@ -141,6 +141,7 @@ in
              end
     end
     handle FailedCommand => OS.Process.failure
+         | CmdLang.Failure => OS.Process.failure
          | e => Util.abort ["uncaught exception:", General.exnMessage e]
     
     fun run args = main (Settings.progName, String.tokens Char.isSpace args)

@@ -58,6 +58,9 @@ structure CmdEnv = struct
                         handle LibBase.NotFound => (m, Fail "not found")
         in ((m', nta), v) end
 
+  fun isFail (Fail _) = true
+    | isFail _        = false
+
   fun getValue (m, _) nm = AtomMap.find (m, nm)
 
   fun listItems (m, _) = AtomMap.listItemsi m

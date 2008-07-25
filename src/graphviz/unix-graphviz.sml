@@ -30,10 +30,17 @@ structure Graphviz = Graphviz (
                         (S.ttou, "ttou")]
           in
           fun statusToString st = let
+             (* SML/NJ: *)
                 val estr = Posix.Error.errorMsg o Posix.Error.fromWord
                            o Word32.fromLargeWord o Word8.toLargeWord
+             (* MLton: *)
+             (* val estr = Posix.Error.errorMsg o Posix.Error.fromWord
+                           o Word8.toLargeWord *)
                 fun sigName s = let
+                                  (* SML/NJ: *)
                                   val w= Word32.toString (Posix.Signal.toWord s)
+                                  (* MLton: *)
+                               (* val w= Word64.toString (Posix.Signal.toWord s) *)
                                 in case List.find (fn(sg,_)=>sg=s) sigs of
                                      NONE          => "0x" ^ w
                                    | SOME (_, str) => str ^ " (0x" ^ w ^ ")"

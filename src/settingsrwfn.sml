@@ -45,6 +45,8 @@ struct
 
     val ref_tabulateLabels         = ref false
 
+    val ref_exitOnFail             = ref false
+
     val ref_priority = ref NoDebug
   in
 
@@ -106,6 +108,9 @@ struct
 
   fun tabulateLabels ()          = !ref_tabulateLabels
   fun set_tabulateLabels v       = (ref_tabulateLabels := v)
+
+  fun exitOnFail ()              = !ref_exitOnFail
+  fun set_exitOnFail v           = (ref_exitOnFail := v)
 
   fun set_priority d = ignore(Option.map(fn v=>ref_priority:=v) (intToDebug d))
   fun showDebug (d1) = debugToInt d1 >= debugToInt (!ref_priority)
@@ -186,6 +191,7 @@ struct
        (["error_color"],         set_errorColor,     some <**< %CT.getString),
        (["urgent_chanloc_color"],set_urgChanLocColor,some <**< %CT.getString)];
 
+      updateOption (["exit_on_fail"], set_exitOnFail,          %CT.getBool);
       updateOption (["debug"],   set_priority,                 %CT.getInt)
     end
 
@@ -214,6 +220,8 @@ struct
           optOffset (%"split_shift_old",    splitShiftOld ()),
           optOffset (%"split_shift_new",      splitShiftNew      ()),
           optOffset (%"tabulate_shift",       SOME (tabulateShift ())),
+
+          defEntry (%"exit_on_fail",        CT.Bool, exitOnFail ()),
 
           SOME (CT.Section (%"graphviz", [
             CT.Entry (%"path",   CT.String (graphvizPath ())),

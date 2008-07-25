@@ -15,6 +15,7 @@ signature CONFIG_TREE = sig
 
        and entry_type = Id     of symbol
                       | Int    of int
+                      | Bool   of bool
                       | Color  of string
                       | Real   of real
                       | String of string
@@ -31,7 +32,7 @@ signature CONFIG_TREE = sig
   val getInt    : t * symbol list -> int option
   val getReal   : t * symbol list -> real option   (* Int -> Real      *)
   val getColor  : t * symbol list -> string option
-  val getBool   : t * symbol list * bool -> bool    (* give default value *)
+  val getBool   : t * symbol list -> bool option   (* give default value *)
 
   val parse : (string, 'strm) StringCvt.reader -> 'strm -> t
   val output : TextIO.outstream * t -> unit

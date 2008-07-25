@@ -41,6 +41,7 @@ struct
   exception NoChannels
   exception BadSubscriptType of string * string
                         (* channel name, subscript type *)
+  exception BadBroadcastChannel of symbol
 
 
   fun validChannelId env id = let
@@ -106,15 +107,25 @@ struct
                       Atom.toString chanId, "' from location ", locName loc]
         )
 
-      fun chanIsUrgent chan = let
-          fun f (E.CHANNEL {urgent=true, ...}) = true
-            | f (E.ARRAY (inner, E.Type s))    = f inner
-            | f (E.NAME (_, _, SOME ty))       = f ty
-            | f _                              = false
-        in case (Env.findValType env chan) of
-             NONE    => false   (* no type found, assume the best *)
-           | SOME ty => f ty
-        end
+      local
+        fun chanIs chanToResult = let
+            fun check chan = let
+                fun f (c as E.CHANNEL _)          = chanToResult c
+                  | f (E.ARRAY (inner, E.Type s)) = f inner
+                  | f (E.NAME (_, _, SOME ty))    = f ty
+                  | f _                           = false
+              in case (Env.findValType env chan) of
+                   NONE    => false   (* no type found, assume the best *)
+                 | SOME ty => f ty
+              end
+          in check end
+      in
+        val chanIsUrgent = chanIs (fn (E.CHANNEL {urgent, ...}) => urgent
+                                                            | _ => false)
+        val chanIsBroadcast = chanIs (fn (E.CHANNEL {broadcast, ...})
+                                                             => broadcast
+                                                         | _ => false)
+      end
 
       fun doLoc (location as P.Location {id=loc as P.LocId l,
                                          invariant=(inv, _), ...}) = let
@@ -144,8 +155,12 @@ struct
               val (is, os) = filterChannels chanId trans
 
               val flipped =
-                    (List.mapPartial (makeTrans (chanId, E.Output))(negate is))
-                  @ (List.mapPartial (makeTrans (chanId, E.Input)) (negate os))
+                (List.mapPartial (makeTrans (chanId, E.Input)) (negate os))
+                @ (if chanIsBroadcast chanId
+                   then (if null is then []
+                         else raise BadBroadcastChannel chanId)
+                   else
+                   (List.mapPartial (makeTrans (chanId, E.Output)) (negate is)))
 
               val _ = if not (null flipped)
                          andalso invHasClocks

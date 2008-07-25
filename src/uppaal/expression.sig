@@ -121,6 +121,8 @@ sig
   val varName : var -> string
     (* return a name suitable for debugging output and error messages *)
 
+  val tyQual : ty -> tyqual
+
   val getFreeNames : expr -> AtomSet.set
   val getBoundNames : boundid list -> AtomSet.set
   val renameVar  : {old : symbol, new: symbol} * expr -> expr

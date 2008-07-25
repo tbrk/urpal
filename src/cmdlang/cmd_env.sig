@@ -24,6 +24,8 @@ signature CMD_ENV = sig
   val remove        : t * symbol -> t * value
   val getValue      : t -> symbol -> value option
 
+  val isFail        : value -> bool
+
   val listTemplates : t -> ParsedNta.template list
   val listItems     : t -> (symbol * value) list
 

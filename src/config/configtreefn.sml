@@ -16,6 +16,7 @@ struct
 
        and entry_type = Id     of symbol
                       | Int    of int
+                      | Bool   of bool
                       | Color  of string
                       | Real   of real
                       | String of string
@@ -36,6 +37,7 @@ struct
 
       fun ASSIGN (nm, Lex.Id v)         = Entry (nm, Id v)
         | ASSIGN (nm, Lex.Int i)        = Entry (nm, Int i)
+        | ASSIGN (nm, Lex.Bool b)       = Entry (nm, Bool b)
         | ASSIGN (nm, Lex.Color s)      = Entry (nm, Color s)
         | ASSIGN (nm, Lex.Real r)       = Entry (nm, Real r)
         | ASSIGN (nm, Lex.StringStart)  = Entry (nm, String
@@ -58,6 +60,8 @@ struct
   fun entryToOutputStr (Id id)    = Atom.toString id
     | entryToOutputStr (Int i)    = if i < 0 then "-" ^ Int.toString (~i)
                                              else Int.toString i
+    | entryToOutputStr (Bool true)= "true"
+    | entryToOutputStr (Bool false)= "false"
     | entryToOutputStr (Color s)  = s
     | entryToOutputStr (Real r)   = if Real.sign r >= 0 then Real.toString r
                                     else "-" ^ Real.toString (Real.abs r)
@@ -122,15 +126,17 @@ struct
                               SOME (Color c) => SOME c
                             | _              => NONE
 
-  fun getBool (t, path, d)= case getEntry (t, path) of
-                              SOME (String "on")    => true
-                            | SOME (String "off")   => false
-                            | SOME (String "true")  => true
-                            | SOME (String "false") => false
-                            | SOME (String "yes")   => true
-                            | SOME (String "no")    => false
-                            | SOME (Int i)          => (i <> 0)
-                            | _                     => d
+  fun getBool (t, path) = let
+      fun fromVal (Bool b)         = SOME b
+        | fromVal (String "on")    = SOME true
+        | fromVal (String "off")   = SOME false
+        | fromVal (String "true")  = SOME true
+        | fromVal (String "false") = SOME false
+        | fromVal (String "yes")   = SOME true
+        | fromVal (String "no")    = SOME false
+        | fromVal (Int i)          = SOME (i <> 0)
+        | fromVal _                = NONE
+    in Option.mapPartial fromVal (getEntry (t, path)) end
 
   end (* local *)
 end

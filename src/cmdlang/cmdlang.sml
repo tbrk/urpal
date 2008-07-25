@@ -11,6 +11,8 @@ structure CmdLang : CMD_LANG = struct
                                  structure ParserData = LrVals.ParserData
                                  structure Lex = Lex)
 
+  exception Failure;
+
   fun parse rdr (env, ostrm) = let
       val prError   = FilePos.error (Settings.progName^":")
 
@@ -32,9 +34,8 @@ structure CmdLang : CMD_LANG = struct
             then strm' else skipLine strm'
           end
 
-      fun loop ((CmdLoop.Stop, env), _) = SOME env
-        | loop ((CmdLoop.Abort, _), _) = NONE
-        | loop ((CmdLoop.Continue, env), strm) = let
+
+      fun doLoop (env, strm) = let
             val (next, strm') = Parser.Stream.get strm
           in
             if Parser.sameToken (next, tokenEOF) then SOME env
@@ -44,6 +45,13 @@ structure CmdLang : CMD_LANG = struct
                          handle Parser.ParseError =>
                             ((CmdLoop.Continue, env), skipLine strm))
           end
+
+      and loop ((CmdLoop.Stop, env), _) = SOME env
+        | loop ((CmdLoop.Abort, _), _) = NONE
+        | loop ((CmdLoop.Continue, env), strm) = doLoop (env, strm)
+        | loop ((CmdLoop.Fail, env), strm) = if Settings.exitOnFail ()
+                                             then raise Failure
+                                             else doLoop (env, strm)
 
     in loop ((CmdLoop.Continue, env), lexstream) end
 

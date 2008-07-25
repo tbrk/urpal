@@ -103,6 +103,16 @@ struct
     | varName (RecordVar (v, field))  = varName v ^ "." ^ Atom.toString field
     | varName (SubscriptVar (v, _))   = varName v ^ "[]"
 
+  fun tyQual (VOID)              = NoQual
+    | tyQual (INT (_, tq))       = tq
+    | tyQual (BOOL tq)           = tq
+    | tyQual (CLOCK)             = NoQual
+    | tyQual (CHANNEL _)         = NoQual
+    | tyQual (SCALAR (_, tq, _)) = tq
+    | tyQual (RECORD (_, tq, _)) = tq
+    | tyQual (ARRAY (ty, _))     = tyQual ty
+    | tyQual (NAME (_, tq, _))   = tq
+
   fun getFreeNames e = let
       (*{{{1*)
       val add = AtomSet.add

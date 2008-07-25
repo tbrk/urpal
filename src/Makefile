@@ -9,6 +9,7 @@ MLLEX=mllex
 MLTON=mlton
 HEAP2EXEC=heap2exec
 STRIP=strip
+CTAGS=exctags
 
 SKIPCM=-type d -name '.cm' -prune -type f -o
 SRC!=find . $(SKIPCM) -name '*sml' -o -name '*sig'
@@ -72,7 +73,8 @@ version.sml:
 	 echo "end") > version.sml
 
 tags: $(SRC)
-	exctags -R --exclude=.cm --exclude=*.grm.sml *
+	-$(CTAGS) -R --exclude=.cm --exclude=*.grm.sml *
+	touch tags
 
 clean:
 	-@find . \( $(SKIPCM) -name *.grm.sml -o -name *.lex.sml \

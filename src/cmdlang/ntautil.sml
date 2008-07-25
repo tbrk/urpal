@@ -55,7 +55,9 @@ struct
            | SOME (Env.VarEntry{ty,ref=r,...}) => (case #1 (E.stripArray ty) of
                 E.CHANNEL {broadcast,...} =>
                   if broadcast
-                  then SOME [pre," is broadcast (not supported)"]
+                  then SOME ["broadcast outputs on ", pre,
+                             " to Err will be omitted; candidate models must",
+                             " not input on ", pre, "."]
                   else if r
                        then SOME [pre,"is passed by reference (not supported)"]
                        else NONE

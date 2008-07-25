@@ -22,20 +22,20 @@ fun outln os xs = (TextIO.output (os, concat xs);
 val (pr, pre) = (outln TextIO.stdOut, outln TextIO.stdErr)
 
 fun listTemplates e =
-  (app (fn t=>pr [PNta.Template.selName t]) (CE.listTemplates e); e)
+  (app (fn t=>pr [PNta.Template.selName t]) (CE.listTemplates e); (e, false))
 
 fun showVals e = let
     fun show (nm, v) = pr [Atom.toString nm, "=", CE.toString v]
-  in app show (CE.listItems e); e end
+  in app show (CE.listItems e); (e, false) end
 
 fun showVal id e = let
     val () = case CE.getValue e id of
                NONE   => pr ["unknown name ", Atom.toString id]
              | SOME v => pr [CE.toString v]
-  in e end
+  in (e, false) end
 
-fun insert (e, id, CE.Fail s) = (pre ["fail: ", s]; e)
-  | insert (e, id, v)         = CE.insert ((id, v), e)
+fun insert (e, id, CE.Fail s) = (pre ["fail: ", s]; (e, true))
+  | insert (e, id, v)         = (CE.insert ((id, v), e), false)
 
 fun drop (e, id) = CE.remove (e, id)
 
@@ -79,7 +79,10 @@ fun doMakeTest (CE.Template t, CE.Symbols chanset, CE.Symbols varset) = (let
       in CE.Template t end
       handle MakeTest.InvalidChannelId c => CE.Fail ("invalid channel id "
                                                      ^Atom.toString c)
-           | MakeTest.NoChannels => CE.Fail "empty channel list")
+           | MakeTest.NoChannels => CE.Fail "empty channel list"
+           | MakeTest.BadBroadcastChannel c => CE.Fail (
+                                    "input on broadcast channel "
+                                    ^Atom.toString c^" cannot be inverted"))
 
   | doMakeTest (f as CE.Fail _, _, _)        = f
   | doMakeTest (_, f as CE.Fail _, _)        = f
@@ -276,8 +279,8 @@ fun doWriteGraphics (CE.Template t, path, outty) = (let
   | doWriteGraphics _ = CE.Fail
         "bad args: writegraphics(<template>, <path>, <PS|Dot|SVG>)"
 
-fun echo (f as CE.Fail s) = ((pr [s]); f)
-  | echo v                = v
+fun echo (f as CE.Fail s) = ((pr [s]); true)
+  | echo v                = false
 
 fun help () = app (fn t=>pr [t]) [
       "--commands--",
@@ -333,7 +336,7 @@ fun help () = app (fn t=>pr [t]) [
 %left  BACKSLASH
                             
 %nonterm cmd             of CmdLoop.t * CE.t
-       | stmt            of CE.t -> CE.t
+       | stmt            of CE.t -> (CE.t * bool)
        | expr            of CE.t -> CE.value
        | idlist          of Atom.atom list
        | idsubstlist     of (Atom.atom * Atom.atom) list
@@ -349,20 +352,25 @@ fun help () = app (fn t=>pr [t]) [
 
 %%
 
-cmd: stmt                             ((CmdLoop.Continue, stmt initialEnv))
+cmd: stmt                             (let val (env, failed) = stmt initialEnv
+                                       in (if failed then CmdLoop.Fail
+                                           else CmdLoop.Continue, env) end)
    | QUIT                             ((CmdLoop.Stop, initialEnv))
 
 stmt: LIST                            (listTemplates)
     | SHOW                            (showVals)
     | SHOW ID                         (showVal ID)
-    | HELP                            (fn e=>(help(); e))
+    | HELP                            (fn e=>(help(); (e, false)))
     | ID ASSIGN expr                  (fn e=>insert (e, ID, expr e))
-    | expr                            (fn e=>(pr[CmdEnv.toString (expr e)]; e))
-    | DROP ID                         (fn e=>(fn(e,v)=>(echo v; e))
+    | expr                            (fn e=>(let val r = expr e in
+                                                pr [CmdEnv.toString r];
+                                                (e, CE.isFail r)
+                                              end))
+    | DROP ID                         (fn e=>(fn(e,v)=>(e, echo v))
                                              (drop (e, ID)))
     | WRITEGRAPHICS LPAR expr COMMA STRING COMMA ID RPAR
-                                      (fn e=>(echo (doWriteGraphics
-                                             (expr e, STRING, ID)); e))
+                                      (fn e=>(e, echo (doWriteGraphics
+                                                         (expr e, STRING, ID))))
 
 expr: ACCEPTALL expr RPAR             (fn e=>doAcceptAll (e, expr e))
     | ACTIONS expr RPAR               (fn e=>doActions (expr e))

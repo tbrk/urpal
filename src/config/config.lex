@@ -9,6 +9,7 @@
 
 datatype lexresult = Id of Atom.atom
                    | Int of int
+                   | Bool of bool
                    | Color of string
                    | Real of real
                    | OpenSection
@@ -40,6 +41,8 @@ stringchar=([\\]["] | [^"\n]);
 <INITIAL>{ws}+      => (lex());
 <INITIAL>{newline}  => (linenum := !linenum + 1; lex());
  
+<INITIAL>"true"	    => (Bool true);
+<INITIAL>"false"    => (Bool false);
 <INITIAL>{alpha}({alpha}|{digit}|{underscore})*
                     => (Id (Atom.atom yytext));
 

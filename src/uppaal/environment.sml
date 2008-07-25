@@ -125,7 +125,8 @@ struct
                                                       E.Type (expand sty))
       | expand (E.ARRAY (ty, E.Unresolved s)) = let
               val sty = case Map.find (tenv, s)
-                        of SOME (_, (_, ety)) => ety
+                        of SOME (_, (_, ety)) => E.NAME (s, E.tyQual ety,
+                                                         SOME ety)
                          | NONE          => let
                              val u = E.VarExpr (E.SimpleVar s)
                                     (* int[l, u] bounds are inclusive *)

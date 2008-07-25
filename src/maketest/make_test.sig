@@ -4,9 +4,10 @@ signature MAKE_TEST =
 sig
   type symbol = Atom.atom
 
-  exception InvalidChannelId of Atom.atom
+  exception InvalidChannelId of symbol
   exception NoChannels
   exception SilentTransition
+  exception BadBroadcastChannel of symbol
 
   val maketest : symbol list * ParsedNta.template
                 -> ParsedNta.locId * ParsedNta.template

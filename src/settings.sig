@@ -26,6 +26,9 @@ sig
 
   val tabulateLabels      : unit -> bool
 
+  (* operation *)
+  val exitOnFail          : unit -> bool
+
   (* debug *)
   datatype debug_priority = All | VeryDetailed | Detailed | Outline | NoDebug
   val showDebug           : debug_priority -> bool
