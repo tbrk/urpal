@@ -36,7 +36,7 @@ do case "$o" in
 	h)	echo "usage: $ME [-hvkn] <testsrc.xml>"
 		echo "       -h   show this help message"
 		echo "       -v   show more output"
-		echo "	     -k   keep temporary files"
+		echo "       -k   keep temporary files"
 		echo "       -n   skip verification with Uppaal"
 		exit 0
 		;;
@@ -72,7 +72,9 @@ echo +---------------------------------------------------------------------
 echo "| $TESTSRC"
 $GETDESC $TESTSRC | $AWK -v mode=description -f description.awk | sed 's/^/| /'
 
-CMD="$URPAL "$LAYOUT_OPTION" "$EVAL_OPTION" --input=$TESTSRC --output=$TESTPRE-iflip.xml"
+CMD="$URPAL --set 'exit_on_fail=true' \
+	    "$LAYOUT_OPTION" "$EVAL_OPTION" \
+	    --input=$TESTSRC --output=$TESTPRE-iflip.xml"
 if [ $DEBUG -eq 1 ]; then echo $CMD; fi
 $CMD >$TESTPRE-flip.xml 2>$TESTOUT
 ERROR=$?
@@ -92,7 +94,9 @@ if [ $ERROR -ne $ERROR_EXPECTED ]; then
 elif [ $DIFFRESULT -ne 0 ]; then
     echo "| FAILED (difference on stderr expected< >actual)"
     cat $DIFFOUT | grep '^[><-]'
-elif [ $VERIFY -eq 1 -a $ERROR -eq 0 ]; then
+elif [ $ERROR -ne 0 ]; then
+    echo "| PASSED (an urpal failure was expected)"
+elif [ $VERIFY -eq 1 ]; then
     VER_EXPECTED=`$GETDESC $TESTSRC | $AWK -v mode=uppaalerror -f description.awk`
     $VERIFYTA -s -q -f $TESTPRE $TESTPRE-flip.xml test.q >$UPPOUT 2>&1
     VER_RESULT=$?
