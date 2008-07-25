@@ -26,6 +26,7 @@ is
 #if defined(OPSYS_WIN32)
     win-graphviz.sml
 #else
+    unix-signal32.sml
     unix-graphviz.sml
 #endif
 
