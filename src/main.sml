@@ -1,3 +1,4 @@
 (* $Id *)
-val _ = Urpal.main (CommandLine.name (), CommandLine.arguments ());
+val _ = OS.Process.exit (Urpal.main (CommandLine.name (),
+                                     CommandLine.arguments ()));
 
