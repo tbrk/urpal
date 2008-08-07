@@ -1,0 +1,11 @@
+
+dtd_path="flat-1_1.dtd"
+
+split_shift_old = (x=0,  y=0)
+split_shift_new = (x=-20, y=-40)
+
+graphviz {
+    path = "/usr/local"
+    engine = neato
+}
+
