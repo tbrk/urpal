@@ -1,12 +1,22 @@
 (* $Id$
-
-   ML-Lex lexer for Uppaal 4.x
-
-   20070612 T.Bourke
-     Derived from the ML-Yacc Pascal example, and the
-     Uppaal Timed Automata Parser Library documentation
-     (http://www.cs.auc.dk/~behrmann/utap/syntax.html).
-
+ *
+ * Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the "BSD License" which is distributed with the
+ * software in the file LICENSE.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+ * License for more details.
+ *
+ * ML-Lex lexer for Uppaal 4.x
+ *
+ * Derived from the ML-Yacc Pascal example, and the
+ * Uppaal Timed Automata Parser Library documentation
+ * (http://www.cs.auc.dk/~behrmann/utap/syntax.html).
  *)
 
 (* Type abbreviations to match signature for ML-Yacc *)

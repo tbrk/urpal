@@ -1,12 +1,23 @@
 (* $Id$
-
-   20070822 T. Bourke
-     Basic datatypes for DOT files.
-
-     Simplifications:
-        * no anonymous subgraphs in edges.
-          (not possible: n0 -> subgraph {...})
-        * no explicit types for cluster or subgraph attributes.
+ *
+ * Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the "BSD License" which is distributed with the
+ * software in the file LICENSE.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+ * License for more details.
+ *
+ *   Basic datatypes for DOT files.
+ *
+ *   Simplifications:
+ *      * no anonymous subgraphs in edges.
+ *        (not possible: n0 -> subgraph {...})
+ *      * no explicit types for cluster or subgraph attributes.
  *)
 
 signature DOT =

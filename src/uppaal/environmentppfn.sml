@@ -1,10 +1,20 @@
 (* $Id$
  *
- * 20070818 T. Bourke
- *   Original code. For descriptions of Pretty Printing in SML refer:
- *      * Paulson, 8.10
- *      * http://caml.inria.fr/pub/old_caml_site/FAQ/format-eng.html
+ * Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+ * All rights reserved.
  *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the "BSD License" which is distributed with the
+ * software in the file LICENSE.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+ * License for more details.
+ *
+ * Original code. For descriptions of Pretty Printing in SML refer:
+ *   - Paulson, 8.10
+ *   - http://caml.inria.fr/pub/old_caml_site/FAQ/format-eng.html
  *)
 
 functor EnvironmentPPFn (

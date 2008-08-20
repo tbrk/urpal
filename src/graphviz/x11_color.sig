@@ -1,11 +1,22 @@
 (* $Id$
-
-   20070824 T. Bourke
-   X11 colour names. Original source: Paul McFedrie's home page (book: `The
-   Complete Idiot's Guide to Creating a Web Page and Blog' 6ed, but any of the very
-   many equivalent pages would have served equally well):
-     http://www.mcfedries.com/books/cightml/x11color.htm
-*)
+ *
+ * Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the "BSD License" which is distributed with the
+ * software in the file LICENSE.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+ * License for more details.
+ *
+ * X11 colour names. Original source: Paul McFedrie's home page (book: `The
+ * Complete Idiot's Guide to Creating a Web Page and Blog' 6ed, but any of the very
+ * many equivalent pages would have served equally well):
+ *   http://www.mcfedries.com/books/cightml/x11color.htm
+ *)
 
 signature X11_COLOR =
 sig

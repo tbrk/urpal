@@ -1,14 +1,24 @@
 (* $Id$
  *
- * 20070827 T. Bourke
- *   Original code to read labels as plain text.
+ * Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+ * All rights reserved.
  *
- *   The following forms are accepted:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the "BSD License" which is distributed with the
+ * software in the file LICENSE.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+ * License for more details.
+ *
+ * Original code to read labels as plain text.
+ *
+ * The following forms are accepted:
  *      /[^"[:space:]][^[:space:]]*/      Unquoted, single word identifier
  *      /"([^"]|\\")*"/                   Quoted ("") identifier
  *      /<([^>]|\\>)*">/                  Quoted (<>) identifier
- *   Note: General HTML labels (multiple tags) are NOT supported.
- *
+ * Note: General HTML labels (multiple tags) are NOT supported.
  *)
 
 structure TextPlain = PlainFn (

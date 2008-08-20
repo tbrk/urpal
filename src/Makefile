@@ -1,5 +1,17 @@
 # $Id$
 #
+#  Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+#  All rights reserved.
+#
+#  This program is free software; you can redistribute it and/or modify it
+#  under the terms of the "BSD License" which is distributed with the
+#  software in the file LICENSE.
+#
+#  This program is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+#  License for more details.
+#
 URPAL_VERSION=0.9.1
 HEAP_SUFFIX=x86-bsd
 MLTONOPT=-loop-passes 1
@@ -66,6 +78,9 @@ mcs51/mcs51.grm.sml: mcs51/mcs51.grm
 mcs51/mcs51.lex.sml: mcs51/mcs51.lex
 	$(MLLEX)  mcs51/mcs51.lex
 
+version:
+	@echo $(URPAL_VERSION)
+
 version.sml:
 	(echo "structure Version = struct ";   \
 	 echo "  val version=\"$(URPAL_VERSION)\";"; \
@@ -80,9 +95,9 @@ clean:
 	-@find . \( $(SKIPCM) -name *.grm.sml -o -name *.lex.sml \
 		    -o -name *.grm.sig -o -name *.grm.desc \)    \
 	 	-print -exec rm {} \;
-	-@for f in $(SRCDIRS); do rm -r $$f/.cm; done
+	-@for f in $(SRCDIRS); do rm -r $$f/.cm 2>/dev/null; done
 
 clobber: clean
-	-@rm version.sml urpal
-	-@rm tags
+	-@rm version.sml urpal urpal.exe 2>/dev/null
+	-@rm tags 2>/dev/null
 

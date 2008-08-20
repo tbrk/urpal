@@ -12,23 +12,15 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
 #  License for more details.
 
-RUNTEST=./runtest.sh
+urpal.1.pdf: urpal.1.ps
+	ps2pdf urpal.1.ps
 
-all:
-	@for f in test???.xml; do \
-	    $(RUNTEST) $$f; \
-	    if [ $$? -eq 2 ]; then exit; fi; \
-	done
-
-listtests:
-	@for f in test???.xml; do \
-	    echo $$f; \
-	    xsltproc --novalid description.xsl $$f \
-	    	| awk -v mode=description -f description.awk \
-		| sed 's/^/  /'; \
-	done
+urpal.1.ps: urpal.1
+	sed '/^.Dt/d' urpal.1 | groff -Tps -mdoc > urpal.1.ps
 
 clean:
-	-@rm test???-flip.xml test???.log test???-expected.log test???.diff \
-	     test???-uppaal.log
+	-@rm urpal.1.ps 2>/dev/null
+
+clobber: clean
+	-@rm urpal.1.pdf 2>/dev/null
 

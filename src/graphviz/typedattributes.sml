@@ -1,14 +1,25 @@
 (* $Id$
-  
-   20070823 T. Bourke
-     Quick and dirty attempt at a typed attribute scheme for GraphViz.
-
-     Based on the documentation for GraphViz v2.14:
-       http://www.graphviz.org/doc/info/attrs.html
-
-   Caveat programmator. Known limitations:
-    * not extensively tested, used or debugged.
-    * no '!' modifiers for points
+ *
+ * Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the "BSD License" which is distributed with the
+ * software in the file LICENSE.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+ * License for more details.
+ *
+ * Quick and dirty attempt at a typed attribute scheme for GraphViz.
+ *
+ * Based on the documentation for GraphViz v2.14:
+ *   http://www.graphviz.org/doc/info/attrs.html
+ *
+ * Caveat programmator. Known limitations:
+ *  - not extensively tested, used or debugged.
+ *  - no '!' modifiers for points
  *)
 
 structure TypedAttributes =

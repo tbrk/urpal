@@ -1,5 +1,17 @@
 .\" $Id$
 .\"
+.\" Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+.\" All rights reserved.
+.\"
+.\" This program is free software; you can redistribute it and/or modify it
+.\" under the terms of the "BSD License" which is distributed with the
+.\" software in the file LICENSE.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+.\" License for more details.
+.\"
 .Dd October 28, 2007
 .Dt URPAL 1
 .Sh NAME
@@ -27,12 +39,12 @@
 .\"
 .Sh DESCRIPTION
 Urpal is your pal for Uppaal.
-It parses an XML file containing timed automaton templates, performs
-requested manipulations using a simple command language, and finally
+Urpal parses an XML file containing timed automaton templates, performs
+manipulations specified a simple command language, and finally
 writes the results back to file.
 The prime feature is the ability to construct a testing automaton for
 determining trace inclusion for a restricted class of timed automata.
-It is also able to: duplicate automata; create automata to ready to accept
+Urpal is also able to: duplicate automata; create automata to ready to accept
 all synchronisations on a set of channels; prune transitions based on
 synchronising action; conflate, drop and rename locations; and scale
 graphical representations.

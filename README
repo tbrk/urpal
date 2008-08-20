@@ -37,7 +37,10 @@ Initial Configuration
       Under windows, the program has been tested against the normal version
       of Graphviz (not a version specially compiled for Cygwin).
 
-   2) Edit two entries in urpalrc:
+   2) Download flat-1_1.dtd:
+      http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd
+
+   3) Edit two entries in urpalrc:
 	dtd_path	    should point to flat-1_1.dtd
 	graphviz/path	    should point to the graphviz installation
 			    directory (which has a bin/ subdirectory)
