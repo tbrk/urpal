@@ -1,5 +1,17 @@
 # $Id$
 #
+# Copyright (c) 2008 Timothy Bourke (University of NSW and NICTA)
+# All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the "BSD License" which is distributed with the
+# software in the file LICENSE.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
+# License for more details.
+#
 MAKE=make
 
 .include "src/Makefile"
@@ -12,8 +24,9 @@ SRCDIST=urpal-$(URPAL_VERSION)
 CHECKBIN=readelf -e src/urpal | sed -n -e 's| *OS/ABI: *\(.*\)|\1|p'
 SKIPSVN=-type d -name '.svn' -prune -type f -o \! -name .svn -a
 STRIPDOT=sed -ne 's:^\./\(.*\):\1:p'
+
 all:
-	make -C ./src
+	(cd src; make)
 
 distfiles: freebsd linux win32 src
 

@@ -12,7 +12,7 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
 #  License for more details.
 #
-URPAL_VERSION=0.9.1
+URPAL_VERSION=1.0.0
 HEAP_SUFFIX=x86-bsd
 MLTONOPT=-loop-passes 1
 

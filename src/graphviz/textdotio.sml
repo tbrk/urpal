@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
  * License for more details.
  *
- *   Tie the various PP and DotPP functors together to write TextDot graphs to
- *   TextIO outstreams.
+ * Tie the various PP and DotPP functors together to write TextDot graphs to
+ * TextIO outstreams.
  *)
 
 structure TextDotIO :
