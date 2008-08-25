@@ -93,7 +93,9 @@ in
             General.exnMessage cause]; OS.Process.failure))
 
   fun main (name, args) = let
+      val _ = Util.debugIndent (Settings.Detailed,fn()=>["try config files..."])
       val _ = tryConfigFiles ()
+      val _ = Util.debugOutdent (Settings.Detailed, fn()=>["done."])
       val (cmds, {inputfile, outputfile}) = CMD.processCommands args
       val _ = Settings.validate ()
       val freshEnv = SOME (CmdEnv.fromNta ParsedNta.emptyNta)

@@ -41,9 +41,12 @@ struct
     | setYOff (r as ref NONE, SOME v)              = (r := SOME {xoff=0,    yoff=v})
     | setYOff (r as ref (SOME {xoff,...}), SOME v) = (r := SOME {xoff=xoff, yoff=v})
 
+  fun getPrefix () = SOME (OS.Path.joinDirFile {dir="/", file="usr"})
+    handle Path => NONE (* Path exception under Windows *)
+
   local
     val ref_dtdPath                = ref (NONE : string option)
-    val ref_prefix                 = ref (SOME "/usr/local")
+    val ref_prefix                 = ref (getPrefix ())
     val ref_graphvizPath           = ref (NONE : string option)
     val ref_graphvizEngine         = ref "fdp"
     val ref_maxLabelWidth          = ref 72
@@ -137,20 +140,24 @@ struct
   
   fun validate () = let
 
-      fun check test (name, path) = let
+      fun check test (name, NONE) = false
+                                    before warn ["setting ",name," is invalid."]
+        | check test (name, SOME path) = let
           val r = test path handle SysErr => false
           val _ = if r then ()
                   else warn ["setting ", name, " (", path ,") is invalid."]
         in r end
 
       fun checkoFile (_, NONE)   = true
-        | checkoFile (s, SOME p) = check checkFile (s, p)
+        | checkoFile (s, SOME p) = check checkFile (s, SOME p)
       
-      fun addFile (f, d) = OS.Path.joinDirFile {dir=d, file=f}
+      fun addFile (f, NONE) = NONE
+        | addFile (f, SOME d) = SOME (OS.Path.joinDirFile {dir=d, file=f})
+                                handle Path => NONE
 
       val results = [ checkoFile ("dtd_path", dtdPath ()),
                       check checkFile ("graphviz/path",
-                                      foldl addFile (graphvizPath ())
+                                       foldl addFile (SOME (graphvizPath ()))
                                             ["bin", "dot"])
                     ]
     in List.all (fn x=>x) results end
