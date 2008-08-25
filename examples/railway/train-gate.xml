@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+ * For more details about this example, see 
+ * "Automatic Verification of Real-Time Communicating Systems by Constraint Solving", 
+ * by Wang Yi, Paul Pettersson and Mats Daniels. In Proceedings of the 7th International
+ * Conference on Formal Description Techniques, pages 223-238, North-Holland. 1994.
+ */
+
+const int N = 6;         // # trains
+chan       appr, stop, go, leave;
+typedef int[0,N-1] id_t;</declaration><template><name x="40" y="16">Train</name><parameter>const id_t id, id_t &amp;e</parameter><declaration>clock x;</declaration><location id="id0" x="96" y="96"><name x="48" y="80">Safe</name></location><location id="id1" x="192" y="384"><name x="208" y="392">Stop</name></location><location id="id2" x="288" y="96"><name x="312" y="80">Cross</name><label kind="invariant" x="304" y="96">x&lt;=5</label></location><location id="id3" x="96" y="256"><name x="40" y="240">Appr</name><label kind="invariant" x="32" y="264">x&lt;=20</label></location><location id="id4" x="288" y="256"><name x="304" y="240">Start</name><label kind="invariant" x="304" y="264">x&lt;= 15</label></location><init ref="id0"/><transition><source ref="id3"/><target ref="id2"/><label kind="guard" x="160" y="216">x&gt;=10</label><label kind="assignment" x="232" y="152">x=0</label></transition><transition><source ref="id3"/><target ref="id1"/><label kind="guard" x="64" y="276">x&lt;=10 &amp;&amp;
+e==id</label><label kind="synchronisation" x="96" y="324">stop?</label><label kind="assignment" x="128" y="364">x=0</label></transition><transition><source ref="id2"/><target ref="id0"/><label kind="guard" x="232" y="72">x&gt;=3</label><label kind="synchronisation" x="184" y="96">leave!</label><label kind="assignment" x="136" y="56">e=id,
+x=0</label></transition><transition><source ref="id0"/><target ref="id3"/><label kind="synchronisation" x="48" y="112">appr!</label><label kind="assignment" x="48" y="136">e=id,
+x=0</label></transition><transition><source ref="id4"/><target ref="id2"/><label kind="guard" x="296" y="192">x&gt;=7</label><label kind="assignment" x="296" y="128">x=0</label></transition><transition><source ref="id1"/><target ref="id4"/><label kind="guard" x="232" y="352">e==id</label><label kind="synchronisation" x="256" y="316">go?</label><label kind="assignment" x="280" y="288">x=0</label></transition></template><template><name x="40" y="16">Gate</name><parameter>id_t &amp;e</parameter><declaration>id_t list[N+1];
+int[0,N] len;
+
+void enqueue(id_t element)
+{
+        list[len++] = element;
+}
+
+void dequeue()
+{
+        int i = 0;
+        len -= 1;
+        while (i &lt; len)
+        {
+                list[i] = list[i + 1];
+                i++;
+        }
+        list[i] = 0;
+        i = 0;
+}
+
+</declaration><location id="id5" x="192" y="192"></location><location id="id6" x="96" y="192"><committed/></location><location id="id7" x="192" y="384"><committed/></location><location id="id8" x="192" y="288"><name x="208" y="288">Occ</name></location><location id="id9" x="192" y="96"><name x="208" y="96">Free</name><committed/></location><init ref="id9"/><transition><source ref="id9"/><target ref="id6"/><label kind="guard" x="104" y="120">len &gt; 0</label><label kind="assignment" x="104" y="136">e = list[0]</label><nail x="96" y="96"/></transition><transition><source ref="id9"/><target ref="id5"/><label kind="guard" x="200" y="128">len == 0</label></transition><transition><source ref="id8"/><target ref="id7"/><label kind="synchronisation" x="144" y="312">appr?</label><label kind="assignment" x="104" y="328">enqueue(e)</label></transition><transition><source ref="id8"/><target ref="id9"/><label kind="synchronisation" x="224" y="264">leave?</label><label kind="assignment" x="304" y="232">dequeue()</label><nail x="288" y="288"/><nail x="288" y="96"/></transition><transition><source ref="id7"/><target ref="id8"/><label kind="synchronisation" x="224" y="328">stop!</label><nail x="216" y="336"/></transition><transition><source ref="id6"/><target ref="id8"/><label kind="synchronisation" x="104" y="224">go!</label><nail x="96" y="288"/></transition><transition><source ref="id5"/><target ref="id8"/><label kind="synchronisation" x="200" y="208">appr?</label><label kind="assignment" x="200" y="224">enqueue(e)</label></transition></template><system>id_t   el;
+
+trains(const id_t id)  = Train(id, el);
+gate = Gate(el);
+
+system trains, gate;
+</system></nta>

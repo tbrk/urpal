@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>const int N = 5;
+typedef int[0,N - 1] id_t;
+chan appr[N];
+chan stop[N];
+chan leave[N];
+chan go[N];
+chan allow_approach[N];
+</declaration><template><name x="40" y="16">FlexGate</name><declaration>const int M = 3;
+const int DEADLINE = 10;
+const int AWAY = 0;
+const int APPR = 1;
+const int STOP = 2;
+const int GO = 3;
+int[0,M] status[N][N];
+clock timer[N];
+int[0,3] get_status (id_t t)
+{
+    return (status[t][t]);
+}
+void set_status (id_t t, int[0,3] s)
+{
+    if (s==APPR imply status[t][t]==AWAY) {
+        status[t][t] = s;
+    }
+}
+void train_goes (id_t t)
+{
+    int i;
+    for (i = 0; i&lt;N; ++i) {
+        if (i!=t) {
+            if (get_status(i)==STOP &amp;&amp; status[i][t]&lt;M) {
+                status[i][t]++;
+            }
+            status[t][i] = 0;
+        }
+    }
+}
+</declaration><location id="id0" x="-456" y="624"><name x="-512" y="632">Restart</name><urgent/></location><location id="id1" x="64" y="624"><name x="80" y="624">Occ</name><label kind="invariant" x="120" y="624">forall (i : id_t) get_status(i)==APPR imply timer[i]&lt;DEADLINE</label></location><location id="id2" x="64" y="288"><name x="72" y="240">Free</name><label kind="invariant" x="112" y="240">forall (i : id_t) get_status(i)==APPR imply timer[i]&lt;DEADLINE</label></location><init ref="id2"/><transition><source ref="id1"/><target ref="id1"/><label kind="select" x="-48" y="728">i : id_t</label><label kind="synchronisation" x="-48" y="760">appr[i]?</label><label kind="assignment" x="-48" y="776">set_status(i, APPR), timer[i] = 0</label><nail x="24" y="704"/><nail x="48" y="720"/></transition><transition><source ref="id0"/><target ref="id1"/><label kind="select" x="-448" y="728">i : int[0,N - 1]</label><label kind="guard" x="-448" y="744">get_status(i)==STOP &amp;&amp;
+(forall (j : id_t) j!=i &amp;&amp; get_status(j)!=AWAY imply status[j][i]&lt;M)</label><label kind="synchronisation" x="-448" y="792">go[i]!</label><label kind="assignment" x="-336" y="792">train_goes(i), set_status(i, GO)</label><nail x="-456" y="728"/><nail x="-112" y="728"/></transition><transition><source ref="id1"/><target ref="id2"/><label kind="select" x="80" y="384">i : id_t</label><label kind="guard" x="80" y="400">exists (j : id_t)
+     get_status(j)==APPR || (forall (k : id_t) get_status(k)!=STOP)</label><label kind="synchronisation" x="80" y="472">leave[i]?</label><label kind="assignment" x="80" y="488">set_status(i, AWAY)</label></transition><transition><source ref="id1"/><target ref="id0"/><label kind="select" x="-424" y="632">i : id_t</label><label kind="guard" x="-424" y="648">forall (j : id_t)
+     get_status(j)!=APPR &amp;&amp;
+     (exists (k : id_t) k!=i &amp;&amp; get_status(k)==STOP)</label><label kind="synchronisation" x="-424" y="680">leave[i]?</label><label kind="assignment" x="-336" y="680">set_status(i, AWAY)</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="select" x="544" y="384">i : id_t</label><label kind="guard" x="544" y="400">get_status(i)==APPR &amp;&amp;
+(forall (j : id_t) j!=i &amp;&amp; get_status(j)!=AWAY imply status[j][i]&lt;M)</label><label kind="synchronisation" x="544" y="472">allow_approach[i]!</label><label kind="assignment" x="544" y="488">train_goes(i), set_status(i, GO)</label><nail x="528" y="376"/><nail x="528" y="512"/></transition><transition><source ref="id1"/><target ref="id1"/><label kind="select" x="96" y="728">i : id_t</label><label kind="guard" x="96" y="744">get_status(i)==APPR</label><label kind="synchronisation" x="96" y="760">stop[i]!</label><label kind="assignment" x="96" y="776">set_status(i, STOP)</label><nail x="112" y="704"/><nail x="80" y="720"/></transition><transition><source ref="id2"/><target ref="id1"/><label kind="select" x="272" y="384">i : id_t</label><label kind="guard" x="272" y="400">get_status(i)==STOP &amp;&amp;
+(forall (j : id_t) j!=i &amp;&amp; get_status(j)==STOP imply status[j][i]&lt;M)</label><label kind="synchronisation" x="272" y="472">go[i]!</label><label kind="assignment" x="272" y="488">train_goes(i), set_status(i, GO)</label><nail x="256" y="376"/><nail x="256" y="512"/></transition><transition><source ref="id2"/><target ref="id2"/><label kind="select" x="-152" y="184">i : id_t</label><label kind="synchronisation" x="-152" y="200">appr[i]?</label><label kind="assignment" x="-152" y="216">set_status(i, APPR), timer[i] = 0</label><nail x="56" y="240"/><nail x="-32" y="240"/></transition></template><template><name x="40" y="16">Train</name><parameter>const id_t id</parameter><declaration>clock x;
+</declaration><location id="id3" x="96" y="96"><name x="48" y="80">Safe</name></location><location id="id4" x="176" y="320"><name x="192" y="328">Stop</name></location><location id="id5" x="256" y="96"><name x="272" y="80">Cross</name><label kind="invariant" x="272" y="96">x&lt;=5</label></location><location id="id6" x="96" y="232"><name x="32" y="216">Appr</name><label kind="invariant" x="32" y="232">x&lt;=20</label></location><location id="id7" x="256" y="232"><name x="272" y="216">Start</name><label kind="invariant" x="272" y="232">x&lt;=15</label></location><init ref="id3"/><transition><source ref="id6"/><target ref="id5"/><label kind="guard" x="184" y="160">x&gt;=10</label><label kind="assignment" x="184" y="176">x = 0</label></transition><transition><source ref="id6"/><target ref="id4"/><label kind="guard" x="88" y="280">x&lt;=10</label><label kind="synchronisation" x="88" y="296">stop[id]?</label></transition><transition><source ref="id5"/><target ref="id3"/><label kind="guard" x="184" y="56">x&gt;=3</label><label kind="synchronisation" x="184" y="72">leave[id]!</label></transition><transition><source ref="id3"/><target ref="id6"/><label kind="synchronisation" x="32" y="128">appr[id]!</label><label kind="assignment" x="32" y="144">x = 0</label></transition><transition><source ref="id7"/><target ref="id5"/><label kind="guard" x="264" y="160">x&gt;=7</label><label kind="assignment" x="264" y="176">x = 0</label></transition><transition><source ref="id4"/><target ref="id7"/><label kind="synchronisation" x="224" y="280">go[id]?</label><label kind="assignment" x="224" y="296">x = 0</label></transition></template><template><name x="40" y="16">QGate</name><declaration>id_t list[N + 1];
+int[0,N] len;
+void enqueue (id_t element)
+{
+    list[len++] = element;
+}
+void dequeue ()
+{
+    int i = 0;
+    len -= 1;
+    while (i&lt;len) {
+        list[i] = list[i + 1];
+        i++;
+    }
+    list[i] = 0;
+}
+id_t front ()
+{
+    return (list[0]);
+}
+id_t tail ()
+{
+    return (list[len - 1]);
+}
+bool inqueue (id_t i)
+{
+    return (exists (j : id_t) j&lt;len &amp;&amp; list[j]==i);
+}
+</declaration><location id="id8" x="192" y="184"></location><location id="id9" x="192" y="280"><urgent/></location><location id="id10" x="192" y="432"><urgent/></location><location id="id11" x="192" y="336"><name x="208" y="336">Occ</name></location><location id="id12" x="192" y="128"><name x="208" y="96">Free</name><urgent/></location><init ref="id12"/><transition><source ref="id12"/><target ref="id8"/><label kind="guard" x="200" y="144">len==0</label></transition><transition><source ref="id9"/><target ref="id11"/><label kind="synchronisation" x="200" y="296">allow_approach[front()]!</label></transition><transition><source ref="id11"/><target ref="id10"/><label kind="select" x="88" y="352">e : id_t</label><label kind="guard" x="88" y="368">!inqueue(e)</label><label kind="synchronisation" x="88" y="384">appr[e]?</label><label kind="assignment" x="88" y="400">enqueue(e)</label></transition><transition><source ref="id11"/><target ref="id12"/><label kind="select" x="384" y="152">e : id_t</label><label kind="guard" x="384" y="168">e==front()</label><label kind="synchronisation" x="384" y="184">leave[e]?</label><label kind="assignment" x="384" y="200">dequeue()</label><nail x="376" y="336"/><nail x="376" y="128"/></transition><transition><source ref="id10"/><target ref="id11"/><label kind="synchronisation" x="224" y="376">stop[tail()]!</label><nail x="216" y="384"/></transition><transition><source ref="id12"/><target ref="id11"/><label kind="guard" x="96" y="152">len&gt;0</label><label kind="synchronisation" x="96" y="168">go[front()]!</label><nail x="88" y="128"/><nail x="88" y="336"/></transition><transition><source ref="id8"/><target ref="id9"/><label kind="select" x="200" y="200">e : id_t</label><label kind="synchronisation" x="200" y="216">appr[e]?</label><label kind="assignment" x="200" y="232">enqueue(e)</label></transition></template><template><name x="80" y="32">FlexGateTest</name><declaration>const int M = 3;
+const int DEADLINE = 10;
+const int AWAY = 0;
+const int APPR = 1;
+const int STOP = 2;
+const int GO = 3;
+int[0,M] status[N][N];
+clock timer[N];
+int[0,3] get_status (id_t t)
+{
+    return (status[t][t]);
+}
+void set_status (id_t t, int[0,3] s)
+{
+    if (s==APPR imply status[t][t]==AWAY) {
+        status[t][t] = s;
+    }
+}
+void train_goes (id_t t)
+{
+    int i;
+    for (i = 0; i&lt;N; ++i) {
+        if (i!=t) {
+            if (get_status(i)==STOP &amp;&amp; status[i][t]&lt;M) {
+                status[i][t]++;
+            }
+            status[t][i] = 0;
+        }
+    }
+}
+clock c_u;
+</declaration><location id="id13" x="1049" y="-512" color="#f0e68c"><name x="1039" y="-542">Err</name></location><location id="id14" x="356" y="-288"><name x="304" y="-272">Restart</name></location><location id="id15" x="1396" y="-288"><name x="1416" y="-288">Occ</name></location><location id="id16" x="1396" y="-960"><name x="1400" y="-944">Free</name></location><init ref="id16"/><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="704" y="-632">s0 : int[0,N - 1]</label><label kind="guard" x="824" y="-632">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1240" y="-632">leave[s0]?</label><nail x="1407" y="-942"/><nail x="1438" y="-844"/><nail x="1186" y="-518"/><nail x="1076" y="-506"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="704" y="-648">s0 : int[0,N - 1]</label><label kind="guard" x="824" y="-648">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1240" y="-648">leave[s0]!</label><nail x="1376" y="-967"/><nail x="1275" y="-972"/><nail x="1021" y="-647"/><nail x="1035" y="-539"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="704" y="-824">i : int[0,N - 1]</label><label kind="guard" x="824" y="-824">forall (i1 : id_t)
+     (get_status(i1)!=APPR || timer[i1]&lt;DEADLINE) &amp;&amp;
+     (get_status(i)!=APPR ||
+      (exists (j : id_t) j!=i &amp;&amp; get_status(j)!=AWAY &amp;&amp; status[j][i]&gt;=M))</label><label kind="synchronisation" x="1248" y="-824">allow_approach[i]?</label><nail x="1375" y="-964"/><nail x="1288" y="-947"/><nail x="1049" y="-642"/><nail x="1040" y="-540"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="704" y="-840">s0 : int[0,N - 1]</label><label kind="guard" x="824" y="-840">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1248" y="-840">allow_approach[s0]!</label><nail x="1375" y="-958"/><nail x="1297" y="-921"/><nail x="1074" y="-636"/><nail x="1047" y="-542"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="704" y="-864">s0 : int[0,N - 1]</label><label kind="guard" x="824" y="-864">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1248" y="-864">stop[s0]?</label><nail x="1376" y="-951"/><nail x="1308" y="-899"/><nail x="1099" y="-631"/><nail x="1054" y="-542"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="704" y="-880">s0 : int[0,N - 1]</label><label kind="guard" x="824" y="-880">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1248" y="-880">stop[s0]!</label><nail x="1381" y="-946"/><nail x="1322" y="-881"/><nail x="1121" y="-621"/><nail x="1064" y="-538"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="704" y="-752">s0 : int[0,N - 1]</label><label kind="guard" x="824" y="-752">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1248" y="-752">appr[s0]?</label><nail x="1386" y="-940"/><nail x="1339" y="-868"/><nail x="1138" y="-608"/><nail x="1071" y="-533"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="712" y="-712">i : int[0,N - 1]</label><label kind="guard" x="824" y="-712">forall (i1 : id_t)
+     (get_status(i1)!=APPR || timer[i1]&lt;DEADLINE) &amp;&amp;
+     (get_status(i)!=STOP ||
+      (exists (j : id_t) j!=i &amp;&amp; get_status(j)==STOP &amp;&amp; status[j][i]&gt;=M))</label><label kind="synchronisation" x="1248" y="-712">go[i]?</label><nail x="1393" y="-939"/><nail x="1360" y="-860"/><nail x="1151" y="-590"/><nail x="1075" y="-525"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="704" y="-728">s0 : int[0,N - 1]</label><label kind="guard" x="824" y="-728">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1248" y="-728">go[s0]!</label><nail x="1400" y="-939"/><nail x="1385" y="-854"/><nail x="1162" y="-568"/><nail x="1076" y="-517"/></transition><transition color="#f0e68c"><source ref="id16"/><target ref="id13"/><label kind="select" x="744" y="-608">i : id_t</label><label kind="guard" x="824" y="-608">get_status(i)==APPR &amp;&amp; timer[i]&gt;=DEADLINE</label><nail x="1404" y="-940"/><nail x="1411" y="-850"/><nail x="1175" y="-543"/><nail x="1078" y="-511"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1488" y="-296">s0 : int[0,N - 1]</label><label kind="guard" x="1608" y="-296">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1992" y="-296">leave[s0]?</label><nail x="1385" y="-276"/><nail x="1310" y="-219"/><nail x="1046" y="-386"/><nail x="1042" y="-485"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1496" y="-416">i : int[0,N - 1]</label><label kind="guard" x="1608" y="-416">forall (i1 : id_t)
+     (get_status(i1)!=APPR || timer[i1]&lt;DEADLINE) &amp;&amp;
+     ((exists (j : id_t)
+            get_status(j)==APPR ||
+            (forall (k : id_t) k==i || get_status(k)!=STOP)) &amp;&amp;
+      (forall (j : id_t)
+            get_status(j)!=APPR &amp;&amp;
+            (exists (k : id_t) get_status(k)==STOP)))</label><label kind="synchronisation" x="1992" y="-416">leave[i]!</label><nail x="1400" y="-303"/><nail x="1411" y="-393"/><nail x="1157" y="-562"/><nail x="1071" y="-532"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1488" y="-504">s0 : int[0,N - 1]</label><label kind="guard" x="1608" y="-504">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1992" y="-504">allow_approach[s0]?</label><nail x="1399" y="-303"/><nail x="1392" y="-376"/><nail x="1157" y="-533"/><nail x="1074" y="-526"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1488" y="-520">s0 : int[0,N - 1]</label><label kind="guard" x="1608" y="-520">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1992" y="-522">allow_approach[s0]!</label><nail x="1394" y="-303"/><nail x="1371" y="-362"/><nail x="1156" y="-506"/><nail x="1076" y="-518"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1496" y="-248">i : int[0,N - 1]</label><label kind="guard" x="1608" y="-248">forall (i1 : id_t)
+     (get_status(i1)!=APPR || timer[i1]&lt;DEADLINE) &amp;&amp;
+     get_status(i)!=APPR</label><label kind="synchronisation" x="1992" y="-248">stop[i]?</label><nail x="1390" y="-301"/><nail x="1351" y="-350"/><nail x="1153" y="-479"/><nail x="1078" y="-510"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1488" y="-272">s0 : int[0,N - 1]</label><label kind="guard" x="1608" y="-272">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1992" y="-272">stop[s0]!</label><nail x="1385" y="-297"/><nail x="1335" y="-333"/><nail x="1146" y="-458"/><nail x="1075" y="-500"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1488" y="-480">s0 : int[0,N - 1]</label><label kind="guard" x="1608" y="-480">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1992" y="-480">appr[s0]?</label><nail x="1381" y="-292"/><nail x="1326" y="-317"/><nail x="1133" y="-440"/><nail x="1069" y="-490"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1488" y="-440">s0 : int[0,N - 1]</label><label kind="guard" x="1608" y="-440">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1992" y="-440">go[s0]?</label><nail x="1381" y="-285"/><nail x="1321" y="-296"/><nail x="1114" y="-426"/><nail x="1060" y="-486"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1488" y="-456">s0 : int[0,N - 1]</label><label kind="guard" x="1608" y="-456">forall (i : id_t) get_status(i)!=APPR || timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1992" y="-456">go[s0]!</label><nail x="1382" y="-281"/><nail x="1318" y="-269"/><nail x="1092" y="-412"/><nail x="1051" y="-485"/></transition><transition color="#f0e68c"><source ref="id15"/><target ref="id13"/><label kind="select" x="1528" y="-200">i : id_t</label><label kind="guard" x="1608" y="-200">get_status(i)==APPR &amp;&amp; timer[i]&gt;=DEADLINE</label><nail x="1385" y="-278"/><nail x="1317" y="-244"/><nail x="1068" y="-400"/><nail x="1044" y="-485"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-336">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-336">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-336">leave[s0]?</label><nail x="354" y="-303"/><nail x="372" y="-414"/><nail x="912" y="-593"/><nail x="1029" y="-535"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-352">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-352">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-352">leave[s0]!</label><nail x="364" y="-274"/><nail x="439" y="-196"/><nail x="981" y="-368"/><nail x="1043" y="-485"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-512">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-512">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-512">allow_approach[s0]?</label><nail x="365" y="-275"/><nail x="444" y="-222"/><nail x="960" y="-388"/><nail x="1039" y="-485"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-528">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-528">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-528">allow_approach[s0]!</label><nail x="367" y="-278"/><nail x="450" y="-249"/><nail x="942" y="-406"/><nail x="1035" y="-486"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-552">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-552">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-552">stop[s0]?</label><nail x="369" y="-281"/><nail x="458" y="-275"/><nail x="924" y="-426"/><nail x="1028" y="-492"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-568">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-568">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-568">stop[s0]!</label><nail x="371" y="-286"/><nail x="460" y="-300"/><nail x="912" y="-444"/><nail x="1024" y="-496"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-472">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-472">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-472">appr[s0]?</label><nail x="371" y="-293"/><nail x="457" y="-322"/><nail x="903" y="-467"/><nail x="1019" y="-504"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-488">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-488">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-488">appr[s0]!</label><nail x="368" y="-297"/><nail x="447" y="-343"/><nail x="899" y="-490"/><nail x="1019" y="-511"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="320" y="-432">i : int[0,N - 1]</label><label kind="guard" x="432" y="-432">c_u&lt;=0 &amp;&amp;
+(get_status(i)!=STOP ||
+ (exists (j : id_t) j!=i
+      &amp;&amp; get_status(j)!=AWAY
+      &amp;&amp; status[j][i]&gt;=M))</label><label kind="synchronisation" x="608" y="-376">go[i]?</label><nail x="364" y="-301"/><nail x="432" y="-360"/><nail x="899" y="-512"/><nail x="1021" y="-518"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="select" x="312" y="-448">s0 : int[0,N - 1]</label><label kind="guard" x="432" y="-448">c_u&lt;=0</label><label kind="synchronisation" x="608" y="-448">go[s0]!</label><nail x="360" y="-303"/><nail x="408" y="-376"/><nail x="901" y="-540"/><nail x="1022" y="-525"/></transition><transition color="#f0e68c"><source ref="id14"/><target ref="id13"/><label kind="guard" x="432" y="-312">c_u&gt;0</label><nail x="357" y="-303"/><nail x="390" y="-394"/><nail x="908" y="-567"/><nail x="1026" y="-531"/></transition><transition color="#f0e68c"><source ref="id13"/><target ref="id13"/><nail x="1062" y="-521"/><nail x="1075" y="-524"/><nail x="1089" y="-521"/><nail x="1089" y="-512"/><nail x="1089" y="-507"/><nail x="1083" y="-504"/><nail x="1076" y="-503"/></transition><transition><source ref="id15"/><target ref="id15"/><label kind="select" x="1168" y="-144">i : id_t</label><label kind="guard" x="1168" y="-128">forall (i : id_t)
+  get_status(i)==APPR
+  imply timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1168" y="-80">appr[i]!</label><label kind="assignment" x="1168" y="-64">set_status(i, APPR), timer[i] = 0</label><nail x="1316" y="-128"/><nail x="1364" y="-96"/></transition><transition><source ref="id14"/><target ref="id15"/><label kind="select" x="376" y="-80">i : int[0,N - 1]</label><label kind="guard" x="496" y="-80">get_status(i)==STOP &amp;&amp;
+(forall (j : id_t) j!=i &amp;&amp; get_status(j)!=AWAY imply status[j][i]&lt;M) &amp;&amp; c_u&lt;=0</label><label kind="synchronisation" x="432" y="-48">go[i]?</label><label kind="assignment" x="496" y="-48">train_goes(i), set_status(i, GO)</label><nail x="356" y="-80"/><nail x="1044" y="-80"/></transition><transition><source ref="id15"/><target ref="id16"/><label kind="select" x="1416" y="-784">i : id_t</label><label kind="guard" x="1416" y="-760">forall (i1 : id_t)
+     (exists (j : id_t)
+           get_status(j)==APPR ||
+           (forall (k : id_t) get_status(k)!=STOP)) &amp;&amp;
+     get_status(i1)!=APPR ||
+     (exists (j : id_t)
+           get_status(j)==APPR ||
+           (forall (k : id_t) get_status(k)!=STOP)) &amp;&amp;
+     timer[i1]&lt;DEADLINE</label><label kind="synchronisation" x="1416" y="-624">leave[i]!</label><label kind="assignment" x="1416" y="-608">set_status(i, AWAY)</label></transition><transition><source ref="id15"/><target ref="id14"/><label kind="select" x="720" y="-288">i : id_t</label><label kind="guard" x="720" y="-272">forall (i1 : id_t)
+     (forall (j : id_t)
+           get_status(j)!=APPR &amp;&amp;
+           (exists (k : id_t) k!=i &amp;&amp; get_status(k)==STOP)) &amp;&amp;
+     get_status(i1)!=APPR ||
+     (forall (j : id_t)
+           get_status(j)!=APPR &amp;&amp;
+           (exists (k : id_t) k!=i &amp;&amp; get_status(k)==STOP)) &amp;&amp;
+     timer[i1]&lt;DEADLINE</label><label kind="synchronisation" x="720" y="-144">leave[i]!</label><label kind="assignment" x="808" y="-144">c_u = 0, set_status(i, AWAY)</label></transition><transition><source ref="id16"/><target ref="id15"/><label kind="select" x="1912" y="-1056">i : id_t</label><label kind="guard" x="1912" y="-1032">forall (i1 : id_t)
+     get_status(i)==APPR &amp;&amp;
+     (forall (j : id_t)
+           j!=i &amp;&amp; get_status(j)!=AWAY imply status[j][i]&lt;M) &amp;&amp;
+     get_status(i1)!=APPR ||
+     get_status(i)==APPR &amp;&amp;
+     (forall (j : id_t)
+           j!=i &amp;&amp; get_status(j)!=AWAY imply status[j][i]&lt;M) &amp;&amp;
+     timer[i1]&lt;DEADLINE</label><label kind="synchronisation" x="1912" y="-896">allow_approach[i]?</label><label kind="assignment" x="1912" y="-880">train_goes(i), set_status(i, GO)</label><nail x="2324" y="-784"/><nail x="2324" y="-512"/></transition><transition><source ref="id15"/><target ref="id15"/><label kind="select" x="1512" y="-144">i : id_t</label><label kind="guard" x="1512" y="-128">forall (i1 : id_t)
+     get_status(i)==APPR &amp;&amp; get_status(i1)!=APPR ||
+     get_status(i)==APPR &amp;&amp; timer[i1]&lt;DEADLINE</label><label kind="synchronisation" x="1512" y="-80">stop[i]?</label><label kind="assignment" x="1512" y="-64">set_status(i, STOP)</label><nail x="1492" y="-128"/><nail x="1428" y="-96"/></transition><transition><source ref="id16"/><target ref="id15"/><label kind="select" x="1800" y="-784">i : id_t</label><label kind="guard" x="1800" y="-760">forall (i1 : id_t)
+     get_status(i)==STOP &amp;&amp;
+     (forall (j : id_t)
+           j!=i &amp;&amp; get_status(j)==STOP imply status[j][i]&lt;M) &amp;&amp;
+     get_status(i1)!=APPR ||
+     get_status(i)==STOP &amp;&amp;
+     (forall (j : id_t)
+           j!=i &amp;&amp; get_status(j)==STOP imply status[j][i]&lt;M) &amp;&amp;
+     timer[i1]&lt;DEADLINE</label><label kind="synchronisation" x="1808" y="-624">go[i]?</label><label kind="assignment" x="1808" y="-608">train_goes(i), set_status(i, GO)</label><nail x="1780" y="-784"/><nail x="1780" y="-512"/></transition><transition><source ref="id16"/><target ref="id16"/><label kind="select" x="1400" y="-1056">i : id_t</label><label kind="guard" x="1400" y="-1040">forall (i : id_t)
+  get_status(i)==APPR
+  imply timer[i]&lt;DEADLINE</label><label kind="synchronisation" x="1400" y="-992">appr[i]!</label><label kind="assignment" x="1472" y="-992">set_status(i, APPR), timer[i] = 0</label><nail x="1380" y="-1056"/><nail x="1204" y="-1056"/></transition></template><template><name>Silent</name><location id="id17" x="-296" y="-248"></location><init ref="id17"/><transition><source ref="id17"/><target ref="id17"/><label kind="select" x="-240" y="-304">i : id_t</label><label kind="synchronisation" x="-240" y="-288">allow_approach[i]?</label><nail x="-240" y="-248"/><nail x="-280" y="-304"/></transition></template><system>system FlexGate, FlexGateTest;</system></nta>

@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>/*
+ * For more details about this example, see 
+ * "Automatic Verification of Real-Time Communicating Systems by Constraint Solving", 
+ * by Wang Yi, Paul Pettersson and Mats Daniels. In Proceedings of the 7th International
+ * Conference on Formal Description Techniques, pages 223-238, North-Holland. 1994.
+ */
+
+//const int N = 6;         // # trains
+const int N = 5;         // # trains
+typedef int[0,N-1] id_t;
+
+chan appr[N], stop[N], leave[N];
+//urgent chan go[N];
+chan go[N];
+
+chan allow_approach[N];
+</declaration><template><name x="40" y="16">Train</name><parameter>const id_t id</parameter><declaration>clock x;</declaration><location id="id0" x="96" y="96"><name x="48" y="80">Safe</name></location><location id="id1" x="176" y="320"><name x="192" y="328">Stop</name></location><location id="id2" x="256" y="96"><name x="272" y="80">Cross</name><label kind="invariant" x="272" y="96">x&lt;=5</label></location><location id="id3" x="96" y="232"><name x="32" y="216">Appr</name><label kind="invariant" x="32" y="232">x&lt;=20</label></location><location id="id4" x="256" y="232"><name x="272" y="216">Start</name><label kind="invariant" x="272" y="232">x&lt;= 15</label></location><init ref="id0"/><transition><source ref="id3"/><target ref="id2"/><label kind="guard" x="184" y="160">x&gt;=10</label><label kind="assignment" x="184" y="176">x=0</label></transition><transition><source ref="id3"/><target ref="id1"/><label kind="guard" x="88" y="280">x&lt;=10</label><label kind="synchronisation" x="88" y="296">stop[id]?</label></transition><transition><source ref="id2"/><target ref="id0"/><label kind="guard" x="184" y="56">x&gt;=3</label><label kind="synchronisation" x="184" y="72">leave[id]!</label></transition><transition><source ref="id0"/><target ref="id3"/><label kind="synchronisation" x="32" y="128">appr[id]!</label><label kind="assignment" x="32" y="144">x=0</label></transition><transition><source ref="id4"/><target ref="id2"/><label kind="guard" x="264" y="160">x&gt;=7</label><label kind="assignment" x="264" y="176">x=0</label></transition><transition><source ref="id1"/><target ref="id4"/><label kind="synchronisation" x="224" y="280">go[id]?</label><label kind="assignment" x="224" y="296">x=0</label></transition></template><template><name x="40" y="16">QGate</name><declaration>id_t list[N+1];
+int[0,N] len;
+
+// Put an element at the end of the queue
+void enqueue(id_t element)
+{
+        list[len++] = element;
+}
+
+// Remove the front element of the queue
+void dequeue()
+{
+        int i = 0;
+        len -= 1;
+        while (i &lt; len)
+        {
+                list[i] = list[i + 1];
+                i++;
+        }
+        list[i] = 0;
+}
+
+// Returns the front element of the queue
+id_t front()
+{
+   return list[0];
+}
+
+// Returns the last element of the queue
+id_t tail()
+{
+   return list[len - 1];
+}
+
+bool inqueue(id_t i)
+{
+   return exists (j : id_t) j &lt; len &amp;&amp; list[j] == i;
+}
+</declaration><location id="id5" x="192" y="184"><name x="208" y="176">NoneWait</name></location><location id="id6" x="192" y="280"><name x="208" y="272">Allow</name><urgent/></location><location id="id7" x="192" y="432"><name x="208" y="424">StopTrain</name><urgent/></location><location id="id8" x="192" y="336"><name x="208" y="336">Occ</name></location><location id="id9" x="192" y="128"><name x="208" y="104">Free</name><urgent/></location><init ref="id9"/><transition><source ref="id9"/><target ref="id5"/><label kind="guard" x="200" y="144">len == 0</label></transition><transition><source ref="id6"/><target ref="id8"/><label kind="synchronisation" x="200" y="296">allow_approach[front()]!</label></transition><transition><source ref="id8"/><target ref="id7"/><label kind="select" x="88" y="352">e : id_t</label><label kind="guard" x="88" y="368">not inqueue(e)</label><label kind="synchronisation" x="88" y="384">appr[e]?</label><label kind="assignment" x="88" y="400">enqueue(e)</label></transition><transition><source ref="id8"/><target ref="id9"/><label kind="select" x="384" y="152">e : id_t</label><label kind="guard" x="384" y="168">e == front()</label><label kind="synchronisation" x="384" y="184">leave[e]?</label><label kind="assignment" x="384" y="200">dequeue()</label><nail x="376" y="336"/><nail x="376" y="128"/></transition><transition><source ref="id7"/><target ref="id8"/><label kind="synchronisation" x="224" y="376">stop[tail()]!</label><nail x="216" y="384"/></transition><transition><source ref="id9"/><target ref="id8"/><label kind="guard" x="96" y="152">len &gt; 0</label><label kind="synchronisation" x="96" y="168">go[front()]!</label><nail x="88" y="128"/><nail x="88" y="336"/></transition><transition><source ref="id5"/><target ref="id6"/><label kind="select" x="200" y="208">e : id_t</label><label kind="synchronisation" x="200" y="224">appr[e]?</label><label kind="assignment" x="200" y="240">enqueue(e)</label></transition></template><template><name x="40" y="16">FlexGate</name><declaration>const int M = 3; // max. per-train push-ins (min. = 3, as it also stores status)
+
+const int DEADLINE = 10;
+
+const int AWAY = 0;
+const int APPR = 1;
+const int STOP = 2;
+const int GO   = 3;
+
+int[0, M] status[N][N];
+clock timer[N];
+
+int[0, 3] get_status(id_t t)
+{
+	return status[t][t];
+}
+
+void set_status(id_t t, int[0, 3] s)
+{
+	if (s == APPR imply status[t][t] == AWAY) {
+		status[t][t] = s;
+	}
+}
+
+void train_goes(id_t t)
+{
+	int i;
+
+	for (i = 0; i &lt; N; ++i) {
+		if (i != t) {
+			if ((get_status(i) == STOP) &amp;&amp; (status[i][t] &lt; M)) {
+				// increment counts of stationary trains
+				status[i][t]++;
+			}
+
+			// reset counts of moving train
+			status[t][i] = 0;
+		}
+	}
+}
+</declaration><location id="id10" x="-456" y="624"><name x="-512" y="632">Restart</name><urgent/></location><location id="id11" x="64" y="624"><name x="80" y="624">Occ</name><label kind="invariant" x="120" y="624">forall (i : id_t)
+  get_status(i) == APPR
+  imply timer[i] &lt; DEADLINE</label></location><location id="id12" x="64" y="288"><name x="72" y="240">Free</name><label kind="invariant" x="112" y="240">forall (i : id_t)
+  get_status(i) == APPR
+  imply timer[i] &lt; DEADLINE</label></location><init ref="id12"/><transition><source ref="id11"/><target ref="id11"/><label kind="select" x="-48" y="712">i : id_t</label><label kind="synchronisation" x="-48" y="744">appr[i]?</label><label kind="assignment" x="-48" y="760">set_status(i, APPR),
+timer[i] = 0</label><nail x="24" y="704"/><nail x="48" y="720"/></transition><transition><source ref="id10"/><target ref="id11"/><label kind="select" x="-448" y="728">i : int[0, N-1]</label><label kind="guard" x="-448" y="744">get_status(i) == STOP &amp;&amp;
+forall (j : id_t)
+  (j != i &amp;&amp; get_status(j) != AWAY) imply status[j][i] &lt; M</label><label kind="synchronisation" x="-448" y="792">go[i]!</label><label kind="assignment" x="-336" y="792">train_goes(i), set_status(i, GO)</label><nail x="-456" y="728"/><nail x="-112" y="728"/></transition><transition><source ref="id11"/><target ref="id12"/><label kind="select" x="80" y="384">i : id_t</label><label kind="guard" x="80" y="400">exists (j : id_t)
+  get_status(j) == APPR
+||
+forall (k : id_t)
+  get_status(k) != STOP</label><label kind="synchronisation" x="80" y="472">leave[i]?</label><label kind="assignment" x="80" y="488">set_status(i, AWAY)</label></transition><transition><source ref="id11"/><target ref="id10"/><label kind="select" x="-424" y="632">i : id_t</label><label kind="guard" x="-424" y="648">forall (j : id_t) get_status(j) != APPR &amp;&amp;
+exists (k : id_t) k != i &amp;&amp; get_status(k) == STOP</label><label kind="synchronisation" x="-424" y="680">leave[i]?</label><label kind="assignment" x="-336" y="680">set_status(i, AWAY)</label></transition><transition><source ref="id12"/><target ref="id11"/><label kind="select" x="424" y="232">i : id_t</label><label kind="guard" x="424" y="248">get_status(i) == APPR
+&amp;&amp;
+forall (j : id_t)
+    (j != i &amp;&amp; get_status(j) != AWAY)
+    imply status[j][i] &lt; M</label><label kind="synchronisation" x="424" y="320">allow_approach[i]!</label><label kind="assignment" x="424" y="336">train_goes(i), set_status(i, GO)</label><nail x="528" y="376"/><nail x="528" y="512"/></transition><transition><source ref="id11"/><target ref="id11"/><label kind="select" x="96" y="712">i : id_t</label><label kind="guard" x="96" y="728">get_status(i) == APPR</label><label kind="synchronisation" x="96" y="744">stop[i]!</label><label kind="assignment" x="96" y="760">set_status(i, STOP)</label><nail x="112" y="704"/><nail x="80" y="720"/></transition><transition><source ref="id12"/><target ref="id11"/><label kind="select" x="272" y="384">i : id_t</label><label kind="guard" x="272" y="400">get_status(i) == STOP
+&amp;&amp;
+forall (j : id_t)
+    (j != i &amp;&amp; get_status(j) == STOP)
+    imply status[j][i] &lt; M</label><label kind="synchronisation" x="272" y="472">go[i]!</label><label kind="assignment" x="272" y="488">train_goes(i), set_status(i, GO)</label><nail x="256" y="376"/><nail x="256" y="512"/></transition><transition><source ref="id12"/><target ref="id12"/><label kind="select" x="-168" y="248">i : id_t</label><label kind="synchronisation" x="-168" y="264">appr[i]?</label><label kind="assignment" x="-168" y="280">set_status(i, APPR), timer[i] = 0</label><nail x="56" y="240"/><nail x="-32" y="240"/></transition></template><template><name>Silent</name><location id="id13" x="-296" y="-248"></location><init ref="id13"/><transition><source ref="id13"/><target ref="id13"/><label kind="select" x="-240" y="-304">i : id_t</label><label kind="synchronisation" x="-240" y="-288">allow_approach[i]?</label><nail x="-240" y="-248"/><nail x="-280" y="-304"/></transition></template><system>Gate=FlexGate();
+system Train, Gate, Silent;
+</system></nta>

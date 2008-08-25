@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output method="xml"
+		encoding="utf-8"
+		doctype-public="-//Uppaal Team//DTD Flat System 1.1//EN"
+		doctype-system="http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd"
+    />
+
+    <xsl:template match="@* | node()">
+	<xsl:copy>
+	    <xsl:apply-templates select="@* | node()"/>
+	</xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="system">
+	<xsl:copy>
+	    <xsl:value-of select="$system"/>
+	</xsl:copy>
+    </xsl:template>
+
+</xsl:stylesheet>
