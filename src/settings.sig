@@ -17,6 +17,7 @@ signature SETTINGS =
 sig
   val version             : string
   val progName            : string
+  val copyright           : string
 
   val dtdPath             : unit -> string option
   val prefix              : unit -> string option

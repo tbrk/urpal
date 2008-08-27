@@ -18,6 +18,7 @@ struct
   val version                    = concat [Version.version, " (",
                                            Version.svnversion, ")"]
   val progName                   = "urpal"
+  val copyright                  = "(c) Timothy Bourke UNSW/NICTA"
 
   datatype debug_priority = All | VeryDetailed | Detailed | Outline | NoDebug
   fun debugToInt All          = 0

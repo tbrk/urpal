@@ -97,11 +97,14 @@ struct
         ShowUsage        => opt before (
                               TextIO.print (GO.usageInfo {
                                 header=(Settings.progName^" "^
-                                        Settings.version),
+                                        Settings.version^
+                                        " -- "^Settings.copyright),
                                 options=optionList});
                               TextIO.print "\n")
       | ShowVersion      => opt before TextIO.print (Settings.progName ^ " " ^
-                                                     Settings.version  ^ "\n")
+                                                     Settings.version ^
+                                                     " -- " ^
+                                                     Settings.copyright ^ "\n")
       | InputFile f      => {inputfile=SOME f,outputfile=outf}
                             before warningIfUsed inf
       | OutputFile f     => {outputfile=SOME f, inputfile=inf}
