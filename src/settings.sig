@@ -22,6 +22,8 @@ sig
   val dtdPath             : unit -> string option
   val prefix              : unit -> string option
 
+  val adjustExe           : string -> string
+
   (* layout *)
   val graphvizPath        : unit -> string
   val graphvizEngine      : unit -> string

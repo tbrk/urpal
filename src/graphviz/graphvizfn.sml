@@ -58,7 +58,7 @@ struct
   fun exePath exe = let
       val d = OS.Path.concat (Settings.graphvizPath (), "bin")
               handle Path => OS.Path.currentArc
-    in OS.Path.joinDirFile {dir=d, file=exe} end
+    in OS.Path.joinDirFile {dir=d, file=Settings.adjustExe exe} end
 
   fun graphToPath Dot   = exePath "dot"
     | graphToPath Neato = exePath "neato"

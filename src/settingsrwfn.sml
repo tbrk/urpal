@@ -42,6 +42,11 @@ struct
     | setYOff (r as ref NONE, SOME v)              = (r := SOME {xoff=0,    yoff=v})
     | setYOff (r as ref (SOME {xoff,...}), SOME v) = (r := SOME {xoff=xoff, yoff=v})
 
+  val adjustExe = (if (OS.Path.joinDirFile {dir="/", file="usr"}) = "/usr"
+                   then (fn (s : string) => s)
+                   else raise OS.Path.Path)
+                  handle Path => (fn s => s ^ ".exe")
+
   fun getPrefix () = SOME (OS.Path.joinDirFile {dir="/", file="usr"})
     handle Path => NONE (* Path exception under Windows *)
 
@@ -159,7 +164,7 @@ struct
       val results = [ checkoFile ("dtd_path", dtdPath ()),
                       check checkFile ("graphviz/path",
                                        foldl addFile (SOME (graphvizPath ()))
-                                            ["bin", "dot"])
+                                            ["bin", adjustExe "dot"])
                     ]
     in List.all (fn x=>x) results end
 
