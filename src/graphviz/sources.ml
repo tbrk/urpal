@@ -37,5 +37,6 @@ use "graphviz/plain.sig";
 use "graphviz/plainfn.sml";
 use "graphviz/textplain.sml";
 use "graphviz/graphviz.sig";
+use "graphviz/unix-signal-large.sml";
 use "graphviz/graphvizfn.sml";
 use "graphviz/unix-graphviz.sml";

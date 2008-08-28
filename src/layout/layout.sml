@@ -31,7 +31,7 @@ local structure P    = ParsedNta
             and GraphAtt = TypedAttributes.Graph
 in
 
-structure Layout : LAYOUT
+structure Layout (*: LAYOUT *)
 =
 struct
   (* shortcuts over Atom and AtomSet *)
@@ -403,11 +403,12 @@ struct
       fun doLoc (P.Location {id, position, color, name, invariant,
                              comments, urgent, committed}, trans) =
         let
+      (*    fun transP (P.Transition{source=s,target=d,...})= s=id andalso dstP d *)
           fun transP (P.Transition{source=s,target=d,...})= s=id andalso dstP d
           val {xoff, yoff} = Settings.tabulateShift ()
         in case position of
              NONE       => trans
-           | SOME (x,y) => doTrans ((x+xoff,y+yoff), transP, trans)
+           | SOME (x,y) => trans (* doTrans ((x+xoff,y+yoff), transP, trans)*)
         end
     in
       P.Template {name=name, parameter=parameter, declaration=declaration,

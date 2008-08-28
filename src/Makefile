@@ -56,6 +56,9 @@ winmlton: cmdlang/cmdlang.grm.sml cmdlang/cmdlang.lex.sml \
 	  config/config.lex.sml version.sml
 	$(MLTON) -mlb-path-map win-path-map -verbose 1 urpal.mlb
 
+grmfiles: cmdlang/cmdlang.grm.sml uppaal/uppaal.grm.sml mcs51/mcs51.grm.sml
+lexfiles: config/config.lex.sml uppaal/uppaal.lex.sml cmdlang/cmdlang.lex.sml \
+    	  mcs51/mcs51.lex.sml
 
 cmdlang/cmdlang.grm.sml: cmdlang/cmdlang.grm
 	$(MLYACC) cmdlang/cmdlang.grm
@@ -82,7 +85,8 @@ version:
 	@echo $(URPAL_VERSION)
 
 version.sml:
-	(echo "structure Version = struct ";   \
+	(echo "(* automatically generated - do not edit *)"; \
+	 echo "structure Version = struct ";   \
 	 echo "  val version=\"$(URPAL_VERSION)\";"; \
 	 echo "  val svnversion=\"`svnversion`\";";  \
 	 echo "end") > version.sml

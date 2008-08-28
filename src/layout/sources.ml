@@ -12,27 +12,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
  * License for more details.
  *)
-Group
-    structure Settings
-    signature SETTINGS
-    signature SETTINGS_RW
-    structure SettingsRW
-    structure Util
-is
-    settings_rw.sig
-    settingsrwfn.sml
-#if defined(OPSYS_WIN32)
-    win-settingsrw.sml
-#else
-    posix-settingsrw.sml
-#endif
-    settings.sig
-    settings.sml
-
-    util.sml
-    version.sml
-
-    ./config/sources.cm
-    $/basis.cm
-    $/smlnj-lib.cm
+use "layout/layout.sig";
+use "layout/layout.sml";
 

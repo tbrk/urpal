@@ -54,7 +54,7 @@ is
     expression_cvt.sig
     expressioncvt.sml
     expression_pp.sig
-    expressionpp.sml
+    expressionppfn.sml
 
     parsed_nta.sig
     parsednta.sml

@@ -14,7 +14,7 @@
  *)
 local
 val root = "/usr/local/lib/sml-fxp/src"
-val root = "/home/tbourke/tmp/fxp-2.0/src"
+val root = "/home/tbourke/tmp/sml-fxp/src"
 
 val fxplib = ["config.sml",
 "Util/utilCompare.sml",

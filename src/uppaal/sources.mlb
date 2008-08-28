@@ -33,7 +33,7 @@ local
     ppdevstring.sml
 
     expression_pp.sig
-    expressionpp.sml
+    expressionppfn.sml
     declaration_pp.sig
     declarationppfn.sml
 

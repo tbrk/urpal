@@ -14,6 +14,7 @@
  *)
 Group
     structure Urpal
+    signature SETTINGS
     structure Settings
 is
     urpal.sml

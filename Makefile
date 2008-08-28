@@ -38,6 +38,7 @@ src: dist/$(SRCDIST)
 dist/$(SRCDIST): dist
 	@make -C ./src clobber
 	@make -C ./doc clobber
+	@make -C ./src version.sml lexfiles grmfiles
 	-@mkdir dist/$(SRCDIST)
 .for srcdir in ./src ./tests ./doc
 	@(for d in `find $(srcdir) $(SKIPSVN) -type d | $(STRIPDOT)`; do \

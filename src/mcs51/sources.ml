@@ -12,27 +12,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the BSD
  * License for more details.
  *)
-Group
-    structure Settings
-    signature SETTINGS
-    signature SETTINGS_RW
-    structure SettingsRW
-    structure Util
-is
-    settings_rw.sig
-    settingsrwfn.sml
-#if defined(OPSYS_WIN32)
-    win-settingsrw.sml
-#else
-    posix-settingsrw.sml
-#endif
-    settings.sig
-    settings.sml
-
-    util.sml
-    version.sml
-
-    ./config/sources.cm
-    $/basis.cm
-    $/smlnj-lib.cm
+use "mcs51/mcs51_instruction.sig";
+use "mcs51/mcs51instruction.sml";
+use "mcs51/mcs51.lex.sml";
+use "mcs51/mcs51.grm.sig";
+use "mcs51/mcs51.grm.sml";
+use "mcs51/maketimed.sml";
+use "mcs51/mcs51.sig";
+use "mcs51/mcs51.sml";
 

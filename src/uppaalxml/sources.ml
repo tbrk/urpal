@@ -16,18 +16,18 @@
  *	     fxp
  *	     general, lib
  *)
-use "xml/nta_types.sig";
-use "xml/nta_types_output.sig";
-use "xml/nta.sig";
-use "xml/ntafn.sml";
-use "xml/nta_output.sig";
-use "xml/xml_writer.sig";
-use "xml/xmlwriter.sml";
-use "xml/ntaoutputfn.sml";
-use "xml/textnta.sml";
-use "xml/uppaal_dtd.sig";
-use "xml/uppaaldtd.sml";
-use "xml/uppaalhooks.sml";
-use "xml/uppaalresolver.sml";
-use "xml/uppaal_xml.sig";
-use "xml/uppaalxml.sml";
+use "uppaalxml/nta_types.sig";
+use "uppaalxml/nta_types_output.sig";
+use "uppaalxml/nta.sig";
+use "uppaalxml/ntafn.sml";
+use "uppaalxml/nta_output.sig";
+use "uppaalxml/xml_writer.sig";
+use "uppaalxml/xmlwriter.sml";
+use "uppaalxml/ntaoutputfn.sml";
+use "uppaalxml/textnta.sml";
+use "uppaalxml/uppaal_dtd.sig";
+use "uppaalxml/uppaaldtd.sml";
+use "uppaalxml/uppaalhooks.sml";
+use "uppaalxml/uppaalresolver.sml";
+use "uppaalxml/uppaal_xml.sig";
+use "uppaalxml/uppaalxml.sml";
