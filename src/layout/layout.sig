@@ -37,5 +37,5 @@ sig
                             -> ParsedNta.transition list
   
   val joinColumns         : pos * pos -> pos list
-end
+end;
 
