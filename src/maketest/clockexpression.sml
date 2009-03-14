@@ -43,7 +43,10 @@ in struct
 
   fun isConstant (Term (NonClock (E.BoolCExpr x))) = SOME x
     | isConstant _                                 = NONE
-  
+
+  fun isNonClock (NonClock _) = true
+    | isNonClock _            = false
+
   (* shortcuts over Atom and AtomSet *)
   infix <+ <- ++ <\ \ =:= ; open Symbol
 
@@ -502,6 +505,14 @@ in struct
   fun andexpr (e1, e2) = fromDNF (toDNF (And (e1, e2)))
     (* exploit the simplification built into toDNF *)
 
+  fun clusterNonClocks dnf = let
+      val (noclks, clks) = List.partition (List.all isNonClock) dnf
+    in
+      if null noclks
+      then dnf
+      else [[NonClock (toExpr (fromDNF noclks, []))]] @ clks
+    end
+  
 end
 end
 

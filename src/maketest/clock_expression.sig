@@ -70,11 +70,12 @@ signature CLOCK_EXPRESSION = sig
    *          (al, ae) = (rl @ l', andexpr (re, e'))
    * *)
 
-  val toDNF          : t -> clockterm list list
-  val fromDNF        : clockterm list list -> t
-  val andexpr        : t * t -> t
+  val toDNF            : t -> clockterm list list
+  val fromDNF          : clockterm list list -> t
+  val clusterNonClocks : clockterm list list -> clockterm list list
+  val andexpr          : t * t -> t
 
-  val toString       : t -> string
+  val toString         : t -> string
 
 end
 

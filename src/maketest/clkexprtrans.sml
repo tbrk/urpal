@@ -207,7 +207,7 @@ in struct
                           | (_, SOME true)         => (g', false)
                           | (NONE, NONE)           => (ClkE.And (cinv,g'),false)
                           | _                      => (ClkE.falseExpr, true)
-         val dnf = ClkE.toDNF e
+         val dnf = ClkE.clusterNonClocks (ClkE.toDNF e)
 
          val _ = Util.debugVeryDetailed (fn()=>["* CETrans.negate before:\n",
                                                 toString cet])
