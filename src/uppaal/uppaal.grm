@@ -285,10 +285,10 @@ typeExpr: typePrefix INT          (E.INT (NONE, typePrefix))
 typePrefix: META                  (E.Meta)
           | CONST                 (E.Const)
 
-fieldDecls: fieldDecl SEMICOLON   (fieldDecl)
+fieldDecls: fieldDecl             (fieldDecl)
           | fieldDecls fieldDecl  (fieldDecl @ fieldDecls)
 
-fieldDecl: typeExpr idDecls       (expandIdDecls (typeExpr, idDecls))
+fieldDecl: typeExpr idDecls SEMICOLON (expandIdDecls (typeExpr, idDecls))
 
 idDecls: idDecl                   ([idDecl])
        | idDecls COMMA idDecl     (idDecl :: idDecls)
