@@ -13,13 +13,15 @@
 #  License for more details.
 #
 URPAL_VERSION=1.0.0
-HEAP_SUFFIX=x86-bsd
+HEAP_SUFFIX=x86-linux
 MLTONOPT=-loop-passes 1
 
-MLYACC=mlyacc
-MLLEX=mllex
+SMLNJ=/opt/smlnj/bin
+
+MLYACC=$(SMLNJ)/mlyacc
+MLLEX=$(SMLNJ)/mllex
 MLTON=mlton
-HEAP2EXEC=heap2exec
+HEAP2EXEC=$(SMLNJ)/heap2exec
 STRIP=strip
 CTAGS=exctags
 
@@ -29,7 +31,7 @@ SRCDIRS=. ./cmdlang ./config ./graphviz ./graphviz ./lib \
 	./maketest ./uppaal ./uppaalxml ./mcs51 ./layout
 
 urpal: $(SRC) version.sml tags
-	ml-build sources.cm Urpal.main urpal
+	$(SMLNJ)/ml-build sources.cm Urpal.main urpal
 	$(HEAP2EXEC) urpal.$(HEAP_SUFFIX) urpal
 	@rm urpal.$(HEAP_SUFFIX)
 
