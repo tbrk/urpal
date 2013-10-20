@@ -40,7 +40,8 @@ Building Urpal
 Urpal relies on several external libraries:
 
 * The [Standard ML Basis Library](http://www.standardml.org/Basis/).
-* The [Fxp](phttp://www2.informatik.tu-muenchen.de/~berlea/Fxp/) XML parser.
+
+* The [Fxp](http://www2.informatik.tu-muenchen.de/~berlea/Fxp/) XML parser.
 
 * Parts of the [SML/NJ libraries](http://www.smlnj.org/doc/smlnj-lib/index.html) as distributed with SML/NJ and MLton, and readily [adapted for Poly/ML](http://www.tbrk.org/software/poly_smlnj-lib.html), including [ML-Yacc](http://www.cs.princeton.edu/~appel/modern/ml/ml-yacc/) and [ML-Lex](http://www.cs.princeton.edu/~appel/modern/ml/ml-lex/).
 
@@ -119,23 +120,23 @@ There is usually one source file per signature, structure, or functor. The files
 * `cmdlang.sml` contains the structure `CmdLang` which provides the primary implementation of `CMD_LANG`.
 * `plainfn.sml` contains the functor `PlainFn`. All functor names end with `Fn`.
 
-### Module: main
+### Module: Main
 
-The main structure that dispatches program options to subroutines is given in [src/urpal.sml](src/urpal.sml); the expression in [src/main.sml](src/main.sml) invokes the relevant function with arguments from the command line. Command line options are parsed by [src/commands.sml](src/commands.sml).
+The main structure that dispatches program options to subroutines is given in [urpal.sml](src/urpal.sml); the expression in [main.sml](src/main.sml) invokes the relevant function with arguments from the command line. Command line options are parsed by [commands.sml](src/commands.sml).
   
-The various `settings` files parse and create [src/urpalrc](src/urpalrc) files, and store global program settings. Currently it is difficult to add new settings; this should be fixed.
+The various `settings` files parse and create [urpalrc](src/urpalrc) files, and store global program settings. Currently it is difficult to add new settings; this should be fixed.
 
-The file [src/util.sml](src/util.sml) contains functions for printing debugging messages, warnings, and errors. It could be better named.
+The file [util.sml](src/util.sml) contains functions for printing debugging messages, warnings, and errors. It could be better named.
 
-### Module: cmdlang
+### Module: Cmdlang
 
-Implements the expression language used to specify manipulations of Uppaal models. A lexical analyser [src/cmdlang/cmdlang.lex](src/cmdlang/cmdlang.lex) and parser [src/cmdlang/cmdlang.grm](src/cmdlang/cmdlang.grm) are driven by [src/cmdlang/cmdlang.sml](src/cmdlang/cmdlang.sml).
+Implements the expression language used to specify manipulations of Uppaal models. A lexical analyser [cmdlang/cmdlang.lex](src/cmdlang/cmdlang.lex) and parser [cmdlang/cmdlang.grm](src/cmdlang/cmdlang.grm) are driven by [cmdlang/cmdlang.sml](src/cmdlang/cmdlang.sml).
 
 There are probably many other useful manipulations of Uppaal models that could be implemented.
   
 This module is specific to Urpal.
   
-### Module: config
+### Module: Config
 
 A generic module for parsing hierarchical configuration files, following the syntax of Reppy's [ML-Doc](http://people.cs.uchicago.edu/~jhr/tools/ml-doc.html).
   
@@ -143,25 +144,25 @@ A generic module for parsing hierarchical configuration files, following the syn
 
 Generic functions for interacting with [Graphviz](http://www.graphviz.org/). With enhancements, this module would make a good separate library.
   
-Types and functions for dot files, including representation ([src/graphviz/dot.sig](src/graphviz/dot.sig), [src/graphviz/dotfn.sml](src/graphviz/dotfn.sml), <a class="file" href="listing.php?repname=urpal&path=/trunk/src/graphviz/#_trunk_src_graphviz_">*_attribute.sig</a>), and pretty-printing ([src/graphviz/dotppfn.sml](src/graphviz/dotppfn.sml)), but not parsing. There are some limitations: anonymous subgraphs cannot be used in edges (no `n1 -> subgraph {...}`), and there are no explicit types for cluster or subgraph attributes.
+Types and functions for dot files, including representation ([graphviz/dot.sig](src/graphviz/dot.sig), [graphviz/dotfn.sml](src/graphviz/dotfn.sml), [*_attribute.sig](src/graphviz)), and pretty-printing ([graphviz/dotppfn.sml](src/graphviz/dotppfn.sml)), but not parsing. There are some limitations: anonymous subgraphs cannot be used in edges (no `n1 -> subgraph {...}`), and there are no explicit types for cluster or subgraph attributes.
   
-Types and functions for the plain format, including representation ([src/graphviz/plain.sig](src/graphviz/plain.sig)), pretty-printing, and parsing ([src/graphviz/plainfn.sml](src/graphviz/plainfn.sml)). General HTML labels (multiple tags) are not supported.
+Types and functions for the plain format, including representation ([graphviz/plain.sig](src/graphviz/plain.sig)), pretty-printing, and parsing ([graphviz/plainfn.sml](src/graphviz/plainfn.sml)). General HTML labels (multiple tags) are not supported.
   
-There is an interface for invoking Graphviz commands as subprocesses and parsing the results: [src/graphviz/graphviz.sig](src/graphviz/graphviz.sig), [src/graphviz/graphvizfn.sml](src/graphviz/graphvizfn.sml). The functor allows specialisation for Unix or Windows. Support for the latter is fudged because the Basis library Windows structure is not frequently implemented. More fudging is required to handle word size differences between MLton and SML/NJ.
+There is an interface for invoking Graphviz commands as subprocesses and parsing the results: [graphviz/graphviz.sig](src/graphviz/graphviz.sig), [graphviz/graphvizfn.sml](src/graphviz/graphvizfn.sml). The functor allows specialisation for Unix or Windows. Support for the latter is fudged because the Basis library Windows structure is not frequently implemented. More fudging is required to handle word size differences between MLton and SML/NJ.
   
-A simple signature [src/graphviz/x11_color.sig](src/graphviz/x11_color.sig) and structure [src/graphviz/x11color.sml](src/graphviz/x11color.sml) for manipulating <a href="http://en.wikipedia.org/wiki/X11_color_names">X11 colour names</a>. These files would be in a separate module except that they are only used by the graphviz components.
+A simple signature [graphviz/x11_color.sig](src/graphviz/x11_color.sig) and structure [graphviz/x11color.sml](src/graphviz/x11color.sml) for manipulating <a href="http://en.wikipedia.org/wiki/X11_color_names">X11 colour names</a>. These files would be in a separate module except that they are only used by the graphviz components.
 
 The multiplication of [*-graphviz*.sml](src/graphviz/) and [*-signal*.sml](src/graphviz) structures is unfortunate, but required for compatibility across different environments. There is probably a better way to do this; if even to preprocess files.
   
-### Module: layout
+### Module: Layout
 
 The beginnings of a generic interface for visual formatting of Uppaal models. More work is needed to make this module generic and reusable. One good feature would be to reduce the number of nails introduced by Graphviz, particularly by omitting several that occur close together. 
 
-### Module: lib
+### Module: Lib
 
-Utility functions that do not fit anywhere else. Including a file position abstraction used in the lexers ([src/lib/file_pos.sig](src/lib/file_pos.sig), [src/lib/filepos.sml](src/lib/filepos.sml)) and some oft-used shortcuts over atoms ([src/lib/symbol.sig](src/lib/symbol.sig) and [src/lib/symbol.sml](src/lib/symbol.sml)).
+Utility functions that do not fit anywhere else. Including a file position abstraction used in the lexers ([lib/file_pos.sig](src/lib/file_pos.sig), [lib/filepos.sml](src/lib/filepos.sml)) and some oft-used shortcuts over atoms ([lib/symbol.sig](src/lib/symbol.sig) and [lib/symbol.sml](src/lib/symbol.sml)).
   
-### Module: maketest
+### Module: Maketest
 
 This module implements the testing construction described in this [paper](http:/www.tbrk.org/papers/abstracts.html#emsoft08).
   
@@ -169,33 +170,33 @@ It has improved greatly over time but another refactoring is probably required t
 
 * Handle/rename bindings more generically and automatically.
 
-* Remove the redundant routines for the old ‛partitioning’ algorithm (see `negatePartitionedTransitions` in [src/maketest/transitionflipper.sml](src/maketest/transitionflipper.sml), see [UNSW-CSE-TR-0723](ftp://ftp.cse.unsw.edu.au/pub/doc/papers/UNSW/0723.pdf)). This has not been done before now in case further comparisons of the two approaches are required.
+* Remove the redundant routines for the old ‛partitioning’ algorithm (see `negatePartitionedTransitions` in [maketest/transitionflipper.sml](src/maketest/transitionflipper.sml), see [UNSW-CSE-TR-0723](ftp://ftp.cse.unsw.edu.au/pub/doc/papers/UNSW/0723.pdf)). This has not been done before now in case further comparisons of the two approaches are required.
 
 * Rationalise/tidy the functions that handle urgent channels.
 
-* Make clock expressions and associated manipulations a separate and more generic unit, possibly placing them in the [uppaal](moduleuppaal) module.
+* Make clock expressions and associated manipulations a separate and more generic unit, possibly placing them in the [uppaal](module-uppaal) module.
   
-### Module: mcs51
+### Module: Mcs51
 
 Simple-minded routines for parsing [MCS51](http://www.intel.com/design/mcs51/index.htm) (also known as 8051) assembler and creating rudimentary Uppaal models.
   
 These functions exist more as an example of how the other modules can be combined for useful effect rather than as a proposal for a practical model-checking of assembly programs. The lexer, parser, and data structures may form a good starting point for other programs that manipulate MCS51 assembly code.
   
-### Module: uppaalxml
+### Module: Uppaalxml
 
-Types and routines for parsing, representing, and manipulating the Uppaal XML file format. These form, together with those in the [uppaal](#moduleuppaal) module, an alternative in Standard ML to [libutap](http://www.cs.aau.dk/~behrmann/utap/). They could be useful for building other programs that manipulate Uppaal models.
+Types and routines for parsing, representing, and manipulating the Uppaal XML file format. These form, together with those in the [uppaal](#module-uppaal) module, an alternative in Standard ML to [libutap](http://www.cs.aau.dk/~behrmann/utap/). They could be useful for building other programs that manipulate Uppaal models.
   
-The files [src/uppaalxml/nta.sig](src/uppaalxml/nta.sig), [src/uppaalxml/nta_output.sig](src/uppaalxml/nta_output.sig), [src/uppaalxml/nta_types.sig](src/uppaalxml/nta_types.sig), [src/uppaalxml/nta_types_output.sig](src/uppaalxml/nta_types_output.sig), [src/uppaalxml/ntafn.sml](src/uppaalxml/ntafn.sml), and [ntaoutputfn*.sml](src/uppaalxml/) express and manipulate the basic structure of an Uppaal NTA file. (Unfortunately [src/uppaalxml/ntaoutputfn.sml](src/uppaalxml/ntaoutputfn.sml) and [src/uppaalxml/ntaoutputfn.nj.sml](src/uppaalxml/ntaoutputfn.nj.sml) are duplicates but for argument constraints, to work around a flaw in SML/NJ's behaviour.) There are two concrete instantiations: one, [src/uppaalxml/textnta.sml](src/uppaalxml/textnta.sml), where expressions on transitions, functions, etcetera, are uninterpreted text, and another, [src/uppaal/parsednta.sml](src/uppaal/parsednta.sml), in the [uppaal](#moduleuppaal) module in which they have been parsed into datatypes.
+The files [uppaalxml/nta.sig](src/uppaalxml/nta.sig), [uppaalxml/nta_output.sig](src/uppaalxml/nta_output.sig), [uppaalxml/nta_types.sig](src/uppaalxml/nta_types.sig), [uppaalxml/nta_types_output.sig](src/uppaalxml/nta_types_output.sig), [uppaalxml/ntafn.sml](src/uppaalxml/ntafn.sml), and [ntaoutputfn*.sml](src/uppaalxml/) express and manipulate the basic structure of an Uppaal NTA file. (Unfortunately [uppaalxml/ntaoutputfn.sml](src/uppaalxml/ntaoutputfn.sml) and [uppaalxml/ntaoutputfn.nj.sml](src/uppaalxml/ntaoutputfn.nj.sml) are duplicates but for argument constraints, to work around a flaw in SML/NJ's behaviour.) There are two concrete instantiations: one, [uppaalxml/textnta.sml](src/uppaalxml/textnta.sml), where expressions on transitions, functions, etcetera, are uninterpreted text, and another, [uppaal/parsednta.sml](src/uppaal/parsednta.sml), in the [uppaal](#module-uppaal) module in which they have been parsed into datatypes.
   
 The other files interface with the [FXP](http://www2.informatik.tu-muenchen.de/~berlea/Fxp/) XML parsing library. The [flat-1_1.dtd](http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd) file, which the parser uses to validate its input, is currently read from a local path. Configuration would be simpler if it could be built into the parser, but this does not seem to be possible without modifying the FXP routines. No attempt is currently made to download this file automatically, although FXP supports such a feature.
   
-The files [src/uppaalxml/xml_writer.sig](src/uppaalxml/xml_writer.sig) and [src/uppaalxml/xmlwriter.sml](src/uppaalxml/xmlwriter.sml) plug into the Basis library I/O routines for escaping certain characters (<, >, &, ", and ') when outputting XML. They are reusable of themselves.
+The files [uppaalxml/xml_writer.sig](src/uppaalxml/xml_writer.sig) and [uppaalxml/xmlwriter.sml](src/uppaalxml/xmlwriter.sml) plug into the Basis library I/O routines for escaping certain characters (<, >, &, ", and ') when outputting XML. They are reusable of themselves.
 
-### Module: uppaal
+### Module: Uppaal
 
 Types and routines for parsing, representing, manipulating, and pretty printing the Uppaal command language. There are three main parts: expressions, declarations, and environments. Each has routines for pretty printing [*pp.sig/sml](src/uppaal) and conversion to strings [*cvt.sig/sml](src/uppaal)</a>.
   
-The lexer [src/uppaal/uppaal.lex](src/uppaal/uppaal.lex) and parser [src/uppaal/uppaal.grm](src/uppaal/uppaal.grm) turn uninterpreted Uppaal expressions and commands into expression and declaration types. The files [src/uppaal/uppaal_parse.sig](src/uppaal/uppaal_parse.sig) and [src/uppaal/uppaalparse.sml](src/uppaal/uppaalparse.sml) perform some semantic analysis─but not full type checking─using an environment [src/uppaal/environment.sig](src/uppaal/environment.sig)/[src/uppaal/environment.sml](src/uppaal/environment.sml).
+The lexer [uppaal/uppaal.lex](src/uppaal/uppaal.lex) and parser [uppaal/uppaal.grm](src/uppaal/uppaal.grm) turn uninterpreted Uppaal expressions and commands into expression and declaration types. The files [uppaal/uppaal_parse.sig](src/uppaal/uppaal_parse.sig) and [uppaal/uppaalparse.sml](src/uppaal/uppaalparse.sml) perform some semantic analysis─but not full type checking─using an environment [uppaal/environment.sig](src/uppaal/environment.sig)/[uppaal/environment.sml](src/uppaal/environment.sml).
   
 The expression structure has a `unresolvedty` mechanism for handling array declarations like `int A[T]` where `T` could be a typedef, like `typedef int[0,3] T`, or a constant parameter. The mechanism exists because parsing and semantic analysis are strictly separated. A more principled alternative would be to have two signature/structure pairs: one for parsed expressions, the other for analysed expressions. The shared declarations could be factored out into a functor.
 
