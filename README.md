@@ -174,7 +174,7 @@ It has improved greatly over time but another refactoring is probably required t
 
 * Rationalise/tidy the functions that handle urgent channels.
 
-* Make clock expressions and associated manipulations a separate and more generic unit, possibly placing them in the [uppaal](module-uppaal) module.
+* Make clock expressions and associated manipulations a separate and more generic unit, possibly placing them in the [uppaal](#module-uppaal) module.
   
 ### Module: Mcs51
 
