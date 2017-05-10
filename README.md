@@ -16,7 +16,7 @@ Descriptions of the testing construction can be found in:
 * The paper by Arcot Sowmya and me, to be presented at EMSOFT 2008. This paper presents several improvements to the original CSE technical report (UNSE-CSE-TR-0723).
 
 The testing construction cannot be performed on all timed automata,
-specifically several modelling features are not supported:
+specifically several modelling features are **not** supported:
 
 * non-deterministic automata (this assumption is not checked),
 * non-synchronizing (τ) transitions,
